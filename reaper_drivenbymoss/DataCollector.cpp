@@ -11,7 +11,7 @@
 /**
  * Constructor.
  */
-DataCollector::DataCollector(Model &aModel) :
+DataCollector::DataCollector(Model *aModel) :
 	model(aModel),
 	trackExists(trackBankSize, 0),
 	trackNumber(trackBankSize, 0),
@@ -129,6 +129,8 @@ void DataCollector::CollectTransportData(std::stringstream &ss, ReaProject *proj
 	char timeStr[20];
 	format_timestr(cursorPos, timeStr, 20);
 	this->strPlayPosition = CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
+	format_timestr_pos(cursorPos, timeStr, 20, 2);
+	this->strBeatPosition = CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
 
 	if (APIExists("SNM_GetDoubleConfigVar"))
 	{
@@ -151,7 +153,7 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 {
 	MediaTrack *track = GetTrack(project, this->trackBankOffset + this->trackSelection);
 
-	const int deviceIndex = this->deviceBankOffset + this->model.deviceSelected;
+	const int deviceIndex = this->deviceBankOffset + this->model->deviceSelected;
 	int bankDeviceIndex = 1;
 	this->deviceCount = CollectIntValue(ss, "/device/count", this->deviceCount, TrackFX_GetCount(track), dump);
 	this->deviceExists = CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex < this->deviceCount ? 1 : 0, dump);
@@ -178,9 +180,9 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 
 	int paramCount = TrackFX_GetNumParams(track, deviceIndex);
 	this->deviceParamCount = CollectIntValue(ss, "/device/param/count", this->deviceParamCount, paramCount, dump);
-	this->model.deviceParamBankSelected = CollectIntValue(ss, "/device/param/bank/selected", this->model.deviceParamBankSelected, this->model.deviceParamBankSelectedTemp, dump);
+	this->model->deviceParamBankSelected = CollectIntValue(ss, "/device/param/bank/selected", this->model->deviceParamBankSelected, this->model->deviceParamBankSelectedTemp, dump);
 
-	int paramIndex = this->model.deviceParamBankSelected * this->parameterBankSize;
+	int paramIndex = this->model->deviceParamBankSelected * this->parameterBankSize;
 	for (int index = 0; index < parameterBankSize; index++)
 	{
 		std::stringstream das;
@@ -258,7 +260,7 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 		CollectStringArrayValue(ss, (trackAddress + "color").c_str(), index, this->trackColor, FormatColor(red, green, blue).c_str(), dump);
 
 		// Track volume and pan
-		double volDB = track != nullptr ? this->model.ValueToDB(GetMediaTrackInfo_Value(track, "D_VOL")) : 0;
+		double volDB = track != nullptr ? this->model->ValueToDB(GetMediaTrackInfo_Value(track, "D_VOL")) : 0;
 		CollectDoubleArrayValue(ss, (trackAddress + "volume").c_str(), index, this->trackVolume, DB2SLIDER(volDB) / 1000.0, dump);
 		CollectStringArrayValue(ss, (trackAddress + "volume/str").c_str(), index, this->trackVolumeStr, FormatDB(volDB).c_str(), dump);
 		double panVal = track != nullptr ? GetMediaTrackInfo_Value(track, "D_PAN") : 0;
@@ -267,9 +269,9 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 
 		// VU and automation mode
 		double peak = track != nullptr ? Track_GetPeakInfo(track, 0) : 0;
-		CollectDoubleArrayValue(ss, (trackAddress + "vuleft").c_str(), index, this->trackVULeft, DB2SLIDER(this->model.ValueToDB(peak)) / 1000.0, dump);
+		CollectDoubleArrayValue(ss, (trackAddress + "vuleft").c_str(), index, this->trackVULeft, DB2SLIDER(this->model->ValueToDB(peak)) / 1000.0, dump);
 		peak = track != nullptr ? Track_GetPeakInfo(track, 1) : 0;
-		CollectDoubleArrayValue(ss, (trackAddress + "vuright").c_str(), index, this->trackVURight, DB2SLIDER(this->model.ValueToDB(peak)) / 1000.0, dump);
+		CollectDoubleArrayValue(ss, (trackAddress + "vuright").c_str(), index, this->trackVURight, DB2SLIDER(this->model->ValueToDB(peak)) / 1000.0, dump);
 		double automode = track != nullptr ? GetMediaTrackInfo_Value(track, "I_AUTOMODE") : 0;
 		CollectIntArrayValue(ss, (trackAddress + "automode").c_str(), index, this->trackAutoMode, (int)automode, dump);
 
@@ -285,7 +287,7 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 			{
 				result = GetTrackSendName(track, sendCounter, name, LENGTH);
 				CollectStringArrayValue(ss, (sendAddress + "name").c_str(), index, this->trackSendName[sendCounter], result ? name : "", dump);
-				volDB = this->model.ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
+				volDB = this->model->ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
 				CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), index, this->trackSendVolume[sendCounter], DB2SLIDER(volDB) / 1000.0, dump);
 				CollectStringArrayValue(ss, (sendAddress + "volume/str").c_str(), index, this->trackSendVolumeStr[sendCounter], FormatDB(volDB).c_str(), dump);
 			}
@@ -329,16 +331,16 @@ void DataCollector::CollectMasterTrackData(std::stringstream &ss, ReaProject *pr
 	CollectIntValue(ss, "/master/solo", this->masterSolo, (trackState & 16) > 0 ? 1 : 0, dump);
 
 	// Master track volume and pan
-	double volDB = this->model.ValueToDB(GetMediaTrackInfo_Value(master, "D_VOL"));
-	this->model.masterVolume = CollectDoubleValue(ss, "/master/volume", this->model.masterVolume, DB2SLIDER(volDB) / 1000.0, dump);
+	double volDB = this->model->ValueToDB(GetMediaTrackInfo_Value(master, "D_VOL"));
+	this->model->masterVolume = CollectDoubleValue(ss, "/master/volume", this->model->masterVolume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->masterVolumeStr = CollectStringValue(ss, "/master/volume/str", this->masterVolumeStr, FormatDB(volDB).c_str(), dump);
 
 	double panVal = GetMediaTrackInfo_Value(master, "D_PAN");
-	this->model.masterPan = CollectDoubleValue(ss, "/master/pan", this->model.masterPan, (panVal + 1) / 2, dump);
+	this->model->masterPan = CollectDoubleValue(ss, "/master/pan", this->model->masterPan, (panVal + 1) / 2, dump);
 	this->masterPanStr = CollectStringValue(ss, "/master/pan/str", this->masterPanStr, FormatPan(panVal).c_str(), dump);
 
-	this->masterVULeft = CollectDoubleValue(ss, "/master/vuleft", this->masterVULeft, DB2SLIDER(this->model.ValueToDB(Track_GetPeakInfo(master, 0))) / 1000.0, dump);
-	this->masterVURight = CollectDoubleValue(ss, "/master/vuright", this->masterVURight, DB2SLIDER(this->model.ValueToDB(Track_GetPeakInfo(master, 1))) / 1000.0, dump);
+	this->masterVULeft = CollectDoubleValue(ss, "/master/vuleft", this->masterVULeft, DB2SLIDER(this->model->ValueToDB(Track_GetPeakInfo(master, 0))) / 1000.0, dump);
+	this->masterVURight = CollectDoubleValue(ss, "/master/vuright", this->masterVURight, DB2SLIDER(this->model->ValueToDB(Track_GetPeakInfo(master, 1))) / 1000.0, dump);
 }
 
 /**

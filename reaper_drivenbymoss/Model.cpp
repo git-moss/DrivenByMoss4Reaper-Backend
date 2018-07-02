@@ -20,5 +20,7 @@ double Model::ValueToDB(double x)
 
 double Model::DBToValue(double x)
 {
-	return std::exp(x * 0.11512925464970228420089957273422);
+	double val = x * 0.11512925464970228420089957273422;
+	val = std::exp(val);
+	return val;
 }

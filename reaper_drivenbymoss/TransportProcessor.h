@@ -83,6 +83,16 @@ public:
 		else if (strcmp(direction, "--") == 0)
 			Main_OnCommandEx(41130, 0, project);
 	};
+
+	virtual void Process(std::string command, std::deque<std::string> &path, int value)
+	{
+		CSurf_OnTempoChange(value);
+	}
+
+	virtual void Process(std::string command, std::deque<std::string> &path, double value)
+	{
+		CSurf_OnTempoChange(value);
+	}
 };
 
 class ActionProcessor : public OscProcessor
@@ -151,6 +161,7 @@ class PrerollProcessor : public OscProcessor
 public:
 	virtual void Process(std::string command, std::deque<std::string> &path, int value)
 	{
+		// TODO Find alternative, crashes
 		if (APIExists("SNM_SetDoubleConfigVar"))
 			SNM_SetDoubleConfigVar ("prerollmeas", value);
 	};

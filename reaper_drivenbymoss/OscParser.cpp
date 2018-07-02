@@ -10,7 +10,7 @@
 /**
  * Constructor.
  */
-OscParser::OscParser(Model &model)
+OscParser::OscParser(Model *model)
 {
 	this->processors["play"] = new PlayProcessor();
 	this->processors["stop"] = new StopProcessor();

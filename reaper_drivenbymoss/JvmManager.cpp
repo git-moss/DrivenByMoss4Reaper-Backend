@@ -70,7 +70,7 @@ void JvmManager::Create(const std::string &currentPath)
 	vm_args.version = JNI_VERSION_1_8;             // minimum Java version
 	vm_args.nOptions = this->debug ? 4 : 1;        // number of options
 	vm_args.options = this->options;
-	vm_args.ignoreUnrecognized = false;     // invalid options make the JVM init fail
+	vm_args.ignoreUnrecognized = true;// false;     // invalid options make the JVM init fail
 
 	// Load and initialize Java VM and JNI interface
 	jint rc = JNI_CreateJavaVM(&this->jvm, (void**)&this->env, &vm_args);

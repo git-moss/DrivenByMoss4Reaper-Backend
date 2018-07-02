@@ -19,13 +19,13 @@
 class DataCollector
 {
 public:
-	DataCollector(Model &model);
+	DataCollector(Model *model);
 	~DataCollector();
 
 	std::string DataCollector::CollectData(const bool &dump);
 
 private:
-	Model & model;
+	Model *model;
 
 	const int trackBankSize = 8;
 	const int deviceBankSize = 8;
@@ -49,6 +49,7 @@ private:
 	int globalDenomOut;
 	double playPosition;
 	std::string strPlayPosition;
+	std::string strBeatPosition;
 	int prerollMeasures;
 	int prerollClick;
 

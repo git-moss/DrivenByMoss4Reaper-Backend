@@ -23,12 +23,14 @@
 const bool DEBUG = true;
 
 // Some global variables required to map from C to C++
+// TODO Put that in a startup class...
 REAPER_PLUGIN_HINSTANCE g_hInst;
 reaper_plugin_info_t* g_plugin_info;
 HWND g_parent;
 OscParser *oscParser = nullptr;
 DataCollector *dataCollector = nullptr;
 JvmManager *jvmManager = nullptr;
+Model *model = nullptr;
 
 
 /**
@@ -136,26 +138,31 @@ extern "C"
 
 			REAPERAPI_LoadAPI(rec->GetFunc);
 
+			model = new Model();
+			oscParser = new OscParser(model);
+			dataCollector = new DataCollector(model);
+
 			// Set parameter to true for debugging, note that the JVM will halt 
 			// until the Java debugger is connected
 			jvmManager = new JvmManager(DEBUG);
-			Model model;
-			oscParser = new OscParser(model);
-			dataCollector = new DataCollector(model);
 			std::string currentPath = GetExePath();
 			jvmManager->Create(currentPath);
 			jvmManager->RegisterMethods(&processNoArgCPP, &processStringArgCPP, &processIntArgCPP, &processDoubleArgCPP, &receiveModelDataCPP);
 			jvmManager->StartApp();
+
 			return 1;
 		}
 		else
 		{
 			// On shutdown...
-			delete jvmManager;
+			if (jvmManager != nullptr)
+				delete jvmManager;
 			if (dataCollector != nullptr)
 				delete dataCollector;
 			if (oscParser != nullptr)
 				delete oscParser;
+			if (model != nullptr)
+				delete model;
 			return 0;
 		}
 	}

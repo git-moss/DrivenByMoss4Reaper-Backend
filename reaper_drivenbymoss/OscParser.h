@@ -22,7 +22,7 @@
 class OscParser
 {
 public:
-	OscParser(Model &model);
+	OscParser(Model *model);
 	~OscParser();
 
 	virtual void Process(const std::string &command) const;
