@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+/reaper_drivenbymoss/x64/Debug/reaper_d.66BF532D.tlog/*.tlog
+/reaper_drivenbymoss/x64/Debug/*.log
+/x64/Debug
+/reaper_drivenbymoss/x64/Debug
