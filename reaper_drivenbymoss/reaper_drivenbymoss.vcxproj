@@ -141,10 +141,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ClipProcessor.h" />
+    <ClInclude Include="DeviceProcessor.h" />
     <ClInclude Include="de_mossgrabers_transformator_TransformatorApplication.h" />
+    <ClInclude Include="GrooveProcessor.h" />
     <ClInclude Include="JvmManager.h" />
     <ClInclude Include="MastertrackProcessor.h" />
+    <ClInclude Include="MidiProcessor.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="NotifyProcessor.h" />
     <ClInclude Include="OscParser.h" />
     <ClInclude Include="OscProcessor.h" />
     <ClInclude Include="reaper_plugin.h" />
@@ -152,9 +157,12 @@
     <ClInclude Include="DataCollector.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TrackProcessor.h" />
     <ClInclude Include="TransportProcessor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ClipProcessor.cpp" />
+    <ClCompile Include="DeviceProcessor.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -169,12 +177,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="GrooveProcessor.cpp" />
     <ClCompile Include="JvmManager.cpp" />
     <ClCompile Include="MastertrackProcessor.cpp" />
+    <ClCompile Include="MidiProcessor.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="NotifyProcessor.cpp" />
     <ClCompile Include="OscParser.cpp" />
     <ClCompile Include="DataCollector.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="TrackProcessor.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

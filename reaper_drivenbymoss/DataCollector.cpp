@@ -4,6 +4,9 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 #include "DataCollector.h"
 
@@ -13,34 +16,32 @@
  */
 DataCollector::DataCollector(Model *aModel) :
 	model(aModel),
-	trackExists(trackBankSize, 0),
-	trackNumber(trackBankSize, 0),
-	trackName(trackBankSize, ""),
-	trackType(trackBankSize, ""),
-	trackSelected(trackBankSize, 0),
-	trackMute(trackBankSize, 0),
-	trackSolo(trackBankSize, 0),
-	trackRecArmed(trackBankSize, 0),
-	trackActive(trackBankSize, 0),
-	trackMonitor(trackBankSize, 0),
-	trackAutoMonitor(trackBankSize, 0),
-	trackColor(trackBankSize, ""),
-	trackVolume(trackBankSize, 0),
-	trackVolumeStr(trackBankSize, ""),
-	trackPan(trackBankSize, 0),
-	trackPanStr(trackBankSize, ""),
-	trackVULeft(trackBankSize, 0),
-	trackVURight(trackBankSize, 0),
-	trackAutoMode(trackBankSize, 0),
-	trackSendName(trackBankSize, std::vector<std::string>(sendBankSize, "")),
-	trackSendVolume(trackBankSize, std::vector<double>(sendBankSize, 0)),
-	trackSendVolumeStr(trackBankSize, std::vector<std::string>(sendBankSize, "")),
-	trackRepeatActive(trackBankSize, 0),
-	trackRepeatNoteLength(trackBankSize, 0),
-	deviceSiblings(deviceBankSize, ""),
-	deviceParamName(parameterBankSize, ""),
-	deviceParamValue(parameterBankSize, 0),
-	deviceParamValueStr(parameterBankSize, "")
+	trackExists(aModel->trackBankSize, 0),
+	trackNumber(aModel->trackBankSize, 0),
+	trackName(aModel->trackBankSize, ""),
+	trackType(aModel->trackBankSize, ""),
+	trackSelected(aModel->trackBankSize, 0),
+	trackMute(aModel->trackBankSize, 0),
+	trackSolo(aModel->trackBankSize, 0),
+	trackRecArmed(aModel->trackBankSize, 0),
+	trackActive(aModel->trackBankSize, 0),
+	trackMonitor(aModel->trackBankSize, 0),
+	trackAutoMonitor(aModel->trackBankSize, 0),
+	trackColor(aModel->trackBankSize, ""),
+	trackVolumeStr(aModel->trackBankSize, ""),
+	trackPanStr(aModel->trackBankSize, ""),
+	trackVULeft(aModel->trackBankSize, 0),
+	trackVURight(aModel->trackBankSize, 0),
+	trackAutoMode(aModel->trackBankSize, 0),
+	trackSendName(aModel->trackBankSize, std::vector<std::string>(aModel->sendBankSize, "")),
+	trackSendVolumeStr(aModel->trackBankSize, std::vector<std::string>(aModel->sendBankSize, "")),
+	trackRepeatActive(aModel->trackBankSize, 0),
+	trackRepeatNoteLength(aModel->trackBankSize, 0),
+	deviceSiblings(aModel->deviceBankSize, ""),
+	deviceParamName(aModel->parameterBankSize, ""),
+	deviceParamValue(aModel->parameterBankSize, 0),
+	deviceParamValueStr(aModel->parameterBankSize, ""),
+	devicePresetsStr(128, "")
 {
 	// Intentionally empty
 }
@@ -74,6 +75,7 @@ std::string DataCollector::CollectData(const bool &dump)
 	CollectMasterTrackData(ss, project, dump);
 	CollectGrooveData(ss, project, dump);
 	CollectClipData(ss, project, dump);
+	CollectBrowserData(ss, project, dump);
 
 	return ss.str();
 }
@@ -151,16 +153,16 @@ void DataCollector::CollectTransportData(std::stringstream &ss, ReaProject *proj
  */
 void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	MediaTrack *track = GetTrack(project, this->trackBankOffset + this->trackSelection);
+	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + this->model->trackSelection);
 
-	const int deviceIndex = this->deviceBankOffset + this->model->deviceSelected;
+	const int deviceIndex = this->model->deviceBankOffset + this->model->deviceSelected;
 	int bankDeviceIndex = 1;
-	this->deviceCount = CollectIntValue(ss, "/device/count", this->deviceCount, TrackFX_GetCount(track), dump);
-	this->deviceExists = CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex < this->deviceCount ? 1 : 0, dump);
+	this->model->deviceCount = CollectIntValue(ss, "/device/count", this->model->deviceCount, TrackFX_GetCount(track), dump);
+	this->deviceExists = CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex < this->model->deviceCount ? 1 : 0, dump);
 	this->devicePosition = CollectIntValue(ss, "/device/position", this->devicePosition, deviceIndex, dump);
 	this->deviceWindow = CollectIntValue(ss, "/device/window", this->deviceWindow, TrackFX_GetOpen(track, deviceIndex), dump);
-	this->deviceExpanded = CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->deviceExpandedTypeTemp == 1, dump);
-	this->deviceExpandedType = this->deviceExpandedTypeTemp;
+	this->deviceExpanded = CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model->deviceExpandedTypeTemp == 1, dump);
+	this->model->deviceExpandedType = this->model->deviceExpandedTypeTemp;
 
 	const int LENGTH = 20;
 	char name[LENGTH];
@@ -168,12 +170,12 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 	this->deviceName = CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
 	this->deviceBypass = CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
 
-	for (int index = 0; index < this->deviceBankSize; index++)
+	for (int index = 0; index < this->model->deviceBankSize; index++)
 	{
 		std::stringstream das;
 		das << "/device/sibling/" << bankDeviceIndex << "/name";
 		std::string deviceAddress = das.str();
-		bool result = TrackFX_GetFXName(track, this->deviceBankOffset + index, name, LENGTH);
+		bool result = TrackFX_GetFXName(track, this->model->deviceBankOffset + index, name, LENGTH);
 		CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? name : "", dump);
 		bankDeviceIndex++;
 	}
@@ -182,8 +184,8 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 	this->deviceParamCount = CollectIntValue(ss, "/device/param/count", this->deviceParamCount, paramCount, dump);
 	this->model->deviceParamBankSelected = CollectIntValue(ss, "/device/param/bank/selected", this->model->deviceParamBankSelected, this->model->deviceParamBankSelectedTemp, dump);
 
-	int paramIndex = this->model->deviceParamBankSelected * this->parameterBankSize;
-	for (int index = 0; index < parameterBankSize; index++)
+	int paramIndex = this->model->deviceParamBankSelected * this->model->parameterBankSize;
+	for (int index = 0; index < model->parameterBankSize; index++)
 	{
 		std::stringstream das;
 		das << "/device/param/" << index + 1 << "/";
@@ -211,21 +213,21 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 {
 	this->AdjustTrackBank(project);
 
-	int trackIndex = this->trackBankOffset;
+	int trackIndex = this->model->trackBankOffset;
 	int bankTrackIndex = 1;
-	this->trackCount = CollectIntValue(ss, "/track/count", this->trackCount, CountTracks(project), dump);
+	this->model->trackCount = CollectIntValue(ss, "/track/count", this->model->trackCount, CountTracks(project), dump);
 
 	const int LENGTH = 20;
 	char name[LENGTH];
 
-	for (int index = 0; index < this->trackBankSize; index++)
+	for (int index = 0; index < this->model->trackBankSize; index++)
 	{
 		std::stringstream das;
 		das << "/track/" << bankTrackIndex << "/";
 		std::string trackAddress = das.str();
 
 		// Track exists flag and number of tracks
-		CollectIntArrayValue(ss, (trackAddress + "exists").c_str(), index, this->trackExists, trackIndex < trackCount ? 1 : 0, dump);
+		CollectIntArrayValue(ss, (trackAddress + "exists").c_str(), index, this->trackExists, trackIndex < this->model->trackCount ? 1 : 0, dump);
 		CollectIntArrayValue(ss, (trackAddress + "number").c_str(), index, this->trackNumber, trackIndex, dump);
 
 		// Track name
@@ -239,8 +241,8 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 			GetTrackState(track, &trackState);
 		CollectStringArrayValue(ss, (trackAddress + "type").c_str(), index, this->trackType, (trackState & 1) > 0 ? "GROUP" : "HYBRID", dump);
 		int selected = (trackState & 2) > 0 ? 1 : 0;
-		if (trackIndex < trackCount && selected)
-			this->trackSelection = index;
+		if (trackIndex < this->model->trackCount && selected)
+			this->model->trackSelection = index;
 
 		CollectIntArrayValue(ss, (trackAddress + "select").c_str(), index, this->trackSelected, selected, dump);
 		CollectIntArrayValue(ss, (trackAddress + "mute").c_str(), index, this->trackMute, (trackState & 8) > 0 ? 1 : 0, dump);
@@ -261,10 +263,10 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 
 		// Track volume and pan
 		double volDB = track != nullptr ? this->model->ValueToDB(GetMediaTrackInfo_Value(track, "D_VOL")) : 0;
-		CollectDoubleArrayValue(ss, (trackAddress + "volume").c_str(), index, this->trackVolume, DB2SLIDER(volDB) / 1000.0, dump);
+		CollectDoubleArrayValue(ss, (trackAddress + "volume").c_str(), index, this->model->trackVolume, DB2SLIDER(volDB) / 1000.0, dump);
 		CollectStringArrayValue(ss, (trackAddress + "volume/str").c_str(), index, this->trackVolumeStr, FormatDB(volDB).c_str(), dump);
 		double panVal = track != nullptr ? GetMediaTrackInfo_Value(track, "D_PAN") : 0;
-		CollectDoubleArrayValue(ss, (trackAddress + "pan").c_str(), index, this->trackPan, (panVal + 1) / 2, dump);
+		CollectDoubleArrayValue(ss, (trackAddress + "pan").c_str(), index, this->model->trackPan, (panVal + 1) / 2, dump);
 		CollectStringArrayValue(ss, (trackAddress + "pan/str").c_str(), index, this->trackPanStr, FormatPan(panVal).c_str(), dump);
 
 		// VU and automation mode
@@ -277,24 +279,24 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 
 		// Sends
 		int numSends = track != nullptr ? GetTrackNumSends(track, 0) : 0;
-		for (int sendCounter = 0; sendCounter < this->sendBankSize; sendCounter++)
+		for (int sendCounter = 0; sendCounter < this->model->sendBankSize; sendCounter++)
 		{
 			std::stringstream stream;
 			stream << trackAddress << "send/" << sendCounter + 1 << "/";
 			std::string sendAddress = stream.str();
-			int arrayIndex = index * this->trackBankSize + sendCounter;
+			int arrayIndex = index * this->model->trackBankSize + sendCounter;
 			if (sendCounter < numSends)
 			{
 				result = GetTrackSendName(track, sendCounter, name, LENGTH);
 				CollectStringArrayValue(ss, (sendAddress + "name").c_str(), index, this->trackSendName[sendCounter], result ? name : "", dump);
 				volDB = this->model->ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
-				CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), index, this->trackSendVolume[sendCounter], DB2SLIDER(volDB) / 1000.0, dump);
+				CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), index, this->model->trackSendVolume[sendCounter], DB2SLIDER(volDB) / 1000.0, dump);
 				CollectStringArrayValue(ss, (sendAddress + "volume/str").c_str(), index, this->trackSendVolumeStr[sendCounter], FormatDB(volDB).c_str(), dump);
 			}
 			else
 			{
 				CollectStringArrayValue(ss, (sendAddress + "name").c_str(), index, this->trackSendName[sendCounter], "", dump);
-				CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), index, this->trackSendVolume[sendCounter], 0, dump);
+				CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), index, this->model->trackSendVolume[sendCounter], 0, dump);
 				CollectStringArrayValue(ss, (sendAddress + "volume/str").c_str(), index, this->trackSendVolumeStr[sendCounter], "", dump);
 			}
 		}
@@ -427,6 +429,70 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 }
 
 
+void DataCollector::CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump)
+{
+	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + this->model->trackSelection);
+	int sel = this->model->deviceBankOffset + this->model->deviceSelected;
+	LoadDevicePresetFile(ss, track, sel, dump);
+
+	const int LENGTH = 20;
+	char presetname[LENGTH];
+	TrackFX_GetPreset(track, sel, presetname, LENGTH);
+	this->devicePresetName = CollectStringValue(ss, "/browser/selected/name", this->devicePresetName, presetname, dump);
+	int numberOfPresets;
+	int selectedIndex = TrackFX_GetPresetIndex(track, this->model->deviceBankOffset + this->model->deviceSelected, &numberOfPresets);
+	this->devicePresetIndex = CollectIntValue(ss, "/browser/selected/index", this->devicePresetIndex, selectedIndex, dump);
+}
+
+
+void DataCollector::LoadDevicePresetFile(std::stringstream &ss, MediaTrack *track, int fx, const bool &dump)
+{
+	const int LENGTH = 1024;
+	char filename[LENGTH];
+	TrackFX_GetUserPresetFilename(track, fx, filename, LENGTH);
+
+	try
+	{
+		std::ifstream file;
+		std::string name;
+		int counter = 0;
+
+		file.open(filename);
+		while (file.good())
+		{
+			std::getline(file, name);
+
+			std::cmatch result;
+			if (std::regex_search(name.c_str(), result, presetPattern))
+			{
+				std::string strip = result.str(1);
+
+				std::stringstream das;
+				das << "/browser/result/" << counter + 1 << "/name";
+				CollectStringArrayValue(ss, das.str().c_str(), counter, this->devicePresetsStr, strip.c_str(), dump);
+
+				counter += 1;
+			}
+		}
+		file.close();
+
+		while (counter < 128)
+		{
+			std::stringstream das;
+			das << "/browser/result/" << counter + 1 << "/name";
+			CollectStringArrayValue(ss, das.str().c_str(), counter, this->devicePresetsStr, "", dump);
+			counter += 1;
+		}
+	}
+	catch (std::ios_base::failure &ex)
+	{
+		(void)ex;
+		// File does not exist
+		return;
+	}
+}
+
+
 void DataCollector::AdjustTrackBank(ReaProject *project)
 {
 	MediaTrack *track = GetSelectedTrack(project, 0);
@@ -434,7 +500,7 @@ void DataCollector::AdjustTrackBank(ReaProject *project)
 		return;
 	int trackIdx = CSurf_TrackToID(track, false) - 1;
 	if (trackIdx >= 0)
-		this->trackBankOffset = (int)std::floor(trackIdx / this->trackBankSize) * this->trackBankSize;
+		this->model->trackBankOffset = (int)std::floor(trackIdx / this->model->trackBankSize) * this->model->trackBankSize;
 }
 
 

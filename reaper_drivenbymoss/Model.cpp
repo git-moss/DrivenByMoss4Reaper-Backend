@@ -9,6 +9,16 @@
 
 
 
+
+Model::Model() :
+	trackVolume(this->trackBankSize, 0),
+	trackPan(this->trackBankSize, 0),
+	trackSendVolume(this->trackBankSize, std::vector<double>(sendBankSize, 0))
+{
+	// Intentionally empty
+}
+
+
 double Model::ValueToDB(double x)
 {
 	if (x < 0.0000000298023223876953125)

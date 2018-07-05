@@ -5,9 +5,9 @@
 #include "MastertrackProcessor.h"
 
 
-MastertrackProcessor::MastertrackProcessor(Model *aModel) : model(aModel)
+MastertrackProcessor::MastertrackProcessor(Model *aModel) : OscProcessor(aModel)
 {
-
+	// Intentionally empty
 }
 
 

@@ -5,6 +5,12 @@
 #include "OscParser.h"
 #include "TransportProcessor.h"
 #include "MastertrackProcessor.h"
+#include "TrackProcessor.h"
+#include "DeviceProcessor.h"
+#include "ClipProcessor.h"
+#include "MidiProcessor.h"
+#include "GrooveProcessor.h"
+#include "NotifyProcessor.h"
 
 
 /**
@@ -28,6 +34,12 @@ OscParser::OscParser(Model *model)
 	this->processors["cursor"] = new CursorProcessor();
 	this->processors["project"] = new ProjectProcessor();
 	this->processors["master"] = new MastertrackProcessor(model);
+	this->processors["track"] = new TrackProcessor(model);
+	this->processors["device"] = new DeviceProcessor(model);
+	this->processors["clip"] = new ClipProcessor(model);
+	this->processors["vkb_midi"] = new MidiProcessor();
+	this->processors["groove"] = new GrooveProcessor();
+	this->processors["notify"] = new NotifyProcessor();
 }
 
 

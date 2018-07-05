@@ -27,12 +27,8 @@ public:
 private:
 	Model *model;
 
-	const int trackBankSize = 8;
-	const int deviceBankSize = 8;
-	const int parameterBankSize = 8;
-	const int sendBankSize = 8;
-
 	const std::regex trackLockPattern{ "LOCK (\\d+)" };
+	const std::regex presetPattern{ "Name=(.*)\n" };
 
 	std::string iniPath;
 
@@ -61,9 +57,6 @@ private:
 	double tempo;
 
 	// Track values
-	int trackBankOffset = 0;
-	int trackSelection = 0;
-	int trackCount;
 	std::vector<int> trackExists;
 	std::vector<int> trackNumber;
 	std::vector<std::string> trackName;
@@ -76,15 +69,12 @@ private:
 	std::vector<int> trackMonitor;
 	std::vector<int> trackAutoMonitor;
 	std::vector<std::string> trackColor;
-	std::vector<double> trackVolume;
 	std::vector<std::string> trackVolumeStr;
-	std::vector<double> trackPan;
 	std::vector<std::string> trackPanStr;
 	std::vector<double> trackVULeft;
 	std::vector<double> trackVURight;
 	std::vector<int> trackAutoMode;
 	std::vector<std::vector<std::string>> trackSendName;
-	std::vector<std::vector<double>> trackSendVolume;
 	std::vector<std::vector<std::string>> trackSendVolumeStr;
 	std::vector<int> trackRepeatActive;
 	std::vector<int> trackRepeatNoteLength;
@@ -99,14 +89,10 @@ private:
 	double masterVURight;
 
 	// Device values
-	int deviceBankOffset = 0;
-	int deviceCount = -1;
 	int deviceExists = -1;
 	int devicePosition = -1;
 	int deviceWindow = -1;
 	int deviceExpanded = -1;
-	int deviceExpandedType = -1;
-	int deviceExpandedTypeTemp = -1;
 	std::string deviceName;
 	int deviceBypass;
 	std::vector<std::string> deviceSiblings;
@@ -114,6 +100,11 @@ private:
 	std::vector<std::string> deviceParamName;
 	std::vector<double> deviceParamValue;
 	std::vector<std::string> deviceParamValueStr;
+
+	// Browser values
+	std::string devicePresetName;
+	int devicePresetIndex;
+	std::vector<std::string> devicePresetsStr;
 
 	// Groove values
 	int grooveStrength;
@@ -130,13 +121,15 @@ private:
 	void CollectMasterTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectGrooveData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
 
 	void AdjustTrackBank(ReaProject *project);
 	int GetTrackLockState(MediaTrack *track);
 	std::string FormatColor(int red, int green, int blue);
 	std::string FormatDB(double value);
 	std::string FormatPan(double value);
-	
+	void LoadDevicePresetFile(std::stringstream &ss, MediaTrack *track, int fx, const bool &dump);
+
 	const char *CollectStringValue(std::stringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump) const;
 	int CollectIntValue(std::stringstream &ss, const char *command, int currentValue, const int newValue, const bool &dump) const;
 	double CollectDoubleValue(std::stringstream &ss, const char *command, double currentValue, const double newValue, const bool &dump) const;
@@ -147,9 +140,8 @@ private:
 
 	ReaProject * GetProject()
 	{
-		const int gProjectID = 0;
-		// TODO Get project 0
-		ReaProject *project = nullptr;
-		return project;
+		// Current project
+		const int projectID = -1;
+		return EnumProjects(projectID, nullptr, 0);
 	};
 };

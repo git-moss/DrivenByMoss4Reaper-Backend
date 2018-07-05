@@ -6,8 +6,10 @@
 
 #include <cstdlib>
 #include <deque>
+#include <regex>
 
 #include "reaper_plugin_functions.h"
+#include "Model.h"
 
 
 /**
@@ -16,6 +18,17 @@
 class OscProcessor
 {
 public:
+	OscProcessor() : model(nullptr)
+	{
+		// Intentionally empty
+	}
+
+
+	OscProcessor(Model * aModel) : model(aModel)
+	{
+		// Intentionally empty
+	}
+
 	virtual void Process(std::string command, std::deque<std::string> &path) {};
 
 	virtual void Process(std::string command, std::deque<std::string> &path, const char *value) {};
@@ -34,11 +47,15 @@ public:
 	};
 
 protected:
+	const std::regex colorPattern{ "RGB\\((\\d+),(\\d+),(\\d+)\\)" };
+
+	Model * model;
+
+
 	ReaProject * GetProject()
 	{
-		const int gProjectID = 0;
-		// TODO
-		ReaProject *project = nullptr;
-		return project;
+		// Current project
+		const int projectID = -1;
+		return EnumProjects(projectID, nullptr, 0);
 	};
 };

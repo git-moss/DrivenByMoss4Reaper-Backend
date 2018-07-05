@@ -7,17 +7,10 @@
 #include <string>
 
 #include "OscProcessor.h"
-#include "Model.h"
 
 
-class MastertrackProcessor : public OscProcessor
+class MidiProcessor : public OscProcessor
 {
 public:
-	MastertrackProcessor(Model *model);
-
 	virtual void Process(std::string command, std::deque<std::string> &path, int value);
-	virtual void Process(std::string command, std::deque<std::string> &path, double value);
-
-private:
-	Model *model;
 };

@@ -119,6 +119,7 @@ jstring receiveModelDataCPP(JNIEnv *env, jobject object, jboolean dump)
 	return env->NewStringUTF(result.c_str());
 }
 
+
 // Must be extern to be exported from the DLL
 extern "C"
 {
