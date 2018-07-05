@@ -130,16 +130,6 @@ public:
 		// Close Window
 		MIDIEditor_OnCommand(active_MIDI_editor, 2);
 	};
-
-	virtual void Process(std::string command, std::deque<std::string> &path, const char *value)
-	{
-		if (path.empty() || strcmp(path[0].c_str(), "strength") != 0 || !APIExists("BR_Win32_WritePrivateProfileString"))
-			return;
-
-		const char *inipath = get_ini_file();
-		if (inipath)
-			BR_Win32_WritePrivateProfileString("midiedit", "quantstrength", value, inipath);
-	};
 };
 
 class MetronomeVolumeProcessor : public OscProcessor
@@ -161,9 +151,7 @@ class PrerollProcessor : public OscProcessor
 public:
 	virtual void Process(std::string command, std::deque<std::string> &path, int value)
 	{
-		// TODO Find alternative, crashes
-		if (APIExists("SNM_SetDoubleConfigVar"))
-			SNM_SetDoubleConfigVar ("prerollmeas", value);
+		this->model->mainConfig.SetDoubleConfigVar("prerollmeas", value);
 	};
 };
 

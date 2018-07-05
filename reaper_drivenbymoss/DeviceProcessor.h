@@ -15,8 +15,6 @@ public:
 
 	virtual void Process(std::string command, std::deque<std::string> &path);
 	virtual void Process(std::string command, std::deque<std::string> &path, int value);
-	// TODO
-	//virtual void Process(std::string command, std::deque<std::string> &path, double value);
 	virtual void Process(std::string command, std::deque<std::string> &path, std::string value);
 
 private:

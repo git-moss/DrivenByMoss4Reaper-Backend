@@ -96,7 +96,6 @@ private:
 	std::string deviceName;
 	int deviceBypass;
 	std::vector<std::string> deviceSiblings;
-	int deviceParamCount;
 	std::vector<std::string> deviceParamName;
 	std::vector<double> deviceParamValue;
 	std::vector<std::string> deviceParamValueStr;
@@ -119,7 +118,6 @@ private:
 	void CollectDeviceData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMasterTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectGrooveData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
 

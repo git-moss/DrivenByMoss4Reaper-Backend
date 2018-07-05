@@ -9,8 +9,6 @@
 #include "DeviceProcessor.h"
 #include "ClipProcessor.h"
 #include "MidiProcessor.h"
-#include "GrooveProcessor.h"
-#include "NotifyProcessor.h"
 
 
 /**
@@ -38,8 +36,6 @@ OscParser::OscParser(Model *model)
 	this->processors["device"] = new DeviceProcessor(model);
 	this->processors["clip"] = new ClipProcessor(model);
 	this->processors["vkb_midi"] = new MidiProcessor();
-	this->processors["groove"] = new GrooveProcessor();
-	this->processors["notify"] = new NotifyProcessor();
 }
 
 

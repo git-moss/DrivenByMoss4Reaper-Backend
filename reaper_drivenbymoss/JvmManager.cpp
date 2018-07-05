@@ -11,8 +11,12 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
+#include <string>
+#include <sstream>
+#include <iostream>
 
 #include "JvmManager.h"
+#include "reaper_plugin_functions.h"
 
 
 /**
@@ -56,10 +60,14 @@ void JvmManager::Create(const std::string &currentPath)
 {
 	int result = _chdir(currentPath.c_str());
 	if (result < 0)
-		std::cerr << "ERROR: Could not change current directory!";
+	{
+		ReaScriptError("ERROR: Could not change current directory!");
+		return;
+	}
 
 	JavaVMInitArgs vm_args;
-	options[0].optionString = (char *) "-Djava.class.path=./drivenbymoss-libs/batik-anim-1.9.1.jar;./drivenbymoss-libs/batik-awt-util-1.9.1.jar;./drivenbymoss-libs/batik-bridge-1.9.1.jar;./drivenbymoss-libs/batik-constants-1.9.1.jar;./drivenbymoss-libs/batik-css-1.9.1.jar;./drivenbymoss-libs/batik-dom-1.9.1.jar;./drivenbymoss-libs/batik-ext-1.9.1.jar;./drivenbymoss-libs/batik-gvt-1.9.1.jar;./drivenbymoss-libs/batik-i18n-1.9.1.jar;./drivenbymoss-libs/batik-parser-1.9.1.jar;./drivenbymoss-libs/batik-script-1.9.1.jar;./drivenbymoss-libs/batik-svg-dom-1.9.1.jar;./drivenbymoss-libs/batik-svggen-1.9.1.jar;./drivenbymoss-libs/batik-transcoder-1.9.1.jar;./drivenbymoss-libs/batik-util-1.9.1.jar;./drivenbymoss-libs/batik-xml-1.9.1.jar;./drivenbymoss-libs/commons-io-1.3.1.jar;./drivenbymoss-libs/commons-lang3-3.2.1.jar;./drivenbymoss-libs/commons-logging-1.0.4.jar;./drivenbymoss-libs/coremidi4j-1.1.jar;./drivenbymoss-libs/DrivenByMoss4Reaper-2.10.jar;./drivenbymoss-libs/javaosc-core-0.4.jar;./drivenbymoss-libs/jna-4.0.0.jar;./drivenbymoss-libs/jython-2.7.0.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-arm.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86_64.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-javadoc.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-sources.jar;./drivenbymoss-libs/purejavahidapi-0.0.11.jar;./drivenbymoss-libs/rhino-1.7.7.jar;./drivenbymoss-libs/serializer-2.7.2.jar;./drivenbymoss-libs/usb4java-1.2.0.jar;./drivenbymoss-libs/xalan-2.7.2.jar;./drivenbymoss-libs/xml-apis-1.3.04.jar;./drivenbymoss-libs/xml-apis-ext-1.3.04.jar;./drivenbymoss-libs/xmlgraphics-commons-2.2.jar";
+	// TODO create from given folder...
+	options[0].optionString = (char *) "-Djava.class.path=./drivenbymoss-libs/batik-anim-1.9.1.jar;./drivenbymoss-libs/batik-awt-util-1.9.1.jar;./drivenbymoss-libs/batik-bridge-1.9.1.jar;./drivenbymoss-libs/batik-constants-1.9.1.jar;./drivenbymoss-libs/batik-css-1.9.1.jar;./drivenbymoss-libs/batik-dom-1.9.1.jar;./drivenbymoss-libs/batik-ext-1.9.1.jar;./drivenbymoss-libs/batik-gvt-1.9.1.jar;./drivenbymoss-libs/batik-i18n-1.9.1.jar;./drivenbymoss-libs/batik-parser-1.9.1.jar;./drivenbymoss-libs/batik-script-1.9.1.jar;./drivenbymoss-libs/batik-svg-dom-1.9.1.jar;./drivenbymoss-libs/batik-svggen-1.9.1.jar;./drivenbymoss-libs/batik-transcoder-1.9.1.jar;./drivenbymoss-libs/batik-util-1.9.1.jar;./drivenbymoss-libs/batik-xml-1.9.1.jar;./drivenbymoss-libs/commons-io-1.3.1.jar;./drivenbymoss-libs/commons-lang3-3.2.1.jar;./drivenbymoss-libs/commons-logging-1.0.4.jar;./drivenbymoss-libs/coremidi4j-1.1.jar;./drivenbymoss-libs/DrivenByMoss4Reaper-2.10.jar;./drivenbymoss-libs/javaosc-core-0.4.jar;./drivenbymoss-libs/jna-4.0.0.jar;./drivenbymoss-libs/jython-2.7.0.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-arm.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86_64.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-javadoc.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-sources.jar;./drivenbymoss-libs/purejavahidapi-0.0.11.jar;./drivenbymoss-libs/rhino-1.7.7.jar;./drivenbymoss-libs/serializer-2.7.2.jar;./drivenbymoss-libs/usb4java-1.2.0.jar;./drivenbymoss-libs/xalan-2.7.2.jar;./drivenbymoss-libs/xml-apis-1.3.04.jar;./drivenbymoss-libs/xml-apis-ext-1.3.04.jar;./drivenbymoss-libs/xmlgraphics-commons-2.2.jar;./drivenbymoss-libs/inieditor-r6.jar";
 	if (this->debug)
 	{
 		options[1].optionString = (char *) "-Xdebug";
@@ -67,24 +75,20 @@ void JvmManager::Create(const std::string &currentPath)
 		options[3].optionString = (char *) "-Xcheck:jni";
 	}
 
-	vm_args.version = JNI_VERSION_1_8;             // minimum Java version
-	vm_args.nOptions = this->debug ? 4 : 1;        // number of options
+	// Minimum required Java version
+	vm_args.version = JNI_VERSION_1_8;             
+	vm_args.nOptions = this->debug ? 4 : 1;
 	vm_args.options = this->options;
-	vm_args.ignoreUnrecognized = true;// false;     // invalid options make the JVM init fail
+	// Invalid options make the JVM init fail
+	vm_args.ignoreUnrecognized = false;
 
 	// Load and initialize Java VM and JNI interface
 	jint rc = JNI_CreateJavaVM(&this->jvm, (void**)&this->env, &vm_args);
 	if (rc != JNI_OK)
 	{
-		// TODO: error processing... 
-		std::cin.get();
-		exit(EXIT_FAILURE);
+		ReaScriptError("ERROR: Could not start Java Virtual Machine.");
+		return;
 	}
-
-	// Display JVM version
-	std::cout << "JVM load succeeded: Version ";
-	jint ver = env->GetVersion();
-	std::cout << ((ver >> 16) & 0x0f) << "." << (ver & 0x0f) << std::endl;
 }
 
 
@@ -119,13 +123,13 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 		jmethodID toString = env->GetMethodID(env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
 		jstring s = (jstring)env->CallObjectMethod(ex, toString);
 		const char* utf = env->GetStringUTFChars(s, &isCopy);
-		// TODO error handling
-		std::cerr << " OOOOOPS: exception when registering natives: " << utf << std::endl;
+		std::stringstream stream;
+		stream << "ERROR: Could not register native functions" << utf;
 		env->ExceptionClear();
+		ReaScriptError(stream.str().c_str());
 	}
 	else
-		// TODO error handling
-		std::cerr << " ERROR: problem when registreing natives" << std::endl;
+		ReaScriptError("ERROR: Could not register native functions");
 }
 
 

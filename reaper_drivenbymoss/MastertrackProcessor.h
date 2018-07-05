@@ -17,7 +17,4 @@ public:
 
 	virtual void Process(std::string command, std::deque<std::string> &path, int value);
 	virtual void Process(std::string command, std::deque<std::string> &path, double value);
-
-private:
-	Model *model;
 };

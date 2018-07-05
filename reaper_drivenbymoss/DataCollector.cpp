@@ -73,7 +73,6 @@ std::string DataCollector::CollectData(const bool &dump)
 	CollectTrackData(ss, project, dump);
 	CollectDeviceData(ss, project, dump);
 	CollectMasterTrackData(ss, project, dump);
-	CollectGrooveData(ss, project, dump);
 	CollectClipData(ss, project, dump);
 	CollectBrowserData(ss, project, dump);
 
@@ -134,12 +133,9 @@ void DataCollector::CollectTransportData(std::stringstream &ss, ReaProject *proj
 	format_timestr_pos(cursorPos, timeStr, 20, 2);
 	this->strBeatPosition = CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
 
-	if (APIExists("SNM_GetDoubleConfigVar"))
-	{
-		// TODO This function just hangs...
-		// int newPrerollMeasures = (int) SNM_GetDoubleConfigVar("prerollmeas", 2);
-		// this->prerollMeasures = CollectIntValue(ss, "/preroll", this->prerollMeasures, newPrerollMeasures, dump);
-	}
+	MainConfig &mainConfig = this->model->mainConfig;
+	int newPrerollMeasures = (int)mainConfig.GetDoubleConfigVar("prerollmeas", 2);
+	this->prerollMeasures = CollectIntValue(ss, "/preroll", this->prerollMeasures, newPrerollMeasures, dump);
 	this->prerollClick = CollectIntValue(ss, "/prerollClick", this->prerollClick, GetToggleCommandState(41819), dump);
 }
 
@@ -181,7 +177,7 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 	}
 
 	int paramCount = TrackFX_GetNumParams(track, deviceIndex);
-	this->deviceParamCount = CollectIntValue(ss, "/device/param/count", this->deviceParamCount, paramCount, dump);
+	this->model->deviceParamCount = CollectIntValue(ss, "/device/param/count", this->model->deviceParamCount, paramCount, dump);
 	this->model->deviceParamBankSelected = CollectIntValue(ss, "/device/param/bank/selected", this->model->deviceParamBankSelected, this->model->deviceParamBankSelectedTemp, dump);
 
 	int paramIndex = this->model->deviceParamBankSelected * this->model->parameterBankSize;
@@ -343,41 +339,6 @@ void DataCollector::CollectMasterTrackData(std::stringstream &ss, ReaProject *pr
 
 	this->masterVULeft = CollectDoubleValue(ss, "/master/vuleft", this->masterVULeft, DB2SLIDER(this->model->ValueToDB(Track_GetPeakInfo(master, 0))) / 1000.0, dump);
 	this->masterVURight = CollectDoubleValue(ss, "/master/vuright", this->masterVURight, DB2SLIDER(this->model->ValueToDB(Track_GetPeakInfo(master, 1))) / 1000.0, dump);
-}
-
-/**
- * Collect the (changed) groove data.
- *
- * @param ss The stream where to append the formatted data
- * @param project The current Reaper project
- * @param dump If true all data is collected not only the changed one since the last call
- */
-void DataCollector::CollectGrooveData(std::stringstream &ss, ReaProject *project, const bool &dump)
-{
-	if (!APIExists("BR_Win32_GetPrivateProfileString"))
-		return;
-
-	const char *configFile = get_ini_file();
-	if (configFile == nullptr)
-		return;
-
-	// TODO All SWS functions crash?
-	//const int LENGTH = 20;
-	//char result[LENGTH];
-	//BR_Win32_GetPrivateProfileString("fingers", "groove_strength", "100", configFile, result, LENGTH);
-	//this->grooveStrength = CollectIntValue(ss, "/groove/strength", this->grooveStrength, std::atoi(result), dump);
-
-	//BR_Win32_GetPrivateProfileString("fingers", "groove_velstrength", "100", configFile, result, LENGTH);
-	//this->grooveVelstrength = CollectIntValue(ss, "/groove/velocity", this->grooveVelstrength, std::atoi(result), dump);
-
-	//BR_Win32_GetPrivateProfileString("fingers", "groove_target", "0", configFile, result, LENGTH);
-	//this->grooveTarget = CollectIntValue(ss, "/groove/target", this->grooveTarget, std::atoi(result), dump);
-
-	//BR_Win32_GetPrivateProfileString("fingers", "groove_tolerance", "16", configFile, result, LENGTH);
-	//this->grooveTolerance = CollectIntValue(ss, "/groove/tolerance", this->grooveTolerance, std::atoi(result), dump);
-
-	//BR_Win32_GetPrivateProfileString("midiedit", "quantstrength", "100", configFile, result, LENGTH);
-	//this->quantizeStrength = CollectIntValue(ss, "/quantize/strength", this->quantizeStrength, std::atoi(result), dump);
 }
 
 

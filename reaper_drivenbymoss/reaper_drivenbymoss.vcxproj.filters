@@ -63,10 +63,7 @@
     <ClInclude Include="MidiProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NotifyProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GrooveProcessor.h">
+    <ClInclude Include="MainConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -104,10 +101,7 @@
     <ClCompile Include="MidiProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NotifyProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GrooveProcessor.cpp">
+    <ClCompile Include="MainConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

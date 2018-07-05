@@ -144,12 +144,11 @@
     <ClInclude Include="ClipProcessor.h" />
     <ClInclude Include="DeviceProcessor.h" />
     <ClInclude Include="de_mossgrabers_transformator_TransformatorApplication.h" />
-    <ClInclude Include="GrooveProcessor.h" />
     <ClInclude Include="JvmManager.h" />
+    <ClInclude Include="MainConfig.h" />
     <ClInclude Include="MastertrackProcessor.h" />
     <ClInclude Include="MidiProcessor.h" />
     <ClInclude Include="Model.h" />
-    <ClInclude Include="NotifyProcessor.h" />
     <ClInclude Include="OscParser.h" />
     <ClInclude Include="OscProcessor.h" />
     <ClInclude Include="reaper_plugin.h" />
@@ -177,12 +176,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="GrooveProcessor.cpp" />
     <ClCompile Include="JvmManager.cpp" />
+    <ClCompile Include="MainConfig.cpp" />
     <ClCompile Include="MastertrackProcessor.cpp" />
     <ClCompile Include="MidiProcessor.cpp" />
     <ClCompile Include="Model.cpp" />
-    <ClCompile Include="NotifyProcessor.cpp" />
     <ClCompile Include="OscParser.cpp" />
     <ClCompile Include="DataCollector.cpp" />
     <ClCompile Include="stdafx.cpp" />

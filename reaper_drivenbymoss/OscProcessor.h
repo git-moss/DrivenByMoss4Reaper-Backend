@@ -24,7 +24,7 @@ public:
 	}
 
 
-	OscProcessor(Model * aModel) : model(aModel)
+	OscProcessor(Model * aModel) : model (aModel)
 	{
 		// Intentionally empty
 	}

@@ -23,7 +23,6 @@
 const bool DEBUG = true;
 
 // Some global variables required to map from C to C++
-// TODO Put that in a startup class...
 REAPER_PLUGIN_HINSTANCE g_hInst;
 reaper_plugin_info_t* g_plugin_info;
 HWND g_parent;

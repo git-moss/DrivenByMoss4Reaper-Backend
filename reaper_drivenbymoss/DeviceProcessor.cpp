@@ -43,39 +43,36 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	{
 		SetDeviceSelection(this->model->deviceBankOffset + this->model->deviceSelected - 1);
 	}
+	else if (std::strcmp(part, "param") == 0)
+	{
+		part = path[1].c_str();
 
-	// TODO
+		if (std::strcmp(part, "bank") == 0)
+		{
+			part = path[2].c_str();
 
-	//) : (strcmp(part, "param") == 0 ? (
-	//	part = parsePart(line, '/', 3);
-
-	//strcmp(part, "bank") == 0 ? (
-	//	part = parsePart(line, '/', 4);
-
-	//strcmp(part, "selected") == 0 ? (
-	//	gDeviceParamBankSelectedTemp = strToInt(value) - 1;
-
-	//) : (strcmp(part, "+") == 0 ? (
-	//	(gDeviceParamBankSelected + gParameterBankSize) * gParameterBankSize < gDeviceParamCount ? gDeviceParamBankSelectedTemp += gParameterBankSize;
-
-	//) : (strcmp(part, "-") == 0 ? (
-	//	gDeviceParamBankSelected >= gParameterBankSize ? gDeviceParamBankSelectedTemp -= gParameterBankSize;
-	//)));
-
-	//) : (strcmp(part, "+") == 0 ? (
-	//	(gDeviceParamBankSelected + 1) * gParameterBankSize < gDeviceParamCount ? gDeviceParamBankSelectedTemp += 1;
-
-	//) : (strcmp(part, "-") == 0 ? (
-	//	gDeviceParamBankSelected >= 1 ? gDeviceParamBankSelectedTemp -= 1;
-
-	//) : (
-	//	paramNo = strToInt(part) - 1;
-	//part = parsePart(line, '/', 4);
-	//strcmp(part, "value") == 0 ?
-	//	TrackFX_SetParamNormalized(track, selDevice, (gDeviceParamBankOffset + gDeviceParamBankSelected) * gParameterBankSize + paramNo, strToInt(value));
-
-	//)));
-
+			if (std::strcmp(part, "+") == 0)
+			{
+				if ((this->model->deviceParamBankSelected + this->model->parameterBankSize) * this->model->parameterBankSize < this->model->deviceParamCount)
+					this->model->deviceParamBankSelectedTemp += this->model->parameterBankSize;
+			}
+			else if (std::strcmp(part, "-") == 0)
+			{
+				if (this->model->deviceParamBankSelected >= this->model->parameterBankSize )
+					this->model->deviceParamBankSelectedTemp -= this->model->parameterBankSize;
+			}
+		}
+		else if (std::strcmp(part, "+") == 0)
+		{
+			if ((this->model->deviceParamBankSelected + 1) * this->model->parameterBankSize < this->model->deviceParamCount)
+				this->model->deviceParamBankSelectedTemp += 1;
+		}
+		else if (std::strcmp(part, "-") == 0)
+		{
+			if (this->model->deviceParamBankSelected >= 1)
+				this->model->deviceParamBankSelectedTemp -= 1;
+		}
+	}
 }
 
 
@@ -122,7 +119,29 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		}
 	}
 	else if (std::strcmp(part, "preset") == 0)
+	{
 		TrackFX_SetPresetByIndex(track, this->model->deviceBankOffset + this->model->deviceSelected, value);
+	}
+	else if (std::strcmp(part, "param") == 0)
+	{
+		part = path[1].c_str();
+
+		if (std::strcmp(part, "bank") == 0)
+		{
+			part = path[2].c_str();
+
+			if (std::strcmp(part, "selected") == 0)
+			{
+				this->model->deviceParamBankSelectedTemp = value - 1;
+			}
+		}
+		else
+		{
+			int paramNo = atoi(path[2].c_str()) - 1;
+			if (std::strcmp(path[3].c_str(), "value") == 0)
+				TrackFX_SetParamNormalized(track, selDevice, (this->model->deviceParamBankOffset + this->model->deviceParamBankSelected) * this->model->parameterBankSize + paramNo, value);
+		}
+	}
 }
 
 
@@ -143,7 +162,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		{
 			if (APIExists("SNM_MoveOrRemoveTrackFX"))
 			{
-				// TODO
+				// TODO SNM_MoveOrRemoveTrackFX
 				//insert = strToInt(parsePart(line, '/', 3));
 				//while (position > insert)
 				//{
@@ -162,5 +181,5 @@ void DeviceProcessor::SetDeviceSelection(int position)
 {
 	int pos = (std::min)((std::max)(0, position), this->model->deviceCount - 1);
 	this->model->deviceSelected = pos % this->model->deviceBankSize;
-	this->model->deviceBankOffset = (int) std::floor(pos / this->model->deviceBankSize) * this->model->deviceBankSize;
+	this->model->deviceBankOffset = (int)std::floor(pos / this->model->deviceBankSize) * this->model->deviceBankSize;
 }
