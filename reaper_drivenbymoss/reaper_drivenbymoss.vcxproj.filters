@@ -63,9 +63,6 @@
     <ClInclude Include="MidiProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MainConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -99,9 +96,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MidiProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MainConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

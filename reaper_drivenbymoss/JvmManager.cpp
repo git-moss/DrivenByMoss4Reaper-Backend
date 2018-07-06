@@ -117,7 +117,7 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 	if (result == 0)
 		return;
 	jthrowable ex = env->ExceptionOccurred();
-	if (ex)                                        // verify if it's ok
+	if (ex)
 	{
 		jboolean isCopy = false;
 		jmethodID toString = env->GetMethodID(env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
@@ -145,6 +145,8 @@ void JvmManager::StartApp()
 	jmethodID methodID = env->GetStaticMethodID(transformatorClass, "main", "([Ljava/lang/String;)V");
 	if (methodID == nullptr)
 		return;
-	jobjectArray applicationArgs = env->NewObjectArray(0, env->FindClass("java/lang/String"), nullptr);
+	const char*iniPath = GetResourcePath();
+	jobjectArray applicationArgs = env->NewObjectArray(1, env->FindClass("java/lang/String"), nullptr);
+	env->SetObjectArrayElement(applicationArgs, 0, env->NewStringUTF(iniPath));
 	env->CallStaticVoidMethod(transformatorClass, methodID, applicationArgs);
 }

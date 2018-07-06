@@ -30,8 +30,6 @@ private:
 	const std::regex trackLockPattern{ "LOCK (\\d+)" };
 	const std::regex presetPattern{ "Name=(.*)\n" };
 
-	std::string iniPath;
-
 	// Project values
 	std::string projectName;
 	int projectEngine;

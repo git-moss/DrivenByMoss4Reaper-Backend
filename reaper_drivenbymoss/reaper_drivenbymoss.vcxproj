@@ -145,7 +145,6 @@
     <ClInclude Include="DeviceProcessor.h" />
     <ClInclude Include="de_mossgrabers_transformator_TransformatorApplication.h" />
     <ClInclude Include="JvmManager.h" />
-    <ClInclude Include="MainConfig.h" />
     <ClInclude Include="MastertrackProcessor.h" />
     <ClInclude Include="MidiProcessor.h" />
     <ClInclude Include="Model.h" />
@@ -177,7 +176,6 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="JvmManager.cpp" />
-    <ClCompile Include="MainConfig.cpp" />
     <ClCompile Include="MastertrackProcessor.cpp" />
     <ClCompile Include="MidiProcessor.cpp" />
     <ClCompile Include="Model.cpp" />

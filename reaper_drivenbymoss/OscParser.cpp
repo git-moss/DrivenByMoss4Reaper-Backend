@@ -26,7 +26,6 @@ OscParser::OscParser(Model *model)
 	this->processors["action_ex"] = new ActionExProcessor();
 	this->processors["quantize"] = new QuantizeProcessor();
 	this->processors["metro_vol"] = new MetronomeVolumeProcessor();
-	this->processors["preroll"] = new PrerollProcessor();
 	this->processors["undo"] = new UndoProcessor();
 	this->processors["redo"] = new RedoProcessor();
 	this->processors["cursor"] = new CursorProcessor();

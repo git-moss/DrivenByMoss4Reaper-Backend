@@ -6,8 +6,6 @@
 
 #include <vector>
 
-#include "MainConfig.h"
-
 
 class Model
 {
@@ -16,9 +14,6 @@ public:
 	const int sendBankSize = 8;
 	const int deviceBankSize = 8;
 	const int parameterBankSize = 8;
-
-	MainConfig mainConfig;
-
 
 	double masterVolume = 0;
 	double masterPan = 0;

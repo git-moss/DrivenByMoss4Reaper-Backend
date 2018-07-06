@@ -146,15 +146,6 @@ public:
 	};
 };
 
-class PrerollProcessor : public OscProcessor
-{
-public:
-	virtual void Process(std::string command, std::deque<std::string> &path, int value)
-	{
-		this->model->mainConfig.SetDoubleConfigVar("prerollmeas", value);
-	};
-};
-
 class UndoProcessor : public OscProcessor
 {
 public:

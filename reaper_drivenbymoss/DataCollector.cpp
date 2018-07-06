@@ -65,9 +65,8 @@ DataCollector::~DataCollector()
 std::string DataCollector::CollectData(const bool &dump)
 {
 	std::stringstream ss;
-	iniPath = CollectStringValue(ss, "/inipath", iniPath, GetResourcePath(), dump);
-
 	ReaProject *project = this->GetProject();
+
 	CollectProjectData(ss, project, dump);
 	CollectTransportData(ss, project, dump);
 	CollectTrackData(ss, project, dump);
@@ -133,9 +132,6 @@ void DataCollector::CollectTransportData(std::stringstream &ss, ReaProject *proj
 	format_timestr_pos(cursorPos, timeStr, 20, 2);
 	this->strBeatPosition = CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
 
-	MainConfig &mainConfig = this->model->mainConfig;
-	int newPrerollMeasures = (int)mainConfig.GetDoubleConfigVar("prerollmeas", 2);
-	this->prerollMeasures = CollectIntValue(ss, "/preroll", this->prerollMeasures, newPrerollMeasures, dump);
 	this->prerollClick = CollectIntValue(ss, "/prerollClick", this->prerollClick, GetToggleCommandState(41819), dump);
 }
 
