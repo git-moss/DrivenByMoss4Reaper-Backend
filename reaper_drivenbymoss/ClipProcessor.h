@@ -19,9 +19,6 @@ public:
 	virtual void Process(std::string command, std::deque<std::string> &path, std::string value);
 
 private:
-	Model * model;
-
-
 	void SetColorOfClip(ReaProject *project, std::string value);
 };
 

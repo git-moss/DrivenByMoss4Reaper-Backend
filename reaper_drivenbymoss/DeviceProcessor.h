@@ -18,8 +18,5 @@ public:
 	virtual void Process(std::string command, std::deque<std::string> &path, std::string value);
 
 private:
-	Model * model;
-
-
 	void SetDeviceSelection(int position);
 };

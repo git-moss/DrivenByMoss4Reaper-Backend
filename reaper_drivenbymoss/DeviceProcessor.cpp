@@ -58,7 +58,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 			}
 			else if (std::strcmp(part, "-") == 0)
 			{
-				if (this->model->deviceParamBankSelected >= this->model->parameterBankSize )
+				if (this->model->deviceParamBankSelected >= this->model->parameterBankSize)
 					this->model->deviceParamBankSelectedTemp -= this->model->parameterBankSize;
 			}
 		}
@@ -84,6 +84,9 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 
 	ReaProject *project = this->GetProject();
 	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + this->model->trackSelection);
+	if (track == nullptr)
+		return;
+
 	int selDevice = this->model->deviceBankOffset + this->model->deviceSelected;
 
 	if (std::strcmp(part, "selected") == 0)
@@ -93,22 +96,29 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	}
 	else if (std::strcmp(part, "bypass") == 0)
 	{
-		TrackFX_SetEnabled(track, selDevice, value > 0 ? 0 : 1);
+		if (selDevice >= 0)
+			TrackFX_SetEnabled(track, selDevice, value > 0 ? 0 : 1);
 	}
 	else if (std::strcmp(part, "window") == 0)
 	{
-		if (value > 0)
-			TrackFX_Show(track, selDevice, this->model->deviceExpandedType);
-		else
-			TrackFX_SetOpen(track, selDevice, 0);
+		if (selDevice >= 0)
+		{
+			if (value > 0)
+				TrackFX_Show(track, selDevice, this->model->deviceExpandedType);
+			else
+				TrackFX_SetOpen(track, selDevice, 0);
+		}
 	}
 	else if (std::strcmp(part, "expand") == 0)
 	{
-		bool isOpen = TrackFX_GetOpen(track, selDevice);
-		TrackFX_SetOpen(track, selDevice, 0);
-		this->model->deviceExpandedTypeTemp = value > 0 ? 1 : 3;
-		if (isOpen)
-			TrackFX_Show(track, selDevice, this->model->deviceExpandedTypeTemp);
+		if (selDevice >= 0)
+		{
+			bool isOpen = TrackFX_GetOpen(track, selDevice);
+			TrackFX_SetOpen(track, selDevice, 0);
+			this->model->deviceExpandedTypeTemp = value > 0 ? 1 : 3;
+			if (isOpen)
+				TrackFX_Show(track, selDevice, this->model->deviceExpandedTypeTemp);
+		}
 	}
 	else if (std::strcmp(part, "page") == 0)
 	{
