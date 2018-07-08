@@ -9,15 +9,18 @@
 #include "OscProcessor.h"
 
 
+/**
+ * Processes all commands related to tracks.
+ */
 class TrackProcessor : public OscProcessor
 {
 public:
-	TrackProcessor(Model *model);
+	TrackProcessor(Model &model);
 
-	virtual void Process(std::string command, std::deque<std::string> &path);
-	virtual void Process(std::string command, std::deque<std::string> &path, int value);
-	virtual void Process(std::string command, std::deque<std::string> &path, double value);
-	virtual void Process(std::string command, std::deque<std::string> &path, std::string value);
+	void Process(std::string command, std::deque<std::string> &path) override;
+	void Process(std::string command, std::deque<std::string> &path, int value) override;
+	void Process(std::string command, std::deque<std::string> &path, double value) override;
+	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override;
 
 private:
 	void CreateMidiClip(ReaProject *project, MediaTrack *track, int beats);

@@ -5,19 +5,25 @@
 #include "ClipProcessor.h"
 
 
-ClipProcessor::ClipProcessor(Model *aModel) : OscProcessor(aModel)
+/**
+ * Constructor.
+ *
+ * @param aModel The model to share data
+ */
+ClipProcessor::ClipProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
-void ClipProcessor::Process(std::string command, std::deque<std::string> &path, int value)
+/** {@inheritDoc} */
+void ClipProcessor::Process(std::string command, std::deque<std::string> &path, double value)
 {
-	if (path.size() < 2)
+	if (path.empty())
 		return;
 
-	ReaProject *project = this->GetProject();
-	const char *cmd = path[1].c_str();
+	ReaProject *project = this->model.GetProject();
+	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "start") == 0)
 	{
@@ -28,7 +34,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 			int timesig, denomOut;
 			double startBPM;
 			TimeMap_GetTimeSigAtTime(project, itemStart, &timesig, &denomOut, &startBPM);
-			itemStart = value * 60 / startBPM;
+			itemStart = static_cast<double>(value) * 60.0 / startBPM;
 			SetMediaItemInfo_Value(item, "D_POSITION", itemStart);
 		}
 	}
@@ -37,12 +43,12 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		if (CountSelectedMediaItems(project) > 0)
 		{
 			MediaItem *item = GetSelectedMediaItem(project, 0);
-			double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
+			const double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
 			double itemEnd = itemStart + GetMediaItemInfo_Value(item, "D_LENGTH");
 			int timesig, denomOut;
 			double startBPM;
 			TimeMap_GetTimeSigAtTime(project, itemEnd, &timesig, &denomOut, &startBPM);
-			itemEnd = value * 60 / startBPM;
+			itemEnd = static_cast<double>(value) * 60.0 / startBPM;
 			SetMediaItemInfo_Value(item, "D_LENGTH", itemEnd - itemStart);
 		}
 	}
@@ -53,7 +59,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		int timesig, denomOut;
 		double startBPM;
 		TimeMap_GetTimeSigAtTime(project, loopStart, &timesig, &denomOut, &startBPM);
-		loopStart = value * 60 / startBPM;
+		loopStart = static_cast<double>(value) * 60.0 / startBPM;
 		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
 	}
 	else if (std::strcmp(cmd, "loopEnd") == 0)
@@ -63,19 +69,20 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		int timesig, denomOut;
 		double startBPM;
 		TimeMap_GetTimeSigAtTime(project, loopEnd, &timesig, &denomOut, &startBPM);
-		loopEnd = value * 60 / startBPM;
+		loopEnd = static_cast<double>(value) * 60.0 / startBPM;
 		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
 	}
 }
 
 
-void ClipProcessor::Process(std::string command, std::deque<std::string> &path, std::string value)
+/** {@inheritDoc} */
+void ClipProcessor::Process(std::string command, std::deque<std::string> &path, const std::string &value)
 {
-	if (path.size() < 2)
+	if (path.empty())
 		return;
 
-	ReaProject *project = this->GetProject();
-	const char *cmd = path[1].c_str();
+	ReaProject *project = this->model.GetProject();
+	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "color") == 0)
 	{
@@ -84,18 +91,24 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 }
 
 
+/**
+ * Set the color of a clip.
+ *
+ * @param project The Reaper project
+ * @param value   The encoded RGB value, e.g. RGB(red,green,blue)
+ */
 void ClipProcessor::SetColorOfClip(ReaProject *project, std::string value)
 {
 	MediaItem *item = GetSelectedMediaItem(project, 0);
 	if (item == nullptr)
 		return;
 
-	std::cmatch result;
+	std::cmatch result{};
 	if (!std::regex_search(value.c_str(), result, colorPattern))
 		return;
 	int red = std::atoi(result.str(1).c_str());
-	int green = std::atoi(result.str(1).c_str());
-	int blue = std::atoi(result.str(1).c_str());
+	int green = std::atoi(result.str(2).c_str());
+	int blue = std::atoi(result.str(3).c_str());
 
 	Undo_BeginBlock2(project);
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);

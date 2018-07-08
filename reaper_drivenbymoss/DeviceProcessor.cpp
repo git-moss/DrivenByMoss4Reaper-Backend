@@ -3,96 +3,103 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <algorithm>
-
+#include <thread>
 #include "DeviceProcessor.h"
 
 
-DeviceProcessor::DeviceProcessor(Model *aModel) : OscProcessor(aModel)
+/**
+ * Constructor.
+ *
+ * @param aModel The model
+ */
+DeviceProcessor::DeviceProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
+/** {@inheritDoc} */
 void DeviceProcessor::Process(std::string command, std::deque<std::string> &path)
 {
 	if (path.empty())
 		return;
-	const char *part = path[0].c_str();
+	const char *part = path.at(0).c_str();
 
-	ReaProject *project = this->GetProject();
-	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + this->model->trackSelection);
-	int selDevice = this->model->deviceBankOffset + this->model->deviceSelected;
+	ReaProject *project = this->model.GetProject();
+	const MediaTrack * const track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
 
 	if (std::strcmp(part, "page") == 0)
 	{
-		part = path[1].c_str();
+		part = path.at(1).c_str();
 		if (std::strcmp(part, "+") == 0)
 		{
-			SetDeviceSelection(this->model->deviceBankOffset + this->model->deviceSelected + this->model->deviceBankSize);
+			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + this->model.deviceBankSize);
 		}
 		else if (std::strcmp(part, "-") == 0)
 		{
-			SetDeviceSelection(this->model->deviceBankOffset + this->model->deviceSelected - this->model->deviceBankSize);
+			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - this->model.deviceBankSize);
 		}
 	}
 	else if (std::strcmp(part, "+") == 0)
 	{
-		SetDeviceSelection(this->model->deviceBankOffset + this->model->deviceSelected + 1);
+		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + 1);
 	}
 	else if (std::strcmp(part, "-") == 0)
 	{
-		SetDeviceSelection(this->model->deviceBankOffset + this->model->deviceSelected - 1);
+		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - 1);
 	}
 	else if (std::strcmp(part, "param") == 0)
 	{
-		part = path[1].c_str();
+		part = path.at(1).c_str();
 
 		if (std::strcmp(part, "bank") == 0)
 		{
-			part = path[2].c_str();
+			part = path.at(2).c_str();
 
 			if (std::strcmp(part, "+") == 0)
 			{
-				if ((this->model->deviceParamBankSelected + this->model->parameterBankSize) * this->model->parameterBankSize < this->model->deviceParamCount)
-					this->model->deviceParamBankSelectedTemp += this->model->parameterBankSize;
+				if ((this->model.deviceParamBankSelected + this->model.parameterBankSize) * this->model.parameterBankSize < this->model.deviceParamCount)
+					this->model.deviceParamBankSelectedTemp += this->model.parameterBankSize;
 			}
 			else if (std::strcmp(part, "-") == 0)
 			{
-				if (this->model->deviceParamBankSelected >= this->model->parameterBankSize)
-					this->model->deviceParamBankSelectedTemp -= this->model->parameterBankSize;
+				if (this->model.deviceParamBankSelected >= this->model.parameterBankSize)
+					this->model.deviceParamBankSelectedTemp -= this->model.parameterBankSize;
 			}
 		}
 		else if (std::strcmp(part, "+") == 0)
 		{
-			if ((this->model->deviceParamBankSelected + 1) * this->model->parameterBankSize < this->model->deviceParamCount)
-				this->model->deviceParamBankSelectedTemp += 1;
+			if ((this->model.deviceParamBankSelected + 1) * this->model.parameterBankSize < this->model.deviceParamCount)
+				this->model.deviceParamBankSelectedTemp += 1;
 		}
 		else if (std::strcmp(part, "-") == 0)
 		{
-			if (this->model->deviceParamBankSelected >= 1)
-				this->model->deviceParamBankSelectedTemp -= 1;
+			if (this->model.deviceParamBankSelected >= 1)
+				this->model.deviceParamBankSelectedTemp -= 1;
 		}
 	}
 }
 
 
+/** {@inheritDoc} */
 void DeviceProcessor::Process(std::string command, std::deque<std::string> &path, int value)
 {
 	if (path.empty())
 		return;
-	const char *part = path[0].c_str();
+	const char *part = path.at(0).c_str();
 
-	ReaProject *project = this->GetProject();
-	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + this->model->trackSelection);
+	ReaProject *project = this->model.GetProject();
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
 	if (track == nullptr)
 		return;
 
-	int selDevice = this->model->deviceBankOffset + this->model->deviceSelected;
+	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
 
 	if (std::strcmp(part, "selected") == 0)
 	{
-		this->model->deviceSelected = value - 1;
-		this->model->deviceParamBankSelectedTemp = 0;
+		this->model.deviceSelected = value - 1;
+		this->model.deviceParamBankSelectedTemp = 0;
 	}
 	else if (std::strcmp(part, "bypass") == 0)
 	{
@@ -101,95 +108,118 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	}
 	else if (std::strcmp(part, "window") == 0)
 	{
-		if (selDevice >= 0)
-		{
-			if (value > 0)
-				TrackFX_Show(track, selDevice, this->model->deviceExpandedType);
-			else
-				TrackFX_SetOpen(track, selDevice, 0);
-		}
+		if (selDevice < 0)
+			return;
+		bool open = value > 0;
+		if (open)
+			TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
+		TrackFX_SetOpen(track, selDevice, open);
 	}
 	else if (std::strcmp(part, "expand") == 0)
 	{
-		if (selDevice >= 0)
-		{
-			bool isOpen = TrackFX_GetOpen(track, selDevice);
-			TrackFX_SetOpen(track, selDevice, 0);
-			this->model->deviceExpandedTypeTemp = value > 0 ? 1 : 3;
-			if (isOpen)
-				TrackFX_Show(track, selDevice, this->model->deviceExpandedTypeTemp);
-		}
+		if (selDevice < 0)
+			return;
+		const bool isOpen = TrackFX_GetOpen(track, selDevice);
+		TrackFX_SetOpen(track, selDevice, 0);
+		int expandedType = value > 0 ? 1 : 3;
+		if (isOpen)
+			TrackFX_Show(track, selDevice, expandedType);
+		this->model.deviceExpandedType = expandedType;
 	}
 	else if (std::strcmp(part, "page") == 0)
 	{
-		part = path[1].c_str();
+		part = path.at(1).c_str();
 		if (std::strcmp(part, "selected") == 0)
 		{
-			this->model->deviceSelected = (value - 1) * this->model->deviceBankSize;
+			this->model.deviceSelected = (value - 1) * this->model.deviceBankSize;
 		}
 	}
 	else if (std::strcmp(part, "preset") == 0)
 	{
-		TrackFX_SetPresetByIndex(track, this->model->deviceBankOffset + this->model->deviceSelected, value);
+		TrackFX_SetPresetByIndex(track, this->model.deviceBankOffset + this->model.deviceSelected, value);
 	}
 	else if (std::strcmp(part, "param") == 0)
 	{
-		part = path[1].c_str();
+		part = path.at(1).c_str();
 
 		if (std::strcmp(part, "bank") == 0)
 		{
-			part = path[2].c_str();
+			part = path.at(2).c_str();
 
 			if (std::strcmp(part, "selected") == 0)
 			{
-				this->model->deviceParamBankSelectedTemp = value - 1;
+				this->model.deviceParamBankSelectedTemp = value - 1;
 			}
 		}
 		else
 		{
-			int paramNo = atoi(path[2].c_str()) - 1;
-			if (std::strcmp(path[3].c_str(), "value") == 0)
-				TrackFX_SetParamNormalized(track, selDevice, (this->model->deviceParamBankOffset + this->model->deviceParamBankSelected) * this->model->parameterBankSize + paramNo, value);
+			Process(command, path, static_cast<double> (value));
 		}
 	}
 }
 
 
-void DeviceProcessor::Process(std::string command, std::deque<std::string> &path, std::string value)
+/** {@inheritDoc} */
+void DeviceProcessor::Process(std::string command, std::deque<std::string> &path, double value)
 {
 	if (path.empty())
 		return;
-	const char *part = path[0].c_str();
+	const char *part = path.at(0).c_str();
 
-	ReaProject *project = this->GetProject();
-	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + this->model->trackSelection);
-	int selDevice = this->model->deviceBankOffset + this->model->deviceSelected;
+	ReaProject *project = this->model.GetProject();
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	if (track == nullptr)
+		return;
+
+	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
+
+	if (std::strcmp(part, "param") == 0)
+	{
+		part = path.at(1).c_str();
+		if (std::strcmp(part, "bank") != 0)
+		{
+			const int paramNo = atoi(part) - 1;
+			if (std::strcmp(path.at(2).c_str(), "value") == 0)
+				TrackFX_SetParamNormalized(track, selDevice, (this->model.deviceParamBankOffset + this->model.deviceParamBankSelected) * this->model.parameterBankSize + paramNo, value);
+		}
+	}
+}
+
+
+/** {@inheritDoc} */
+void DeviceProcessor::Process(std::string command, std::deque<std::string> &path, const std::string &value)
+{
+	if (path.empty())
+		return;
+	const char *part = path.at(0).c_str();
+
+	ReaProject *project = this->model.GetProject();
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
 
 	if (std::strcmp(part, "add") == 0)
 	{
 		int position = TrackFX_AddByName(track, value.c_str(), false, -1);
 		if (position >= 0)
 		{
-			if (APIExists("SNM_MoveOrRemoveTrackFX"))
+			const int actionID = NamedCommandLookup("_S&M_MOVE_FX_UP");
+			if (actionID <= 0)
+				return;
+			ReaProject * const project = this->model.GetProject();
+			const int insert = atoi(path.at(1).c_str());
+			while (position > insert)
 			{
-				// TODO SNM_MoveOrRemoveTrackFX
-				//insert = strToInt(parsePart(line, '/', 3));
-				//while (position > insert)
-				//{
-				//	SNM_MoveOrRemoveTrackFX(track, position, -1);
-				//	position -= 1;
-				//}
+				Main_OnCommandEx(actionID, 0, project);
+				position -= 1;
 			}
 		}
 	}
-	//else
-	//	ShowConsoleMsg(sprintf(#, "Device not found: %s\n", value));
 }
 
 
 void DeviceProcessor::SetDeviceSelection(int position)
 {
-	int pos = (std::min)((std::max)(0, position), this->model->deviceCount - 1);
-	this->model->deviceSelected = pos % this->model->deviceBankSize;
-	this->model->deviceBankOffset = (int)std::floor(pos / this->model->deviceBankSize) * this->model->deviceBankSize;
+	const int pos = (std::min)((std::max)(0, position), this->model.deviceCount - 1);
+	this->model.deviceSelected = pos % this->model.deviceBankSize;
+	this->model.deviceBankOffset = static_cast<int>(std::floor(pos / this->model.deviceBankSize) * this->model.deviceBankSize);
 }

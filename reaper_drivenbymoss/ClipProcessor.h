@@ -10,15 +10,22 @@
 #include "Model.h"
 
 
+/**
+ * Processes all commands related to clips.
+ */
 class ClipProcessor : public OscProcessor
 {
 public:
-	ClipProcessor(Model *model);
+	ClipProcessor(Model &model);
 
-	virtual void Process(std::string command, std::deque<std::string> &path, int value);
-	virtual void Process(std::string command, std::deque<std::string> &path, std::string value);
+	void Process(std::string command, std::deque<std::string> &path, int value) override
+	{
+		Process(command, path, static_cast<double> (value));
+	};
+
+	void Process(std::string command, std::deque<std::string> &path, double value) override;
+	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override;
 
 private:
 	void SetColorOfClip(ReaProject *project, std::string value);
 };
-

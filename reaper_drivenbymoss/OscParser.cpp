@@ -3,49 +3,53 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "OscParser.h"
-#include "TransportProcessor.h"
-#include "MastertrackProcessor.h"
-#include "TrackProcessor.h"
-#include "DeviceProcessor.h"
-#include "ClipProcessor.h"
-#include "MidiProcessor.h"
 
 
 /**
- * Constructor.
- */
-OscParser::OscParser(Model *model)
+* Constructor.
+*
+* @param model The model to share data
+*/
+OscParser::OscParser(Model &model) :
+	playProcessor(model),
+	stopProcessor(model),
+	recordProcessor(model),
+	repeatProcessor(model),
+	timeProcessor(model),
+	tempoProcessor(model),
+	actionProcessor(model),
+	actionExProcessor(model),
+	quantizeProcessor(model),
+	metronomeVolumeProcessor(model),
+	undoProcessor(model),
+	redoProcessor(model),
+	cursorProcessor(model),
+	projectProcessor(model),
+	mastertrackProcessor(model),
+	trackProcessor(model),
+	deviceProcessor(model),
+	clipProcessor(model),
+	midiProcessor(model)
 {
-	this->processors["play"] = new PlayProcessor();
-	this->processors["stop"] = new StopProcessor();
-	this->processors["record"] = new RecordProcessor();
-	this->processors["repeat"] = new RepeatProcessor();
-	this->processors["time"] = new TimeProcessor();
-	this->processors["tempo"] = new TempoProcessor();
-	this->processors["action"] = new ActionProcessor();
-	this->processors["action_ex"] = new ActionExProcessor();
-	this->processors["quantize"] = new QuantizeProcessor();
-	this->processors["metro_vol"] = new MetronomeVolumeProcessor();
-	this->processors["undo"] = new UndoProcessor();
-	this->processors["redo"] = new RedoProcessor();
-	this->processors["cursor"] = new CursorProcessor();
-	this->processors["project"] = new ProjectProcessor();
-	this->processors["master"] = new MastertrackProcessor(model);
-	this->processors["track"] = new TrackProcessor(model);
-	this->processors["device"] = new DeviceProcessor(model);
-	this->processors["clip"] = new ClipProcessor(model);
-	this->processors["vkb_midi"] = new MidiProcessor();
-}
-
-
-/**
- * Destructor.
- */
-OscParser::~OscParser()
-{
-	// Iterate over processors and delete them
-	for (auto const &entry : this->processors)
-		delete entry.second;
+	this->processors["play"] = &playProcessor;
+	this->processors["stop"] = &stopProcessor;
+	this->processors["record"] = &recordProcessor;
+	this->processors["repeat"] = &repeatProcessor;
+	this->processors["time"] = &timeProcessor;
+	this->processors["tempo"] = &tempoProcessor;
+	this->processors["action"] = &actionProcessor;
+	this->processors["action_ex"] = &actionExProcessor;
+	this->processors["quantize"] = &quantizeProcessor;
+	this->processors["metro_vol"] = &metronomeVolumeProcessor;
+	this->processors["undo"] = &undoProcessor;
+	this->processors["redo"] = &redoProcessor;
+	this->processors["cursor"] = &cursorProcessor;
+	this->processors["project"] = &projectProcessor;
+	this->processors["master"] = &mastertrackProcessor;
+	this->processors["track"] = &trackProcessor;
+	this->processors["device"] = &deviceProcessor;
+	this->processors["clip"] = &clipProcessor;
+	this->processors["vkb_midi"] = &midiProcessor;
 }
 
 
@@ -56,74 +60,91 @@ OscParser::~OscParser()
  */
 void OscParser::Process(const std::string &command) const
 {
-	std::deque<std::string> elements = split(command);
+	std::deque<std::string> elements = this->Split(command);
 	if (elements.empty())
 		return;
 	std::string cmd = elements.front();
-	OscProcessor *processor = GetProcessor(cmd);
-	if (processor == nullptr)
-		return;
 	elements.pop_front();
-	processor->Process(cmd, elements);
+	try
+	{
+		this->processors.at(cmd)->Process(cmd, elements);
+	}
+	catch (const std::out_of_range &oor)
+	{
+		LogError(command, oor);
+	}
 }
+
 
 /**
  * Process an OSC style command.
  *
  * @param command The command
- * @aram value The value
+ * @param value   The value
  */
-void OscParser::Process(const std::string &command, const char *value) const
+void OscParser::Process(const std::string &command, const std::string &value) const
 {
-	std::deque<std::string> elements = split(command);
+	std::deque<std::string> elements = this->Split(command);
 	if (elements.empty())
 		return;
 	std::string cmd = elements.front();
-	OscProcessor *processor = GetProcessor(cmd);
-	if (processor == nullptr)
-		return;
 	elements.pop_front();
-	processor->Process(cmd, elements, value);
+	try
+	{
+		this->processors.at(cmd)->Process(cmd, elements, value);
+	}
+	catch (const std::out_of_range &oor)
+	{
+		LogError(command, oor);
+	}
 }
 
 
 /**
-* Process an OSC style command.
-*
-* @param command The command
-* @param value The value
-*/
+ * Process an OSC style command.
+ *
+ * @param command The command
+ * @param value   The value
+ */
 void OscParser::Process(const std::string &command, const int &value) const
 {
-	std::deque<std::string> elements = split(command);
+	std::deque<std::string> elements = this->Split(command);
 	if (elements.empty())
 		return;
 	std::string cmd = elements.front();
-	OscProcessor *processor = GetProcessor(cmd);
-	if (processor == nullptr)
-		return;
 	elements.pop_front();
-	processor->Process(cmd, elements, value);
+	try
+	{
+		this->processors.at(cmd)->Process(cmd, elements, value);
+	}
+	catch (const std::out_of_range &oor)
+	{
+		LogError(command, oor);
+	}
 }
 
 
 /**
-* Process an OSC style command.
-*
-* @param command The command
-* @param value The value
-*/
+ * Process an OSC style command.
+ *
+ * @param command The command
+ * @param value   The value
+ */
 void OscParser::Process(const std::string &command, const double &value) const
 {
-	std::deque<std::string> elements = split(command);
+	std::deque<std::string> elements = this->Split(command);
 	if (elements.empty())
 		return;
 	std::string cmd = elements.front();
-	OscProcessor *processor = GetProcessor(cmd);
-	if (processor == nullptr)
-		return;
 	elements.pop_front();
-	processor->Process(cmd, elements, value);
+	try
+	{
+		this->processors.at(cmd)->Process(cmd, elements, value);
+	}
+	catch (const std::out_of_range &oor)
+	{
+		LogError(command, oor);
+	}
 }
 
 
@@ -131,22 +152,14 @@ void OscParser::Process(const std::string &command, const double &value) const
  * Get a processor for the command.
  *
  * @param command The command
- * @return The processor or nullptr if not found
+ * @param oor     The out of range exception
  */
-OscProcessor *OscParser::GetProcessor(const std::string &command) const
+void OscParser::LogError(const std::string command, const std::out_of_range &oor) const
 {
-	try
-	{
-		return this->processors.at(command);
-	}
-	catch (const std::out_of_range &oor)
-	{
-		(void)oor; // Ignore not used
-		std::ostringstream message;
-		message << "No function " << command << " registered!";
-		ReaScriptError(message.str().c_str());
-		return nullptr;
-	}
+	(void)oor; // Ignore not used
+	std::ostringstream message;
+	message << "No function " << command << " registered!";
+	ReaScriptError(message.str().c_str());
 }
 
 
@@ -156,7 +169,7 @@ OscProcessor *OscParser::GetProcessor(const std::string &command) const
  * @param path The path to split
  * @return The parts in a queue
  */
-std::deque<std::string> OscParser::split(const std::string &path) const
+std::deque<std::string> OscParser::Split(const std::string &path) const
 {
 	std::deque<std::string> elems;
 	std::stringstream ss(path);

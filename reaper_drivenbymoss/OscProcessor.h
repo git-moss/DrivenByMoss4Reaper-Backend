@@ -18,20 +18,16 @@
 class OscProcessor
 {
 public:
-	OscProcessor() : model(nullptr)
+	OscProcessor(Model &aModel) : model (aModel)
 	{
 		// Intentionally empty
 	}
 
-
-	OscProcessor(Model * aModel) : model (aModel)
-	{
-		// Intentionally empty
-	}
+	virtual ~OscProcessor() {};
 
 	virtual void Process(std::string command, std::deque<std::string> &path) {};
 
-	virtual void Process(std::string command, std::deque<std::string> &path, const char *value) {};
+	virtual void Process(std::string command, std::deque<std::string> &path, const std::string &value) {};
 
 	virtual void Process(std::string command, std::deque<std::string> &path, int value)
 	{
@@ -43,19 +39,11 @@ public:
 
 	virtual void Process(std::string command, std::deque<std::string> &path, float value)
 	{
-		this->Process(command, path, (double) value);
+		this->Process(command, path, static_cast<double>(value));
 	};
 
 protected:
 	const std::regex colorPattern{ "RGB\\((\\d+),(\\d+),(\\d+)\\)" };
 
-	Model * model;
-
-
-	ReaProject * GetProject()
-	{
-		// Current project
-		const int projectID = -1;
-		return EnumProjects(projectID, nullptr, 0);
-	};
+	Model &model;
 };

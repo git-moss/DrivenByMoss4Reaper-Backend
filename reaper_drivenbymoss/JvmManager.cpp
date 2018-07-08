@@ -14,7 +14,6 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-
 #include "JvmManager.h"
 #include "reaper_plugin_functions.h"
 
@@ -24,10 +23,10 @@
  *
  * @param enableDebug True to enable debugging
  */
-JvmManager::JvmManager(bool enableDebug) : jvm(nullptr)
+JvmManager::JvmManager(bool enableDebug) : jvm(nullptr), env(nullptr)
 {
 	this->debug = enableDebug;
-	this->options = new JavaVMOption[this->debug ? 4 : 1];
+	this->options = std::make_unique<JavaVMOption []> (this->debug ? 4 : 1);
 }
 
 
@@ -47,7 +46,7 @@ JvmManager::~JvmManager()
 		}
 		this->jvm->DestroyJavaVM();
 	}
-	delete[] this->options;
+	this->options.reset();
 }
 
 
@@ -58,32 +57,35 @@ JvmManager::~JvmManager()
  */
 void JvmManager::Create(const std::string &currentPath)
 {
-	int result = _chdir(currentPath.c_str());
+	const int result = _chdir(currentPath.c_str());
 	if (result < 0)
 	{
 		ReaScriptError("ERROR: Could not change current directory!");
 		return;
 	}
 
-	JavaVMInitArgs vm_args;
+	JavaVMInitArgs vm_args{};
+	JavaVMOption * const  opts = this->options.get();
 	// TODO create from given folder...
-	options[0].optionString = (char *) "-Djava.class.path=./drivenbymoss-libs/batik-anim-1.9.1.jar;./drivenbymoss-libs/batik-awt-util-1.9.1.jar;./drivenbymoss-libs/batik-bridge-1.9.1.jar;./drivenbymoss-libs/batik-constants-1.9.1.jar;./drivenbymoss-libs/batik-css-1.9.1.jar;./drivenbymoss-libs/batik-dom-1.9.1.jar;./drivenbymoss-libs/batik-ext-1.9.1.jar;./drivenbymoss-libs/batik-gvt-1.9.1.jar;./drivenbymoss-libs/batik-i18n-1.9.1.jar;./drivenbymoss-libs/batik-parser-1.9.1.jar;./drivenbymoss-libs/batik-script-1.9.1.jar;./drivenbymoss-libs/batik-svg-dom-1.9.1.jar;./drivenbymoss-libs/batik-svggen-1.9.1.jar;./drivenbymoss-libs/batik-transcoder-1.9.1.jar;./drivenbymoss-libs/batik-util-1.9.1.jar;./drivenbymoss-libs/batik-xml-1.9.1.jar;./drivenbymoss-libs/commons-io-1.3.1.jar;./drivenbymoss-libs/commons-lang3-3.2.1.jar;./drivenbymoss-libs/commons-logging-1.0.4.jar;./drivenbymoss-libs/coremidi4j-1.1.jar;./drivenbymoss-libs/DrivenByMoss4Reaper-2.10.jar;./drivenbymoss-libs/javaosc-core-0.4.jar;./drivenbymoss-libs/jna-4.0.0.jar;./drivenbymoss-libs/jython-2.7.0.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-arm.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86_64.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-javadoc.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-sources.jar;./drivenbymoss-libs/purejavahidapi-0.0.11.jar;./drivenbymoss-libs/rhino-1.7.7.jar;./drivenbymoss-libs/serializer-2.7.2.jar;./drivenbymoss-libs/usb4java-1.2.0.jar;./drivenbymoss-libs/xalan-2.7.2.jar;./drivenbymoss-libs/xml-apis-1.3.04.jar;./drivenbymoss-libs/xml-apis-ext-1.3.04.jar;./drivenbymoss-libs/xmlgraphics-commons-2.2.jar;./drivenbymoss-libs/inieditor-r6.jar";
+	opts[0].optionString = (char *) "-Djava.class.path=./drivenbymoss-libs/batik-anim-1.9.1.jar;./drivenbymoss-libs/batik-awt-util-1.9.1.jar;./drivenbymoss-libs/batik-bridge-1.9.1.jar;./drivenbymoss-libs/batik-constants-1.9.1.jar;./drivenbymoss-libs/batik-css-1.9.1.jar;./drivenbymoss-libs/batik-dom-1.9.1.jar;./drivenbymoss-libs/batik-ext-1.9.1.jar;./drivenbymoss-libs/batik-gvt-1.9.1.jar;./drivenbymoss-libs/batik-i18n-1.9.1.jar;./drivenbymoss-libs/batik-parser-1.9.1.jar;./drivenbymoss-libs/batik-script-1.9.1.jar;./drivenbymoss-libs/batik-svg-dom-1.9.1.jar;./drivenbymoss-libs/batik-svggen-1.9.1.jar;./drivenbymoss-libs/batik-transcoder-1.9.1.jar;./drivenbymoss-libs/batik-util-1.9.1.jar;./drivenbymoss-libs/batik-xml-1.9.1.jar;./drivenbymoss-libs/commons-io-1.3.1.jar;./drivenbymoss-libs/commons-lang3-3.2.1.jar;./drivenbymoss-libs/commons-logging-1.0.4.jar;./drivenbymoss-libs/coremidi4j-1.1.jar;./drivenbymoss-libs/DrivenByMoss4Reaper-2.10.jar;./drivenbymoss-libs/javaosc-core-0.4.jar;./drivenbymoss-libs/jna-4.0.0.jar;./drivenbymoss-libs/jython-2.7.0.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-arm.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86_64.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-javadoc.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-sources.jar;./drivenbymoss-libs/purejavahidapi-0.0.11.jar;./drivenbymoss-libs/rhino-1.7.7.jar;./drivenbymoss-libs/serializer-2.7.2.jar;./drivenbymoss-libs/usb4java-1.2.0.jar;./drivenbymoss-libs/xalan-2.7.2.jar;./drivenbymoss-libs/xml-apis-1.3.04.jar;./drivenbymoss-libs/xml-apis-ext-1.3.04.jar;./drivenbymoss-libs/xmlgraphics-commons-2.2.jar;./drivenbymoss-libs/inieditor-r6.jar";
 	if (this->debug)
 	{
-		options[1].optionString = (char *) "-Xdebug";
-		options[2].optionString = (char *) "-Xrunjdwp:transport=dt_socket,address=8989,server=y,suspend=y";
-		options[3].optionString = (char *) "-Xcheck:jni";
+		opts[1].optionString = (char *) "-Xdebug";
+		opts[2].optionString = (char *) "-Xrunjdwp:transport=dt_socket,address=8989,server=y,suspend=y";
+		opts[3].optionString = (char *) "-Xcheck:jni";
 	}
 
 	// Minimum required Java version
-	vm_args.version = JNI_VERSION_1_8;             
+	vm_args.version = JNI_VERSION_1_8;
 	vm_args.nOptions = this->debug ? 4 : 1;
-	vm_args.options = this->options;
+	vm_args.options = this->options.get();
 	// Invalid options make the JVM init fail
-	vm_args.ignoreUnrecognized = false;
+	vm_args.ignoreUnrecognized = JNI_FALSE;
 
 	// Load and initialize Java VM and JNI interface
-	jint rc = JNI_CreateJavaVM(&this->jvm, (void**)&this->env, &vm_args);
+	// NOTE: SEGV (or exception 0xC0000005) is generated intentionally on JVM startup 
+	// to verify certain CPU/OS features! Advice debugger to skip it.
+	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
 		ReaScriptError("ERROR: Could not start Java Virtual Machine.");
@@ -103,7 +105,7 @@ void JvmManager::Create(const std::string &currentPath)
  */
 void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
 {
-	JNINativeMethod methods[]
+	const JNINativeMethod methods[]
 	{
 		{ (char*) "processNoArg", (char*) "(Ljava/lang/String;)V", processNoArgCPP },
 		{ (char*) "processStringArg", (char*) "(Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
@@ -113,7 +115,7 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 	};
 
 	jclass transformatorAppClass = env->FindClass("de/mossgrabers/transformator/TransformatorApplication");
-	int result = env->RegisterNatives(transformatorAppClass, methods, 5);
+	const int result = env->RegisterNatives(transformatorAppClass, methods, 5);
 	if (result == 0)
 		return;
 	jthrowable ex = env->ExceptionOccurred();
@@ -121,7 +123,7 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 	{
 		jboolean isCopy = false;
 		jmethodID toString = env->GetMethodID(env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
-		jstring s = (jstring)env->CallObjectMethod(ex, toString);
+		jstring s = static_cast<jstring>(env->CallObjectMethod(ex, toString));
 		const char* utf = env->GetStringUTFChars(s, &isCopy);
 		std::stringstream stream;
 		stream << "ERROR: Could not register native functions" << utf;

@@ -29,7 +29,7 @@ private:
 	JNIEnv *env;
 
 	// JVM invocation options
-	JavaVMOption *options;
+	std::unique_ptr<JavaVMOption[]> options;
 
 	bool debug;
 };

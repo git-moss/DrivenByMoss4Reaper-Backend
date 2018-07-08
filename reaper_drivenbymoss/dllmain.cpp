@@ -13,23 +13,15 @@
 #include <jni.h>
 
 #include "reaper_plugin_functions.h"
-#include "OscParser.h"
 #include "de_mossgrabers_transformator_TransformatorApplication.h"
-#include "JvmManager.h"
-#include "DataCollector.h"
+#include "DrivenByMossExtension.h"
 
 // Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
 // to be connected on port 8989, only then the start continues!
-const bool DEBUG = true;
+const bool DEBUG = false;
 
-// Some global variables required to map from C to C++
-REAPER_PLUGIN_HINSTANCE g_hInst;
-reaper_plugin_info_t* g_plugin_info;
-HWND g_parent;
-OscParser *oscParser = nullptr;
-DataCollector *dataCollector = nullptr;
-JvmManager *jvmManager = nullptr;
-Model *model = nullptr;
+// The global extension variables required to bridge from C to C++
+std::unique_ptr<DrivenByMossExtension> extension;
 
 
 /**
@@ -41,11 +33,13 @@ Model *model = nullptr;
  */
 void processNoArgCPP(JNIEnv *env, jobject object, jstring command)
 {
-	if (oscParser == nullptr)
+	if (env == nullptr || extension == nullptr)
 		return;
-	const char *cmd = env->GetStringUTFChars(command, 0);
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
 	std::string path(cmd);
-	oscParser->Process(path);
+	extension->GetOscParser().Process(path);
 	env->ReleaseStringUTFChars(command, cmd);
 }
 
@@ -59,14 +53,22 @@ void processNoArgCPP(JNIEnv *env, jobject object, jstring command)
  */
 void processStringArgCPP(JNIEnv *env, jobject object, jstring command, jstring value)
 {
-	if (oscParser == nullptr)
+	if (env == nullptr || extension == nullptr)
 		return;
-	const char *cmd = env->GetStringUTFChars(command, 0);
-	const char *val = env->GetStringUTFChars(value, 0);
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
+	const char *val = env->GetStringUTFChars(value, JNI_FALSE);
+	if (val == nullptr)
+	{
+		env->ReleaseStringUTFChars(command, cmd);
+		return;
+	}
 	std::string path(cmd);
-	oscParser->Process(path, val);
+	std::string valueString(val);
+	extension->GetOscParser().Process(path, valueString);
 	env->ReleaseStringUTFChars(command, cmd);
-	env->ReleaseStringUTFChars(command, val);
+	env->ReleaseStringUTFChars(value, val);
 }
 
 /**
@@ -79,11 +81,13 @@ void processStringArgCPP(JNIEnv *env, jobject object, jstring command, jstring v
  */
 void processIntArgCPP(JNIEnv *env, jobject object, jstring command, jint value)
 {
-	if (oscParser == nullptr)
+	if (env == nullptr || extension == nullptr)
 		return;
-	const char *cmd = env->GetStringUTFChars(command, 0);
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
 	std::string path(cmd);
-	oscParser->Process(path, value);
+	extension->GetOscParser().Process(path, value);
 	env->ReleaseStringUTFChars(command, cmd);
 }
 
@@ -97,11 +101,13 @@ void processIntArgCPP(JNIEnv *env, jobject object, jstring command, jint value)
  */
 void processDoubleArgCPP(JNIEnv *env, jobject object, jstring command, jdouble value)
 {
-	if (oscParser == nullptr)
+	if (env == nullptr || extension == nullptr)
 		return;
-	const char *cmd = env->GetStringUTFChars(command, 0);
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
 	std::string path(cmd);
-	oscParser->Process(path, value);
+	extension->GetOscParser().Process(path, value);
 	env->ReleaseStringUTFChars(command, cmd);
 }
 
@@ -114,7 +120,9 @@ void processDoubleArgCPP(JNIEnv *env, jobject object, jstring command, jdouble v
  */
 jstring receiveModelDataCPP(JNIEnv *env, jobject object, jboolean dump)
 {
-	std::string result = dataCollector->CollectData(dump);
+	if (env == nullptr || extension == nullptr)
+		return env->NewStringUTF("");
+	std::string result = extension->CollectData(dump);
 	return env->NewStringUTF(result.c_str());
 }
 
@@ -123,46 +131,32 @@ jstring receiveModelDataCPP(JNIEnv *env, jobject object, jboolean dump)
 extern "C"
 {
 	// Defines the entry point for the DLL application.
-	REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance, reaper_plugin_info_t *rec)
+	REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance, const reaper_plugin_info_t *rec)
 	{
 		if (rec)
 		{
 			// On startup...
-
 			if (rec->caller_version != REAPER_PLUGIN_VERSION || !rec->GetFunc)
 				return 0;
 
-			g_hInst = hInstance;
-			g_plugin_info = rec;
-			g_parent = rec->hwnd_main;
-
 			REAPERAPI_LoadAPI(rec->GetFunc);
-
-			model = new Model();
-			oscParser = new OscParser(model);
-			dataCollector = new DataCollector(model);
 
 			// Set parameter to true for debugging, note that the JVM will halt 
 			// until the Java debugger is connected
-			jvmManager = new JvmManager(DEBUG);
+			extension = std::make_unique<DrivenByMossExtension> (DEBUG);
+
 			std::string currentPath = GetExePath();
-			jvmManager->Create(currentPath);
-			jvmManager->RegisterMethods(&processNoArgCPP, &processStringArgCPP, &processIntArgCPP, &processDoubleArgCPP, &receiveModelDataCPP);
-			jvmManager->StartApp();
+			JvmManager &jvmManager = extension->GetJvmManager();
+			jvmManager.Create(currentPath);
+			jvmManager.RegisterMethods(&processNoArgCPP, &processStringArgCPP, &processIntArgCPP, &processDoubleArgCPP, &receiveModelDataCPP);
+			jvmManager.StartApp();
 
 			return 1;
 		}
 		else
 		{
 			// On shutdown...
-			if (jvmManager != nullptr)
-				delete jvmManager;
-			if (dataCollector != nullptr)
-				delete dataCollector;
-			if (oscParser != nullptr)
-				delete oscParser;
-			if (model != nullptr)
-				delete model;
+			extension.reset();
 			return 0;
 		}
 	}

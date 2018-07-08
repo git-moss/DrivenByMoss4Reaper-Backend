@@ -5,27 +5,28 @@
 #include "MidiProcessor.h"
 
 
+/** {@inheritDoc} */
 void MidiProcessor::Process(std::string command, std::deque<std::string> &path, int value)
 {
 	if (path.empty())
 		return;
-	int channel = std::atoi(path[0].c_str());
+	const int channel = std::atoi(path.at(0).c_str());
 
-	const char *cmd = path[1].c_str();
+	const char *cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "note") == 0)
 	{
-		int number = atoi(path[2].c_str());
+		const int number = atoi(path.at(2).c_str());
 		StuffMIDIMessage(0, 0x90 + channel, number, value);
 	}
 	else if (std::strcmp(cmd, "aftertouch") == 0)
 	{
-		int number = atoi(path[2].c_str());
+		const int number = atoi(path.at(2).c_str());
 		StuffMIDIMessage(0, 0xA0 + channel, number, value);
 	}
 	else if (std::strcmp(cmd, "cc") == 0)
 	{
-		int number = atoi(path[2].c_str());
+		const int number = atoi(path.at(2).c_str());
 		StuffMIDIMessage(0, 0xB0 + channel, number, value);
 	}
 	else if (std::strcmp(cmd, "pitch") == 0)

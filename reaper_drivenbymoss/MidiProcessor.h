@@ -9,8 +9,13 @@
 #include "OscProcessor.h"
 
 
+/**
+ * Processes all commands related to midi commands.
+ */
 class MidiProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path, int value);
+	MidiProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path, int value) override;
 };

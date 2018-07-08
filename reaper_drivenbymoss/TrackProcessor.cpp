@@ -5,51 +5,58 @@
 #include "TrackProcessor.h"
 
 
-TrackProcessor::TrackProcessor(Model *aModel) : OscProcessor(aModel)
+/**
+ * Constructor.
+ *
+ * @param aModel The model to share data
+ */
+TrackProcessor::TrackProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
+/** {@inheritDoc} */
 void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 {
 	if (path.empty())
 		return;
-	const char *part = path[0].c_str();
+	const char *part = path.at(0).c_str();
 
 	if (std::strcmp(part, "bank") == 0)
 	{
-		const char *cmd = path[1].c_str();
+		const char *cmd = path.at(1).c_str();
 		if (std::strcmp(cmd, "+") == 0)
 		{
-			if (this->model->trackBankOffset < this->model->trackCount)
-				this->model->trackBankOffset += this->model->trackBankSize;
+			if (this->model.trackBankOffset < this->model.trackCount)
+				this->model.trackBankOffset += this->model.trackBankSize;
 		}
 		else if (std::strcmp(cmd, "-") == 0)
 		{
-			if (this->model->trackBankOffset > 0)
-				this->model->trackBankOffset -= this->model->trackBankSize;
+			if (this->model.trackBankOffset > 0)
+				this->model.trackBankOffset -= this->model.trackBankSize;
 		}
 	}
 }
 
 
+/** {@inheritDoc} */
 void TrackProcessor::Process(std::string command, std::deque<std::string> &path, int value)
 {
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->GetProject();
-	int index = atoi(path[0].c_str()) - 1;
-	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + index);
-	const char *cmd = path[1].c_str();
+	ReaProject *project = this->model.GetProject();
+	const int index = atoi(path.at(0).c_str()) - 1;
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
+	const char *cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "select") == 0)
 	{
 		SetOnlyTrackSelected(track);
 		SetMixerScroll(track);
-		this->model->deviceSelected = 0;
-		this->model->deviceParamBankSelectedTemp = 0;
+		this->model.deviceSelected = 0;
+		this->model.deviceParamBankSelectedTemp = 0;
 	}
 	else if (std::strcmp(cmd, "createClip") == 0)
 	{
@@ -105,27 +112,28 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 4);
 	}
 	else
-		Process(command, path, (double)value);
+		Process(command, path, static_cast<double>(value));
 }
 
 
+/** {@inheritDoc} */
 void TrackProcessor::Process(std::string command, std::deque<std::string> &path, double value)
 {
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->GetProject();
-	int index = atoi(path[0].c_str()) - 1;
-	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + index);
-	const char *cmd = path[1].c_str();
+	ReaProject *project = this->model.GetProject();
+	const int index = atoi(path.at(0).c_str()) - 1;
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
+	const char *cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			this->model->trackVolume[index] = this->model->DBToValue(SLIDER2DB(value * 1000.0));
-			SetMediaTrackInfo_Value(track, "D_VOL", this->model->trackVolume[index]);
+			this->model.trackVolume.at(index) = this->model.DBToValue(SLIDER2DB(value * 1000.0));
+			SetMediaTrackInfo_Value(track, "D_VOL", this->model.trackVolume.at(index));
 		}
 	}
 	else if (std::strcmp(cmd, "pan") == 0)
@@ -133,18 +141,18 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			this->model->trackPan[index] = value * 2 - 1;
-			SetMediaTrackInfo_Value(track, "D_PAN", this->model->trackPan[index]);
+			this->model.trackPan.at(index) = value * 2 - 1;
+			SetMediaTrackInfo_Value(track, "D_PAN", this->model.trackPan.at(index));
 		}
 	}
 	else if (std::strcmp(cmd, "send") == 0)
 	{
-		int sendIndex = atoi(path[2].c_str()) - 1;
-		const char *subcmd = path[3].c_str();
+		const int sendIndex = atoi(path.at(2).c_str()) - 1;
+		const char *subcmd = path.at(3).c_str();
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
-			this->model->trackSendVolume[index][sendIndex] = this->model->DBToValue(SLIDER2DB(value * 1000.0));
-			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", this->model->trackSendVolume[index][sendIndex]);
+			this->model.trackSendVolume.at(index).at(sendIndex) = this->model.DBToValue(SLIDER2DB(value * 1000.0));
+			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", this->model.trackSendVolume.at(index).at(sendIndex));
 		}
 	}
 	else if (std::strcmp(cmd, "noterepeatlength") == 0)
@@ -154,15 +162,15 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 }
 
 
-void TrackProcessor::Process(std::string command, std::deque<std::string> &path, std::string value)
+void TrackProcessor::Process(std::string command, std::deque<std::string> &path, const std::string &value)
 {
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->GetProject();
-	int index = atoi(path[0].c_str()) - 1;
-	MediaTrack *track = GetTrack(project, this->model->trackBankOffset + index);
-	const char *cmd = path[1].c_str();
+	ReaProject *project = this->model.GetProject();
+	const int index = atoi(path.at(0).c_str()) - 1;
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
+	const char *cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "color") == 0)
 	{
@@ -171,9 +179,10 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 }
 
 
+/** {@inheritDoc} */
 void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int beats)
 {
-	int selectedTrackCount = CountSelectedTracks(project);
+	const int selectedTrackCount = CountSelectedTracks(project);
 	if (selectedTrackCount > 0)
 	{
 		Undo_BeginBlock2(project);
@@ -182,7 +191,7 @@ void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int 
 		Main_OnCommandEx(1016, 0, project);
 
 		// Disable recording on all tracks
-		int trackCount = CountTracks(project);
+		const int trackCount = CountTracks(project);
 		for (int idx = 0; idx < trackCount; idx++)
 		{
 			track = GetTrack(project, idx);
@@ -191,11 +200,11 @@ void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int 
 	}
 
 	// Create a new midi clip on the given track
-	double cursorPos = GetCursorPositionEx(project);
+	const double cursorPos = GetCursorPositionEx(project);
 	double bpmOut, bpiOut;
 	GetProjectTimeSignature2(project, &bpmOut, &bpiOut);
 	// Calculate length in seconds of n beats
-	double length = beats * 60 / bpmOut;
+	const double length = static_cast<double>(beats) * 60.0 / bpmOut;
 	MediaItem *item = CreateNewMIDIItemInProj(track, cursorPos, cursorPos + length, 0);
 
 	// Remove all current selections
@@ -228,7 +237,7 @@ void TrackProcessor::EnableRepeatPlugin(ReaProject *project, MediaTrack *track, 
 
 	// Get or insert note midi repeat plugin
 	Undo_BeginBlock2(project);
-	int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 1);
+	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 1);
 	if (position > -1)
 	{
 		// Note: 0x1000000 selects plugins on the record input FX chain
@@ -237,13 +246,14 @@ void TrackProcessor::EnableRepeatPlugin(ReaProject *project, MediaTrack *track, 
 	Undo_EndBlock2(project, "Dis-/enable note repeat (inserts plugin)", 0);
 }
 
+
 void TrackProcessor::SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution)
 {
 	if (track == nullptr)
 		return;
 
 	Undo_BeginBlock2(project);
-	int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 0);
+	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 0);
 	if (position > -1)
 	{
 		// Note: 0x1000000 selects plugins on the record input FX chain
@@ -251,6 +261,7 @@ void TrackProcessor::SetRepeatLength(ReaProject *project, MediaTrack *track, dou
 	}
 	Undo_EndBlock2(project, "Set note repeat length", 0);
 }
+
 
 void TrackProcessor::SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value)
 {
@@ -261,8 +272,8 @@ void TrackProcessor::SetColorOfTrack(ReaProject *project, MediaTrack *track, std
 	if (!std::regex_search(value.c_str(), result, colorPattern))
 		return;
 	int red = std::atoi(result.str(1).c_str());
-	int green = std::atoi(result.str(1).c_str());
-	int blue = std::atoi(result.str(1).c_str());
+	int green = std::atoi(result.str(2).c_str());
+	int blue = std::atoi(result.str(3).c_str());
 
 	Undo_BeginBlock2(project);
 	SetTrackColor(track, ColorToNative(red, green, blue));

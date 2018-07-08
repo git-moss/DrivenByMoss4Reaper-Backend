@@ -8,14 +8,18 @@
 #include "Model.h"
 
 
+/**
+ * Processes all commands related to devices.
+ */
 class DeviceProcessor : public OscProcessor
 {
 public:
-	DeviceProcessor(Model *model);
+	DeviceProcessor(Model &model);
 
-	virtual void Process(std::string command, std::deque<std::string> &path);
-	virtual void Process(std::string command, std::deque<std::string> &path, int value);
-	virtual void Process(std::string command, std::deque<std::string> &path, std::string value);
+	void Process(std::string command, std::deque<std::string> &path) override;
+	void Process(std::string command, std::deque<std::string> &path, int value) override;
+	void Process(std::string command, std::deque<std::string> &path, double value) override;
+	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override;
 
 private:
 	void SetDeviceSelection(int position);

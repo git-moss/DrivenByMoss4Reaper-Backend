@@ -75,6 +75,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -144,6 +145,7 @@
     <ClInclude Include="ClipProcessor.h" />
     <ClInclude Include="DeviceProcessor.h" />
     <ClInclude Include="de_mossgrabers_transformator_TransformatorApplication.h" />
+    <ClInclude Include="DrivenByMossExtension.h" />
     <ClInclude Include="JvmManager.h" />
     <ClInclude Include="MastertrackProcessor.h" />
     <ClInclude Include="MidiProcessor.h" />
@@ -175,6 +177,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DrivenByMossExtension.cpp" />
     <ClCompile Include="JvmManager.cpp" />
     <ClCompile Include="MastertrackProcessor.cpp" />
     <ClCompile Include="MidiProcessor.cpp" />

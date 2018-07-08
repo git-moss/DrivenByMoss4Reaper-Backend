@@ -10,11 +10,14 @@
 #include "Model.h"
 
 
+/**
+ * Processes all commands related to the master track.
+ */
 class MastertrackProcessor : public OscProcessor
 {
 public:
-	MastertrackProcessor(Model *model);
+	MastertrackProcessor(Model &model);
 
-	virtual void Process(std::string command, std::deque<std::string> &path, int value);
-	virtual void Process(std::string command, std::deque<std::string> &path, double value);
+	void Process(std::string command, std::deque<std::string> &path, int value) override;
+	void Process(std::string command, std::deque<std::string> &path, double value) override;
 };

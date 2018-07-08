@@ -5,26 +5,31 @@
 #include "MastertrackProcessor.h"
 
 
-MastertrackProcessor::MastertrackProcessor(Model *aModel) : OscProcessor(aModel)
+/**
+* Constructor.
+*
+* @param aModel The model
+*/
+MastertrackProcessor::MastertrackProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
+/** {@inheritDoc} */
 void MastertrackProcessor::Process(std::string command, std::deque<std::string> &path, int value)
 {
 	if (path.empty())
 		return;
-	const char *cmd = path[0].c_str();
+	const char *cmd = path.at(0).c_str();
 
-	MediaTrack *track = GetMasterTrack(this->GetProject());
+	MediaTrack *track = GetMasterTrack(this->model.GetProject());
 	if (std::strcmp(cmd, "select") == 0)
 	{
-		MediaTrack *track = GetMasterTrack(this->GetProject());
 		SetOnlyTrackSelected(track);
 		SetMixerScroll(track);
-		this->model->deviceSelected = 0;
-		this->model->deviceParamBankSelectedTemp = 0;
+		this->model.deviceSelected = 0;
+		this->model.deviceParamBankSelectedTemp = 0;
 	}
 	else if (std::strcmp(cmd, "solo") == 0)
 	{
@@ -35,23 +40,24 @@ void MastertrackProcessor::Process(std::string command, std::deque<std::string> 
 		SetMediaTrackInfo_Value(track, "B_MUTE", value);
 	}
 	else
-		Process(command, path, (double)value);
+		Process(command, path, static_cast<double>(value));
 }
 
 
+/** {@inheritDoc} */
 void MastertrackProcessor::Process(std::string command, std::deque<std::string> &path, double value)
 {
 	if (path.empty())
 		return;
-	const char *cmd = path[0].c_str();
-	MediaTrack *track = GetMasterTrack(this->GetProject());
+	const char *cmd = path.at(0).c_str();
+	MediaTrack *track = GetMasterTrack(this->model.GetProject());
 	if (std::strcmp(cmd, "volume") == 0)
 	{
 		// Touch not supported            
 		if (path.size() == 1)
 		{
-			this->model->masterVolume = this->model->DBToValue(SLIDER2DB(value * 1000.0));
-			SetMediaTrackInfo_Value(track, "D_VOL", this->model->masterVolume);
+			this->model.masterVolume = this->model.DBToValue(SLIDER2DB(value * 1000.0));
+			SetMediaTrackInfo_Value(track, "D_VOL", this->model.masterVolume);
 		}
 	}
 	else if (strcmp(cmd, "pan") == 0)
@@ -59,8 +65,8 @@ void MastertrackProcessor::Process(std::string command, std::deque<std::string> 
 		// Touch not supported            
 		if (path.size() == 1)
 		{
-			this->model->masterPan = value * 2 - 1;
-			SetMediaTrackInfo_Value(track, "D_PAN", this->model->masterPan);
+			this->model.masterPan = value * 2 - 1;
+			SetMediaTrackInfo_Value(track, "D_PAN", this->model.masterPan);
 		}
 	}
 }

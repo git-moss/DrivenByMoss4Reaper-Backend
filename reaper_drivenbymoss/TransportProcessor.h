@@ -12,9 +12,11 @@
 class PlayProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	PlayProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		const int playState = GetPlayStateEx(this->GetProject());
+		const int playState = GetPlayStateEx(this->model.GetProject());
 		if (playState & 1)
 			CSurf_OnPlay();
 		else
@@ -29,7 +31,9 @@ public:
 class StopProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	StopProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
 		CSurf_OnStop();
 	};
@@ -38,7 +42,9 @@ public:
 class RecordProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	RecordProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
 		CSurf_OnRecord();
 	};
@@ -47,33 +53,41 @@ public:
 class RepeatProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	RepeatProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Main_OnCommandEx(1068, 0, this->GetProject());
+		Main_OnCommandEx(1068, 0, this->model.GetProject());
 	};
 };
 
 class TimeProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path, int value)
+	TimeProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
-		this->Process(command, path, (double) value);
+		this->Process(command, path, static_cast<double> (value));
 	};
 
-	virtual void Process(std::string command, std::deque<std::string> &path, double value)
+	void Process(std::string command, std::deque<std::string> &path, double value) override
 	{
-		SetEditCurPos2(this->GetProject(), value, true, true);
+		ReaProject * const project = this->model.GetProject();
+		const double end = GetProjectLength(project);
+		SetEditCurPos2(project, value < end ? value : end, true, true);
 	};
 };
 
 class TempoProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	TempoProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		ReaProject *project = this->GetProject();
-		const char *direction = path[0].c_str();
+		ReaProject *project = this->model.GetProject();
+		const char *direction = path.at(0).c_str();
 		if (strcmp(direction, "+") == 0)
 			Main_OnCommandEx(41137, 0, project);
 		else if (strcmp(direction, "++") == 0)
@@ -84,12 +98,12 @@ public:
 			Main_OnCommandEx(41130, 0, project);
 	};
 
-	virtual void Process(std::string command, std::deque<std::string> &path, int value)
+	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
 		CSurf_OnTempoChange(value);
 	}
 
-	virtual void Process(std::string command, std::deque<std::string> &path, double value)
+	void Process(std::string command, std::deque<std::string> &path, double value) override
 	{
 		CSurf_OnTempoChange(value);
 	}
@@ -98,30 +112,36 @@ public:
 class ActionProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path, int value)
+	ActionProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
-		Main_OnCommandEx(value, 0, this->GetProject());
+		Main_OnCommandEx(value, 0, this->model.GetProject());
 	};
 };
 
 class ActionExProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path, const char *value)
+	ActionExProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override
 	{
-		int actionID = NamedCommandLookup(value);
+		const int actionID = NamedCommandLookup(value.c_str());
 		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, this->GetProject());
+			Main_OnCommandEx(actionID, 0, this->model.GetProject());
 	};
 };
 
 class QuantizeProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	QuantizeProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
 		// MAIN section action 40153: "open selected item in MIDI editor"
-		Main_OnCommand(40153, 0); 
+		Main_OnCommand(40153, 0);
 		HWND active_MIDI_editor = MIDIEditor_GetActive();
 		// Select all notes
 		MIDIEditor_OnCommand(active_MIDI_editor, 40003);
@@ -135,39 +155,47 @@ public:
 class MetronomeVolumeProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	MetronomeVolumeProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
 		if (path.empty())
 			return;
-		const char *direction = path[0].c_str();
-		int actionID = NamedCommandLookup(strcmp(direction, "+") == 0 ? "_S&M_METRO_VOL_UP" : "_S&M_METRO_VOL_DOWN");
+		const char *direction = path.at(0).c_str();
+		const int actionID = NamedCommandLookup(strcmp(direction, "+") == 0 ? "_S&M_METRO_VOL_UP" : "_S&M_METRO_VOL_DOWN");
 		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, this->GetProject());
+			Main_OnCommandEx(actionID, 0, this->model.GetProject());
 	};
 };
 
 class UndoProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	UndoProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Undo_DoUndo2(this->GetProject());
+		Undo_DoUndo2(this->model.GetProject());
 	};
 };
 
 class RedoProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path)
+	RedoProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Undo_DoRedo2(this->GetProject());
+		Undo_DoRedo2(this->model.GetProject());
 	};
 };
 
 class CursorProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path, int value)
+	CursorProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
 		CSurf_OnArrow(value, 0);
 	};
@@ -176,9 +204,11 @@ public:
 class ProjectProcessor : public OscProcessor
 {
 public:
-	virtual void Process(std::string command, std::deque<std::string> &path, int value)
+	ProjectProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
-		if (path.empty() || strcmp(path[0].c_str(), "engine") != 0)
+		if (path.empty() || std::strcmp(path.at(0).c_str(), "engine") != 0)
 			return;
 		if (value > 0)
 			Audio_Init();
