@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reaper_drivenbymoss", "reaper_drivenbymoss\reaper_drivenbymoss.vcxproj", "{66BF532D-08EE-4B58-A93F-3AD630309774}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reaper_drivenbymoss", "reaper_drivenbymoss.vcxproj", "{66BF532D-08EE-4B58-A93F-3AD630309774}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

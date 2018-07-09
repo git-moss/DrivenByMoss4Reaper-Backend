@@ -71,43 +71,46 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\ClipProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dllmain.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\DataCollector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OscParser.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\DeviceProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="JvmManager.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataCollector.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossExtension.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MastertrackProcessor.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossSurface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\FunctionExecutor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TrackProcessor.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\JvmManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DeviceProcessor.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\MastertrackProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ClipProcessor.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\MidiProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MidiProcessor.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DrivenByMossSurface.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\OscParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FunctionExecutor.cpp">
+    <ClCompile Include="..\reaper_drivenbymoss\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\reaper_drivenbymoss\TrackProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

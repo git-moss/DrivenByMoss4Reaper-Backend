@@ -162,32 +162,20 @@
     <ClInclude Include="TransportProcessor.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ClipProcessor.cpp" />
-    <ClCompile Include="DeviceProcessor.cpp" />
-    <ClCompile Include="dllmain.cpp">
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeader>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </PrecompiledHeader>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </PrecompiledHeader>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="DrivenByMossSurface.cpp" />
-    <ClCompile Include="FunctionExecutor.cpp" />
-    <ClCompile Include="JvmManager.cpp" />
-    <ClCompile Include="MastertrackProcessor.cpp" />
-    <ClCompile Include="MidiProcessor.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="OscParser.cpp" />
-    <ClCompile Include="DataCollector.cpp" />
-    <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="TrackProcessor.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\ClipProcessor.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\DataCollector.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\DeviceProcessor.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\dllmain.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossExtension.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossSurface.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\FunctionExecutor.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\JvmManager.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\MastertrackProcessor.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\MidiProcessor.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\Model.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\OscParser.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\stdafx.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\TrackProcessor.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
