@@ -7,6 +7,7 @@
 #include "OscParser.h"
 #include "JvmManager.h"
 #include "DataCollector.h"
+#include "FunctionExecutor.h"
 
 
 /**
@@ -15,7 +16,7 @@
 class DrivenByMossExtension
 {
 public:
-	DrivenByMossExtension(bool enableDebug);
+	DrivenByMossExtension(FunctionExecutor &functionExecutor, bool enableDebug);
 
 	OscParser &GetOscParser() noexcept
 	{
@@ -33,7 +34,7 @@ public:
 	};
 
 private:
-	Model model{};
+	Model model;
 	OscParser oscParser{model};
 	DataCollector dataCollector{ model };
 	JvmManager jvmManager;

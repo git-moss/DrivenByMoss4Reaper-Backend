@@ -6,6 +6,7 @@
 
 #include <vector>
 #include "reaper_plugin_functions.h"
+#include "FunctionExecutor.h"
 
 
 /**
@@ -39,7 +40,12 @@ public:
 	int deviceCount{ 0 };
 
 
-	Model();
+	Model(FunctionExecutor &functionExecutor);
+
+	void AddFunction(std::function<void(void)> f)
+	{
+		functionExecutor.AddFunction(f);
+	};
 
 	double ValueToDB(double x) noexcept;
 	double DBToValue(double x) noexcept;
@@ -50,5 +56,8 @@ public:
 		const int projectID = -1;
 		return EnumProjects(projectID, nullptr, 0);
 	};
-};
 
+
+private:
+	FunctionExecutor & functionExecutor;
+};

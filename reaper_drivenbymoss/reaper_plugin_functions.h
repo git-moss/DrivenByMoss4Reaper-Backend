@@ -6448,6 +6448,675 @@ REAPERAPI_DEF //==============================================
   bool (*WDL_VirtualWnd_ScaledBlitBG)(LICE_IBitmap* dest, WDL_VirtualWnd_BGCfg* src, int destx, int desty, int destw, int desth, int clipx, int clipy, int clipw, int cliph, float alpha, int mode);
 #endif
 
+#if defined(REAPERAPI_WANT_BR_GetArrangeView) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetArrangeView
+// [BR] Deprecated, see GetSet_ArrangeView2 (REAPER v5.12pre4+) -- Get start and end time position of arrange view. To set arrange view instead, see BR_SetArrangeView.
+
+  void (*BR_GetArrangeView)(ReaProject* proj, double* startTimeOut, double* endTimeOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetClosestGridDivision) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetClosestGridDivision
+// [BR] Get closest grid division to position. Note that this functions is different from <a href="#SnapToGrid">SnapToGrid</a> in two regards. SnapToGrid() needs snap enabled to work and this one works always. Secondly, grid divisions are different from grid lines because some grid lines may be hidden due to zoom level - this function ignores grid line visibility and always searches for the closest grid division at given position. For more grid division functions, see <a href="#BR_GetNextGridDivision">BR_GetNextGridDivision</a> and <a href="#BR_GetPrevGridDivision">BR_GetPrevGridDivision</a>.
+
+  double (*BR_GetClosestGridDivision)(double position);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetCurrentTheme) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetCurrentTheme
+// [BR] Get current theme information. themePathOut is set to full theme path and themeNameOut is set to theme name excluding any path info and extension
+
+  void (*BR_GetCurrentTheme)(char* themePathOut, int themePathOut_sz, char* themeNameOut, int themeNameOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaItemByGUID) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaItemByGUID
+// [BR] Get media item from GUID string. Note that the GUID must be enclosed in braces {}. To get item's GUID as a string, see BR_GetMediaItemGUID.
+
+  MediaItem* (*BR_GetMediaItemByGUID)(ReaProject* proj, const char* guidStringIn);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaItemGUID) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaItemGUID
+// [BR] Get media item GUID as a string (guidStringOut_sz should be at least 64). To get media item back from GUID string, see BR_GetMediaItemByGUID.
+
+  void (*BR_GetMediaItemGUID)(MediaItem* item, char* guidStringOut, int guidStringOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaItemImageResource) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaItemImageResource
+// [BR] Get currently loaded image resource and it's flags for a given item. Returns false if there is no image resource set. To set image resource, see BR_SetMediaItemImageResource.
+
+  bool (*BR_GetMediaItemImageResource)(MediaItem* item, char* imageOut, int imageOut_sz, int* imageFlagsOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaItemTakeGUID) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaItemTakeGUID
+// [BR] Get media item take GUID as a string (guidStringOut_sz should be at least 64). To get take from GUID string, see SNM_GetMediaItemTakeByGUID.
+
+  void (*BR_GetMediaItemTakeGUID)(MediaItem_Take* take, char* guidStringOut, int guidStringOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaSourceProperties) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaSourceProperties
+// [BR] Get take media source properties as they appear in <i>Item properties</i>. Returns false if take can't have them (MIDI items etc.).
+// To set source properties, see BR_SetMediaSourceProperties.
+
+  bool (*BR_GetMediaSourceProperties)(MediaItem_Take* take, bool* sectionOut, double* startOut, double* lengthOut, double* fadeOut, bool* reverseOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaTrackByGUID) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaTrackByGUID
+// [BR] Get media track from GUID string. Note that the GUID must be enclosed in braces {}. To get track's GUID as a string, see BR_GetMediaTrackGUID.
+
+  MediaTrack* (*BR_GetMediaTrackByGUID)(ReaProject* proj, const char* guidStringIn);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaTrackFreezeCount) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaTrackFreezeCount
+// [BR] Get media track freeze count (if track isn't frozen at all, returns 0).
+
+  int (*BR_GetMediaTrackFreezeCount)(MediaTrack* track);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaTrackGUID) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaTrackGUID
+// [BR] Get media track GUID as a string (guidStringOut_sz should be at least 64). To get media track back from GUID string, see BR_GetMediaTrackByGUID.
+
+  void (*BR_GetMediaTrackGUID)(MediaTrack* track, char* guidStringOut, int guidStringOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaTrackLayouts) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaTrackLayouts
+// [BR] Deprecated, see GetSetMediaTrackInfo (REAPER v5.02+). Get media track layouts for MCP and TCP. Empty string ("") means that layout is set to the default layout. To set media track layouts, see BR_SetMediaTrackLayouts.
+
+  void (*BR_GetMediaTrackLayouts)(MediaTrack* track, char* mcpLayoutNameOut, int mcpLayoutNameOut_sz, char* tcpLayoutNameOut, int tcpLayoutNameOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaTrackSendInfo_Envelope) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaTrackSendInfo_Envelope
+// [BR] Get track envelope for send/receive/hardware output.
+// 
+// category is <0 for receives, 0=sends, >0 for hardware outputs
+// sendidx is zero-based (see GetTrackNumSends to count track sends/receives/hardware outputs)
+// envelopeType determines which envelope is returned (0=volume, 1=pan, 2=mute)
+// 
+// Note: To get or set other send attributes, see <a href="#BR_GetSetTrackSendInfo">BR_GetSetTrackSendInfo</a> and <a href="#BR_GetMediaTrackSendInfo_Track">BR_GetMediaTrackSendInfo_Track</a>.
+
+  TrackEnvelope* (*BR_GetMediaTrackSendInfo_Envelope)(MediaTrack* track, int category, int sendidx, int envelopeType);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMediaTrackSendInfo_Track) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMediaTrackSendInfo_Track
+// [BR] Get source or destination media track for send/receive.
+// 
+// category is <0 for receives, 0=sends
+// sendidx is zero-based (see GetTrackNumSends to count track sends/receives)
+// trackType determines which track is returned (0=source track, 1=destination track)
+// 
+// Note: To get or set other send attributes, see <a href="#BR_GetSetTrackSendInfo">BR_GetSetTrackSendInfo</a> and <a href="#BR_GetMediaTrackSendInfo_Envelope">BR_GetMediaTrackSendInfo_Envelope</a>.
+
+  MediaTrack* (*BR_GetMediaTrackSendInfo_Track)(MediaTrack* track, int category, int sendidx, int trackType);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMidiSourceLenPPQ) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMidiSourceLenPPQ
+// [BR] Get MIDI take source length in PPQ. In case the take isn't MIDI, return value will be -1.
+
+  double (*BR_GetMidiSourceLenPPQ)(MediaItem_Take* take);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMidiTakePoolGUID) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMidiTakePoolGUID
+// [BR] Get MIDI take pool GUID as a string (guidStringOut_sz should be at least 64). Returns true if take is pooled.
+
+  bool (*BR_GetMidiTakePoolGUID)(MediaItem_Take* take, char* guidStringOut, int guidStringOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMidiTakeTempoInfo) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMidiTakeTempoInfo
+// [BR] Get "ignore project tempo" information for MIDI take. Returns true if take can ignore project tempo (no matter if it's actually ignored), otherwise false.
+
+  bool (*BR_GetMidiTakeTempoInfo)(MediaItem_Take* take, bool* ignoreProjTempoOut, double* bpmOut, int* numOut, int* denOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext
+// [BR] Get mouse cursor context. Each parameter returns information in a form of string as specified in the table below.
+// 
+// To get more info on stuff that was found under mouse cursor see BR_GetMouseCursorContext_Envelope, BR_GetMouseCursorContext_Item, BR_GetMouseCursorContext_MIDI, BR_GetMouseCursorContext_Position, BR_GetMouseCursorContext_Take, BR_GetMouseCursorContext_Track 
+// 
+// <table border="2"><tr><th style="width:100px">Window</th> <th style="width:100px">Segment</th> <th style="width:300px">Details</th>                                           </tr><tr><th rowspan="1" align = "center"> unknown     </th>    <td> ""        </td>   <td> ""                                                           </td> </tr><tr><th rowspan="4" align = "center"> ruler       </th>    <td> region_lane </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> marker_lane </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> tempo_lane  </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> timeline    </td>   <td> ""                                                           </td> </tr><tr><th rowspan="1" align = "center"> transport   </th>    <td> ""        </td>   <td> ""                                                           </td> </tr><tr><th rowspan="3" align = "center"> tcp         </th>    <td> track       </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> envelope    </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> empty       </td>   <td> ""                                                           </td> </tr><tr><th rowspan="2" align = "center"> mcp         </th>    <td> track       </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> empty       </td>   <td> ""                                                           </td> </tr><tr><th rowspan="3" align = "center"> arrange     </th>    <td> track       </td>   <td> empty,<br>item, item_stretch_marker,<br>env_point, env_segment </td> </tr><tr>                                                           <td> envelope    </td>   <td> empty, env_point, env_segment                                  </td> </tr><tr>                                                           <td> empty       </td>   <td> ""                                                           </td> </tr><tr><th rowspan="5" align = "center"> midi_editor </th>    <td> unknown     </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> ruler       </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> piano       </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> notes       </td>   <td> ""                                                           </td> </tr><tr>                                                           <td> cc_lane     </td>   <td> cc_selector, cc_lane                                           </td> </tr></table>
+
+  void (*BR_GetMouseCursorContext)(char* windowOut, int windowOut_sz, char* segmentOut, int segmentOut_sz, char* detailsOut, int detailsOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Envelope) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext_Envelope
+// [BR] Returns envelope that was captured with the last call to <a href="#BR_GetMouseCursorContext">BR_GetMouseCursorContext</a>. In case the envelope belongs to take, takeEnvelope will be true.
+
+  TrackEnvelope* (*BR_GetMouseCursorContext_Envelope)(bool* takeEnvelopeOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Item) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext_Item
+// [BR] Returns item under mouse cursor that was captured with the last call to <a href="#BR_GetMouseCursorContext">BR_GetMouseCursorContext</a>. Note that the function will return item even if mouse cursor is over some other track lane element like stretch marker or envelope. This enables for easier identification of items when you want to ignore elements within the item.
+
+  MediaItem* (*BR_GetMouseCursorContext_Item)();
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_MIDI) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext_MIDI
+// [BR] Returns midi editor under mouse cursor that was captured with the last call to <a href="#BR_GetMouseCursorContext">BR_GetMouseCursorContext</a>.
+// 
+// inlineEditor: if mouse was captured in inline MIDI editor, this will be true (consequentially, returned MIDI editor will be NULL)
+// noteRow: note row or piano key under mouse cursor (0-127)
+// ccLane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
+// ccLaneVal: value in CC lane under mouse cursor (0-127 or 0-16383)
+// ccLaneId: lane position, counting from the top (0 based)
+// 
+// Note: due to API limitations, if mouse is over inline MIDI editor with some note rows hidden, noteRow will be -1
+
+  void* (*BR_GetMouseCursorContext_MIDI)(bool* inlineEditorOut, int* noteRowOut, int* ccLaneOut, int* ccLaneValOut, int* ccLaneIdOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Position) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext_Position
+// [BR] Returns project time position in arrange/ruler/midi editor that was captured with the last call to <a href="#BR_GetMouseCursorContext">BR_GetMouseCursorContext</a>.
+
+  double (*BR_GetMouseCursorContext_Position)();
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_StretchMarker) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext_StretchMarker
+// [BR] Returns id of a stretch marker under mouse cursor that was captured with the last call to <a href="#BR_GetMouseCursorContext">BR_GetMouseCursorContext</a>.
+
+  int (*BR_GetMouseCursorContext_StretchMarker)();
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Take) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext_Take
+// [BR] Returns take under mouse cursor that was captured with the last call to <a href="#BR_GetMouseCursorContext">BR_GetMouseCursorContext</a>.
+
+  MediaItem_Take* (*BR_GetMouseCursorContext_Take)();
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Track) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetMouseCursorContext_Track
+// [BR] Returns track under mouse cursor that was captured with the last call to <a href="#BR_GetMouseCursorContext">BR_GetMouseCursorContext</a>.
+
+  MediaTrack* (*BR_GetMouseCursorContext_Track)();
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetNextGridDivision) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetNextGridDivision
+// [BR] Get next grid division after the time position. For more grid divisions function, see <a href="#BR_GetClosestGridDivision">BR_GetClosestGridDivision</a> and <a href="#BR_GetPrevGridDivision">BR_GetPrevGridDivision</a>.
+
+  double (*BR_GetNextGridDivision)(double position);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetPrevGridDivision) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetPrevGridDivision
+// [BR] Get previous grid division before the time position. For more grid division functions, see <a href="#BR_GetClosestGridDivision">BR_GetClosestGridDivision</a> and <a href="#BR_GetNextGridDivision">BR_GetNextGridDivision</a>.
+
+  double (*BR_GetPrevGridDivision)(double position);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetSetTrackSendInfo) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetSetTrackSendInfo
+// [BR] Get or set send attributes.
+// 
+// category is <0 for receives, 0=sends, >0 for hardware outputs
+// sendidx is zero-based (see GetTrackNumSends to count track sends/receives/hardware outputs)
+// To set attribute, pass setNewValue as true
+// 
+// List of possible parameters:
+// B_MUTE : send mute state (1.0 if muted, otherwise 0.0)
+// B_PHASE : send phase state (1.0 if phase is inverted, otherwise 0.0)
+// B_MONO : send mono state (1.0 if send is set to mono, otherwise 0.0)
+// D_VOL : send volume (1.0=+0dB etc...)
+// D_PAN : send pan (-1.0=100%L, 0=center, 1.0=100%R)
+// D_PANLAW : send pan law (1.0=+0.0db, 0.5=-6dB, -1.0=project default etc...)
+// I_SENDMODE : send mode (0=post-fader, 1=pre-fx, 2=post-fx(deprecated), 3=post-fx)
+// I_SRCCHAN : audio source starting channel index or -1 if audio send is disabled (&1024=mono...note that in that case, when reading index, you should do (index XOR 1024) to get starting channel index)
+// I_DSTCHAN : audio destination starting channel index (&1024=mono (and in case of hardware output &512=rearoute)...note that in that case, when reading index, you should do (index XOR (1024 OR 512)) to get starting channel index)
+// I_MIDI_SRCCHAN : source MIDI channel, -1 if MIDI send is disabled (0=all, 1-16)
+// I_MIDI_DSTCHAN : destination MIDI channel, -1 if MIDI send is disabled (0=original, 1-16)
+// I_MIDI_SRCBUS : source MIDI bus, -1 if MIDI send is disabled (0=all, otherwise bus index)
+// I_MIDI_DSTBUS : receive MIDI bus, -1 if MIDI send is disabled (0=all, otherwise bus index)
+// I_MIDI_LINK_VOLPAN : link volume/pan controls to MIDI
+// 
+// Note: To get or set other send attributes, see <a href="#BR_GetMediaTrackSendInfo_Envelope">BR_GetMediaTrackSendInfo_Envelope</a> and <a href="#BR_GetMediaTrackSendInfo_Track">BR_GetMediaTrackSendInfo_Track</a>.
+
+  double (*BR_GetSetTrackSendInfo)(MediaTrack* track, int category, int sendidx, const char* parmname, bool setNewValue, double newValue);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_GetTakeFXCount) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_GetTakeFXCount
+// [BR] Returns FX count for supplied take
+
+  int (*BR_GetTakeFXCount)(MediaItem_Take* take);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_IsMidiOpenInInlineEditor) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_IsMidiOpenInInlineEditor
+// [SWS] Check if take has MIDI inline editor open and returns true or false.
+
+  bool (*BR_IsMidiOpenInInlineEditor)(MediaItem_Take* take);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_IsTakeMidi) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_IsTakeMidi
+// [BR] Check if take is MIDI take, in case MIDI take is in-project MIDI source data, inProjectMidiOut will be true, otherwise false.
+
+  bool (*BR_IsTakeMidi)(MediaItem_Take* take, bool* inProjectMidiOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_ItemAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_ItemAtMouseCursor
+// [BR] Get media item under mouse cursor. Position is mouse cursor position in arrange.
+
+  MediaItem* (*BR_ItemAtMouseCursor)(double* positionOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_MIDI_CCLaneRemove) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_MIDI_CCLaneRemove
+// [BR] Remove CC lane in midi editor. Returns true on success
+
+  bool (*BR_MIDI_CCLaneRemove)(HWND midiEditor, int laneId);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_MIDI_CCLaneReplace) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_MIDI_CCLaneReplace
+// [BR] Replace CC lane in midi editor. Returns true on success.
+// Valid CC lanes: CC0-127=CC, 0x100|(0-31)=14-bit CC, 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207
+
+  bool (*BR_MIDI_CCLaneReplace)(HWND midiEditor, int laneId, int newCC);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_PositionAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_PositionAtMouseCursor
+// [BR] Get position at mouse cursor. To check ruler along with arrange, pass checkRuler=true. Returns -1 if cursor is not over arrange/ruler.
+
+  double (*BR_PositionAtMouseCursor)(bool checkRuler);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetArrangeView) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetArrangeView
+// [BR] Deprecated, see GetSet_ArrangeView2 (REAPER v5.12pre4+) -- Set start and end time position of arrange view. To get arrange view instead, see BR_GetArrangeView.
+
+  void (*BR_SetArrangeView)(ReaProject* proj, double startTime, double endTime);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetItemEdges) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetItemEdges
+// [BR] Set item start and end edges' position - returns true in case of any changes
+
+  bool (*BR_SetItemEdges)(MediaItem* item, double startTime, double endTime);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetMediaItemImageResource) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetMediaItemImageResource
+// [BR] Set image resource and it's flags for a given item. To clear current image resource, pass imageIn as . To get image resource, see BR_GetMediaItemImageResource.
+
+  void (*BR_SetMediaItemImageResource)(MediaItem* item, const char* imageIn, int imageFlags);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetMediaSourceProperties) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetMediaSourceProperties
+// [BR] Set take media source properties. Returns false if take can't have them (MIDI items etc.). Section parameters have to be valid only when passing section=true.
+// To get source properties, see BR_GetMediaSourceProperties.
+
+  bool (*BR_SetMediaSourceProperties)(MediaItem_Take* take, bool section, double start, double length, double fade, bool reverse);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetMediaTrackLayouts) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetMediaTrackLayouts
+// [BR] Deprecated, see GetSetMediaTrackInfo (REAPER v5.02+). Set media track layouts for MCP and TCP. To set default layout, pass empty string ("") as layout name. In case layouts were successfully set, returns true (if layouts are already set to supplied layout names, it will return false since no changes were made).
+// To get media track layouts, see BR_GetMediaTrackLayouts.
+
+  bool (*BR_SetMediaTrackLayouts)(MediaTrack* track, const char* mcpLayoutNameIn, const char* tcpLayoutNameIn);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetMidiTakeTempoInfo) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetMidiTakeTempoInfo
+// [BR] Set "ignore project tempo" information for MIDI take. Returns true in case the take was successfully updated.
+
+  bool (*BR_SetMidiTakeTempoInfo)(MediaItem_Take* take, bool ignoreProjTempo, double bpm, int num, int den);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetTakeSourceFromFile) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetTakeSourceFromFile
+// [BR] Set new take source from file. To import MIDI file as in-project source data pass inProjectData=true. Returns false if failed.
+// Any take source properties from the previous source will be lost - to preserve them, see BR_SetTakeSourceFromFile2.
+// Note: To set source from existing take, see <a href="#SNM_GetSetSourceState2">SNM_GetSetSourceState2</a>.
+
+  bool (*BR_SetTakeSourceFromFile)(MediaItem_Take* take, const char* filenameIn, bool inProjectData);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_SetTakeSourceFromFile2) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_SetTakeSourceFromFile2
+// [BR] Differs from <a href="#BR_SetTakeSourceFromFile">BR_SetTakeSourceFromFile</a> only that it can also preserve existing take media source properties.
+
+  bool (*BR_SetTakeSourceFromFile2)(MediaItem_Take* take, const char* filenameIn, bool inProjectData, bool keepSourceProperties);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_TakeAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_TakeAtMouseCursor
+// [BR] Get take under mouse cursor. Position is mouse cursor position in arrange.
+
+  MediaItem_Take* (*BR_TakeAtMouseCursor)(double* positionOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_TrackAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_TrackAtMouseCursor
+// [BR] Get track under mouse cursor.
+// Context signifies where the track was found: 0 = TCP, 1 = MCP, 2 = Arrange.
+// Position will hold mouse cursor position in arrange if applicable.
+
+  MediaTrack* (*BR_TrackAtMouseCursor)(int* contextOut, double* positionOut);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_TrackFX_GetFXModuleName) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_TrackFX_GetFXModuleName
+// [BR] Get the exact name (like effect.dll, effect.vst3, etc...) of an FX.
+
+  bool (*BR_TrackFX_GetFXModuleName)(MediaTrack* track, int fx, char*  nameOut, int  nameOutSz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_Win32_GetPrivateProfileString) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_Win32_GetPrivateProfileString
+// [BR] Equivalent to win32 API GetPrivateProfileString(). For example, you can use this to get values from REAPER.ini
+
+  int (*BR_Win32_GetPrivateProfileString)(const char* sectionName, const char* keyName, const char* defaultString, const char* filePath, char* stringOut, int stringOut_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_Win32_ShellExecute) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_Win32_ShellExecute
+// [BR] Equivalent to win32 API ShellExecute() with HWND set to main window
+
+  int (*BR_Win32_ShellExecute)(const char* operation, const char* file, const char* parameters, const char* directory, int showFlags);
+#endif
+
+#if defined(REAPERAPI_WANT_BR_Win32_WritePrivateProfileString) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// BR_Win32_WritePrivateProfileString
+// [BR] Equivalent to win32 API WritePrivateProfileString(). For example, you can use this to write to REAPER.ini
+
+  bool (*BR_Win32_WritePrivateProfileString)(const char* sectionName, const char* keyName, const char* value, const char* filePath);
+#endif
+
+#if defined(REAPERAPI_WANT_CF_GetClipboard) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// CF_GetClipboard
+// Read the contents of the system clipboard (limited to 1023 characters in Lua).
+
+  void (*CF_GetClipboard)(char* buf, int buf_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_CF_SetClipboard) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// CF_SetClipboard
+// Write the given string into the system clipboard.
+
+  void (*CF_SetClipboard)(const char* str);
+#endif
+
+#if defined(REAPERAPI_WANT_NF_AnalyzeTakeLoudness) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// NF_AnalyzeTakeLoudness
+// Full loudness analysis. retval: returns true on successful analysis, false on MIDI take or when analysis failed for some reason. analyzeTruePeak=true: Also do true peak analysis. Returns true peak value and true peak position which can be jumped to with SetEditCurPos(). Considerably slower than without true peak analysis (since it uses oversampling). Note: Short term uses a time window of 3 sec. for calculation. So for items shorter than this shortTermMaxOut can't be calculated. Momentary uses a time window of 0.4 sec. 
+
+  bool (*NF_AnalyzeTakeLoudness)(MediaItem_Take* take, bool analyzeTruePeak, double* lufsIntegratedOut, double* rangeOut, double*  truePeakOut, double* truePeakPosOut, double* shortTermMaxOut, double* momentaryMaxOut);
+#endif
+
+#if defined(REAPERAPI_WANT_NF_AnalyzeTakeLoudness2) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// NF_AnalyzeTakeLoudness2
+// Same as <a href="#NF_AnalyzeTakeLoudness">NF_AnalyzeTakeLoudness</a> but additionally returns shortTermMaxPos and momentaryMaxPos which can be jumped to with SetEditCurPos(). Note: shortTermMaxPos and momentaryMaxPos actaully indicate the beginning of time  <i>intervalls</i>, (3 sec. and 0.4 sec. resp.). 
+
+  bool (*NF_AnalyzeTakeLoudness2)(MediaItem_Take* take, bool analyzeTruePeak, double* lufsIntegratedOut, double* rangeOut, double*  truePeakOut, double* truePeakPosOut, double* shortTermMaxOut, double* momentaryMaxOut, double* shortTermMaxPosOut, double* momentaryMaxPosOut);
+#endif
+
+#if defined(REAPERAPI_WANT_NF_AnalyzeTakeLoudness_IntegratedOnly) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// NF_AnalyzeTakeLoudness_IntegratedOnly
+// Does LUFS integrated analysis only. Faster than full loudness analysis (<a href="#NF_AnalyzeTakeLoudness">NF_AnalyzeTakeLoudness</a>) . Use this if only LUFS integrated is required.
+
+  bool (*NF_AnalyzeTakeLoudness_IntegratedOnly)(MediaItem_Take* take, double* lufsIntegratedOut);
+#endif
+
+#if defined(REAPERAPI_WANT_NF_GetMediaItemAverageRMS) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// NF_GetMediaItemAverageRMS
+// Returns the average overall (non-windowed) RMS level of active channels of an audio item active take, post item gain, post take volume envelope, post-fade, pre fader, pre item FX. 
+//  Returns -150.0 if MIDI take or empty item.
+
+  double (*NF_GetMediaItemAverageRMS)(MediaItem* item);
+#endif
+
+#if defined(REAPERAPI_WANT_NF_GetMediaItemMaxPeak) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// NF_GetMediaItemMaxPeak
+// Returns the greatest max. peak value of all active channels of an audio item active take, post item gain, post take volume envelope, post-fade, pre fader, pre item FX. 
+//  Returns -150.0 if MIDI take or empty item.
+
+  double (*NF_GetMediaItemMaxPeak)(MediaItem* item);
+#endif
+
+#if defined(REAPERAPI_WANT_NF_GetMediaItemPeakRMS_NonWindowed) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// NF_GetMediaItemPeakRMS_NonWindowed
+// Returns the greatest overall (non-windowed) RMS peak level of all active channels of an audio item active take, post item gain, post take volume envelope, post-fade, pre fader, pre item FX. 
+//  Returns -150.0 if MIDI take or empty item.
+
+  double (*NF_GetMediaItemPeakRMS_NonWindowed)(MediaItem* item);
+#endif
+
+#if defined(REAPERAPI_WANT_NF_GetMediaItemPeakRMS_Windowed) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// NF_GetMediaItemPeakRMS_Windowed
+// Returns the average RMS peak level of all active channels of an audio item active take, post item gain, post take volume envelope, post-fade, pre fader, pre item FX. 
+//  Obeys 'Window size for peak RMS' setting in 'SWS: Set RMS analysis/normalize options' for calculation. Returns -150.0 if MIDI take or empty item.
+
+  double (*NF_GetMediaItemPeakRMS_Windowed)(MediaItem* item);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_AddReceive) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_AddReceive
+// [S&M] Deprecated, see CreateTrackSend (v5.15pre1+). Adds a receive. Returns false if nothing updated.
+// type -1=Default type (user preferences), 0=Post-Fader (Post-Pan), 1=Pre-FX, 2=deprecated, 3=Pre-Fader (Post-FX).
+// Note: obeys default sends preferences, supports frozen tracks, etc..
+
+  bool (*SNM_AddReceive)(MediaTrack* src, MediaTrack* dest, int type);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_AddTCPFXParm) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_AddTCPFXParm
+// [S&M] Add an FX parameter knob in the TCP. Returns false if nothing updated (invalid parameters, knob already present, etc..)
+
+  bool (*SNM_AddTCPFXParm)(MediaTrack* tr, int fxId, int prmId);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_GetDoubleConfigVar) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_GetDoubleConfigVar
+// [S&M] Returns a double preference (look in project prefs first, then in general prefs). Returns errvalue if failed (e.g. varname not found).
+
+  double (*SNM_GetDoubleConfigVar)(const char* varname, double errvalue);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_GetIntConfigVar) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_GetIntConfigVar
+// [S&M] Returns an integer preference (look in project prefs first, then in general prefs). Returns errvalue if failed (e.g. varname not found).
+
+  int (*SNM_GetIntConfigVar)(const char* varname, int errvalue);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_GetMediaItemTakeByGUID) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_GetMediaItemTakeByGUID
+// [S&M] Gets a take by GUID as string. The GUID must be enclosed in braces {}. To get take GUID as string, see BR_GetMediaItemTakeGUID
+
+  MediaItem_Take* (*SNM_GetMediaItemTakeByGUID)(ReaProject* project, const char* guid);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_MoveOrRemoveTrackFX) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_MoveOrRemoveTrackFX
+// [S&M] Move or removes a track FX. Returns true if tr has been updated.
+// fxId: fx index in chain or -1 for the selected fx. what: 0 to remove, -1 to move fx up in chain, 1 to move fx down in chain.
+
+  bool (*SNM_MoveOrRemoveTrackFX)(MediaTrack* tr, int fxId, int what);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_ReadMediaFileTag) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_ReadMediaFileTag
+// [S&M] Reads a media file tag. Supported tags: "artist", "album", "genre", "comment", "title", or "year". Returns false if tag was not found. See SNM_TagMediaFile.
+
+  bool (*SNM_ReadMediaFileTag)(const char* fn, const char* tag, char* tagval, int tagval_sz);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_RemoveReceive) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_RemoveReceive
+// [S&M] Deprecated, see RemoveTrackSend (v5.15pre1+). Removes a receive. Returns false if nothing updated.
+
+  bool (*SNM_RemoveReceive)(MediaTrack* tr, int rcvidx);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_RemoveReceivesFrom) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_RemoveReceivesFrom
+// [S&M] Removes all receives from srctr. Returns false if nothing updated.
+
+  bool (*SNM_RemoveReceivesFrom)(MediaTrack* tr, MediaTrack* srctr);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_SelectResourceBookmark) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_SelectResourceBookmark
+// [S&M] Select a bookmark of the Resources window. Returns the related bookmark id (or -1 if failed).
+
+  int (*SNM_SelectResourceBookmark)(const char* name);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_SetDoubleConfigVar) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_SetDoubleConfigVar
+// [S&M] Sets a double preference (look in project prefs first, then in general prefs). Returns false if failed (e.g. varname not found).
+
+  bool (*SNM_SetDoubleConfigVar)(const char* varname, double newvalue);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_SetIntConfigVar) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_SetIntConfigVar
+// [S&M] Sets an integer preference (look in project prefs first, then in general prefs). Returns false if failed (e.g. varname not found).
+
+  bool (*SNM_SetIntConfigVar)(const char* varname, int newvalue);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_SetProjectMarker) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_SetProjectMarker
+// [S&M] Deprecated, see SetProjectMarker4 -- Same function as SetProjectMarker3() except it can set empty names "".
+
+  bool (*SNM_SetProjectMarker)(ReaProject* proj, int num, bool isrgn, double pos, double rgnend, const char* name, int color);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_TagMediaFile) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_TagMediaFile
+// [S&M] Tags a media file thanks to <a href="https://taglib.github.io">TagLib</a>. Supported tags: "artist", "album", "genre", "comment", "title", or "year". Use an empty tagval to clear a tag. When a file is opened in REAPER, turn it offline before using this function. Returns false if nothing updated. See SNM_ReadMediaFileTag.
+
+  bool (*SNM_TagMediaFile)(const char* fn, const char* tag, const char* tagval);
+#endif
+
+#if defined(REAPERAPI_WANT_SNM_TieResourceSlotActions) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SNM_TieResourceSlotActions
+// [S&M] Attach Resources slot actions to a given bookmark.
+
+  void (*SNM_TieResourceSlotActions)(int bookmarkId);
+#endif
+
+#if defined(REAPERAPI_WANT_SN_FocusMIDIEditor) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// SN_FocusMIDIEditor
+// Focuses the active/open MIDI editor.
+
+  void (*SN_FocusMIDIEditor)();
+#endif
+
+#if defined(REAPERAPI_WANT_ULT_GetMediaItemNote) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// ULT_GetMediaItemNote
+// [ULT] Get item notes.
+
+  const char* (*ULT_GetMediaItemNote)(MediaItem* item);
+#endif
+
+#if defined(REAPERAPI_WANT_ULT_SetMediaItemNote) || !defined(REAPERAPI_MINIMAL)
+REAPERAPI_DEF //==============================================
+// ULT_SetMediaItemNote
+// [ULT] Set item notes.
+
+  void (*ULT_SetMediaItemNote)(MediaItem* item, const char* note);
+#endif
+
 #ifdef REAPERAPI_IMPLEMENT
   int REAPERAPI_LoadAPI(void *(*getAPI)(const char *))
   {
@@ -8737,6 +9406,234 @@ REAPERAPI_DEF //==============================================
       #endif
       #if defined(REAPERAPI_WANT_WDL_VirtualWnd_ScaledBlitBG) || !defined(REAPERAPI_MINIMAL)
         {(void**)&WDL_VirtualWnd_ScaledBlitBG,"WDL_VirtualWnd_ScaledBlitBG"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetArrangeView) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetArrangeView,"BR_GetArrangeView"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetClosestGridDivision) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetClosestGridDivision,"BR_GetClosestGridDivision"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetCurrentTheme) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetCurrentTheme,"BR_GetCurrentTheme"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaItemByGUID) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaItemByGUID,"BR_GetMediaItemByGUID"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaItemGUID) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaItemGUID,"BR_GetMediaItemGUID"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaItemImageResource) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaItemImageResource,"BR_GetMediaItemImageResource"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaItemTakeGUID) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaItemTakeGUID,"BR_GetMediaItemTakeGUID"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaSourceProperties) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaSourceProperties,"BR_GetMediaSourceProperties"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaTrackByGUID) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaTrackByGUID,"BR_GetMediaTrackByGUID"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaTrackFreezeCount) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaTrackFreezeCount,"BR_GetMediaTrackFreezeCount"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaTrackGUID) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaTrackGUID,"BR_GetMediaTrackGUID"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaTrackLayouts) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaTrackLayouts,"BR_GetMediaTrackLayouts"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaTrackSendInfo_Envelope) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaTrackSendInfo_Envelope,"BR_GetMediaTrackSendInfo_Envelope"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMediaTrackSendInfo_Track) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMediaTrackSendInfo_Track,"BR_GetMediaTrackSendInfo_Track"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMidiSourceLenPPQ) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMidiSourceLenPPQ,"BR_GetMidiSourceLenPPQ"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMidiTakePoolGUID) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMidiTakePoolGUID,"BR_GetMidiTakePoolGUID"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMidiTakeTempoInfo) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMidiTakeTempoInfo,"BR_GetMidiTakeTempoInfo"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext,"BR_GetMouseCursorContext"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Envelope) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext_Envelope,"BR_GetMouseCursorContext_Envelope"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Item) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext_Item,"BR_GetMouseCursorContext_Item"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_MIDI) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext_MIDI,"BR_GetMouseCursorContext_MIDI"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Position) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext_Position,"BR_GetMouseCursorContext_Position"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_StretchMarker) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext_StretchMarker,"BR_GetMouseCursorContext_StretchMarker"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Take) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext_Take,"BR_GetMouseCursorContext_Take"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetMouseCursorContext_Track) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetMouseCursorContext_Track,"BR_GetMouseCursorContext_Track"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetNextGridDivision) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetNextGridDivision,"BR_GetNextGridDivision"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetPrevGridDivision) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetPrevGridDivision,"BR_GetPrevGridDivision"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetSetTrackSendInfo) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetSetTrackSendInfo,"BR_GetSetTrackSendInfo"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_GetTakeFXCount) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_GetTakeFXCount,"BR_GetTakeFXCount"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_IsMidiOpenInInlineEditor) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_IsMidiOpenInInlineEditor,"BR_IsMidiOpenInInlineEditor"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_IsTakeMidi) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_IsTakeMidi,"BR_IsTakeMidi"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_ItemAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_ItemAtMouseCursor,"BR_ItemAtMouseCursor"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_MIDI_CCLaneRemove) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_MIDI_CCLaneRemove,"BR_MIDI_CCLaneRemove"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_MIDI_CCLaneReplace) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_MIDI_CCLaneReplace,"BR_MIDI_CCLaneReplace"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_PositionAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_PositionAtMouseCursor,"BR_PositionAtMouseCursor"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetArrangeView) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetArrangeView,"BR_SetArrangeView"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetItemEdges) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetItemEdges,"BR_SetItemEdges"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetMediaItemImageResource) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetMediaItemImageResource,"BR_SetMediaItemImageResource"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetMediaSourceProperties) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetMediaSourceProperties,"BR_SetMediaSourceProperties"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetMediaTrackLayouts) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetMediaTrackLayouts,"BR_SetMediaTrackLayouts"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetMidiTakeTempoInfo) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetMidiTakeTempoInfo,"BR_SetMidiTakeTempoInfo"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetTakeSourceFromFile) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetTakeSourceFromFile,"BR_SetTakeSourceFromFile"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_SetTakeSourceFromFile2) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_SetTakeSourceFromFile2,"BR_SetTakeSourceFromFile2"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_TakeAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_TakeAtMouseCursor,"BR_TakeAtMouseCursor"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_TrackAtMouseCursor) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_TrackAtMouseCursor,"BR_TrackAtMouseCursor"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_TrackFX_GetFXModuleName) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_TrackFX_GetFXModuleName,"BR_TrackFX_GetFXModuleName"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_Win32_GetPrivateProfileString) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_Win32_GetPrivateProfileString,"BR_Win32_GetPrivateProfileString"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_Win32_ShellExecute) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_Win32_ShellExecute,"BR_Win32_ShellExecute"},
+      #endif
+      #if defined(REAPERAPI_WANT_BR_Win32_WritePrivateProfileString) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&BR_Win32_WritePrivateProfileString,"BR_Win32_WritePrivateProfileString"},
+      #endif
+      #if defined(REAPERAPI_WANT_CF_GetClipboard) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&CF_GetClipboard,"CF_GetClipboard"},
+      #endif
+      #if defined(REAPERAPI_WANT_CF_SetClipboard) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&CF_SetClipboard,"CF_SetClipboard"},
+      #endif
+      #if defined(REAPERAPI_WANT_NF_AnalyzeTakeLoudness) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&NF_AnalyzeTakeLoudness,"NF_AnalyzeTakeLoudness"},
+      #endif
+      #if defined(REAPERAPI_WANT_NF_AnalyzeTakeLoudness2) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&NF_AnalyzeTakeLoudness2,"NF_AnalyzeTakeLoudness2"},
+      #endif
+      #if defined(REAPERAPI_WANT_NF_AnalyzeTakeLoudness_IntegratedOnly) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&NF_AnalyzeTakeLoudness_IntegratedOnly,"NF_AnalyzeTakeLoudness_IntegratedOnly"},
+      #endif
+      #if defined(REAPERAPI_WANT_NF_GetMediaItemAverageRMS) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&NF_GetMediaItemAverageRMS,"NF_GetMediaItemAverageRMS"},
+      #endif
+      #if defined(REAPERAPI_WANT_NF_GetMediaItemMaxPeak) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&NF_GetMediaItemMaxPeak,"NF_GetMediaItemMaxPeak"},
+      #endif
+      #if defined(REAPERAPI_WANT_NF_GetMediaItemPeakRMS_NonWindowed) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&NF_GetMediaItemPeakRMS_NonWindowed,"NF_GetMediaItemPeakRMS_NonWindowed"},
+      #endif
+      #if defined(REAPERAPI_WANT_NF_GetMediaItemPeakRMS_Windowed) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&NF_GetMediaItemPeakRMS_Windowed,"NF_GetMediaItemPeakRMS_Windowed"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_AddReceive) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_AddReceive,"SNM_AddReceive"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_AddTCPFXParm) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_AddTCPFXParm,"SNM_AddTCPFXParm"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_GetDoubleConfigVar) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_GetDoubleConfigVar,"SNM_GetDoubleConfigVar"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_GetIntConfigVar) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_GetIntConfigVar,"SNM_GetIntConfigVar"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_GetMediaItemTakeByGUID) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_GetMediaItemTakeByGUID,"SNM_GetMediaItemTakeByGUID"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_MoveOrRemoveTrackFX) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_MoveOrRemoveTrackFX,"SNM_MoveOrRemoveTrackFX"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_ReadMediaFileTag) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_ReadMediaFileTag,"SNM_ReadMediaFileTag"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_RemoveReceive) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_RemoveReceive,"SNM_RemoveReceive"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_RemoveReceivesFrom) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_RemoveReceivesFrom,"SNM_RemoveReceivesFrom"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_SelectResourceBookmark) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_SelectResourceBookmark,"SNM_SelectResourceBookmark"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_SetDoubleConfigVar) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_SetDoubleConfigVar,"SNM_SetDoubleConfigVar"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_SetIntConfigVar) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_SetIntConfigVar,"SNM_SetIntConfigVar"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_SetProjectMarker) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_SetProjectMarker,"SNM_SetProjectMarker"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_TagMediaFile) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_TagMediaFile,"SNM_TagMediaFile"},
+      #endif
+      #if defined(REAPERAPI_WANT_SNM_TieResourceSlotActions) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SNM_TieResourceSlotActions,"SNM_TieResourceSlotActions"},
+      #endif
+      #if defined(REAPERAPI_WANT_SN_FocusMIDIEditor) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&SN_FocusMIDIEditor,"SN_FocusMIDIEditor"},
+      #endif
+      #if defined(REAPERAPI_WANT_ULT_GetMediaItemNote) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&ULT_GetMediaItemNote,"ULT_GetMediaItemNote"},
+      #endif
+      #if defined(REAPERAPI_WANT_ULT_SetMediaItemNote) || !defined(REAPERAPI_MINIMAL)
+        {(void**)&ULT_SetMediaItemNote,"ULT_SetMediaItemNote"},
       #endif
       {NULL, NULL}
     };

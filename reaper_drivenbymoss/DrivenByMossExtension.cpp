@@ -8,7 +8,7 @@
 /**
  * Constructor.
  */
-DrivenByMossExtension::DrivenByMossExtension(bool enableDebug) : jvmManager(enableDebug)
+DrivenByMossExtension::DrivenByMossExtension(FunctionExecutor &aFunctionExecutor, bool enableDebug) : model(aFunctionExecutor), jvmManager(enableDebug)
 {
 	// Intentionally empty
 }

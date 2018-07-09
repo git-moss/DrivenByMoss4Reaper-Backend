@@ -111,20 +111,29 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		if (selDevice < 0)
 			return;
 		bool open = value > 0;
-		if (open)
-			TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
-		TrackFX_SetOpen(track, selDevice, open);
+		// UI operations must be executed on the main tread
+		this->model.AddFunction([=]()
+		{
+			if (open)
+				TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
+			TrackFX_SetOpen(track, selDevice, open);
+		});
 	}
 	else if (std::strcmp(part, "expand") == 0)
 	{
 		if (selDevice < 0)
 			return;
 		const bool isOpen = TrackFX_GetOpen(track, selDevice);
-		TrackFX_SetOpen(track, selDevice, 0);
 		int expandedType = value > 0 ? 1 : 3;
-		if (isOpen)
-			TrackFX_Show(track, selDevice, expandedType);
 		this->model.deviceExpandedType = expandedType;
+		if (!isOpen)
+			return;
+		// UI operations must be executed on the main tread
+		this->model.AddFunction([=]()
+		{
+			TrackFX_SetOpen(track, selDevice, 0);
+			TrackFX_Show(track, selDevice, expandedType);
+		});
 	}
 	else if (std::strcmp(part, "page") == 0)
 	{
@@ -200,19 +209,11 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	if (std::strcmp(part, "add") == 0)
 	{
 		int position = TrackFX_AddByName(track, value.c_str(), false, -1);
-		if (position >= 0)
-		{
-			const int actionID = NamedCommandLookup("_S&M_MOVE_FX_UP");
-			if (actionID <= 0)
-				return;
-			ReaProject * const project = this->model.GetProject();
-			const int insert = atoi(path.at(1).c_str());
-			while (position > insert)
-			{
-				Main_OnCommandEx(actionID, 0, project);
-				position -= 1;
-			}
-		}
+		if (position < 0)
+			return;
+		const int insert = atoi(path.at(1).c_str());
+		// The plugin should be moved up to insert position but calling SNM_MoveOrRemoveTrackFX
+		// does not work (the function seems to be NULL)
 	}
 }
 

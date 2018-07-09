@@ -37,6 +37,7 @@ JvmManager::~JvmManager()
 {
 	if (this->jvm != nullptr)
 	{
+		// TODO It seems that Platform.exit() also kills Reaper.exe
 		jclass transformatorClass = env->FindClass("de/mossgrabers/transformator/Transformator");
 		if (transformatorClass != nullptr)
 		{
@@ -45,8 +46,10 @@ JvmManager::~JvmManager()
 				env->CallStaticVoidMethod(transformatorClass, mid);
 		}
 		this->jvm->DestroyJavaVM();
+		this->jvm = nullptr;
 	}
 	this->options.reset();
+	this->env = nullptr;
 }
 
 
@@ -114,20 +117,20 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 		{ (char*) "receiveModelData", (char*) "(Z)Ljava/lang/String;", receiveModelDataCPP }
 	};
 
-	jclass transformatorAppClass = env->FindClass("de/mossgrabers/transformator/TransformatorApplication");
-	const int result = env->RegisterNatives(transformatorAppClass, methods, 5);
+	jclass transformatorAppClass = this->env->FindClass("de/mossgrabers/transformator/TransformatorApplication");
+	const int result = this->env->RegisterNatives(transformatorAppClass, methods, 5);
 	if (result == 0)
 		return;
-	jthrowable ex = env->ExceptionOccurred();
+	jthrowable ex = this->env->ExceptionOccurred();
 	if (ex)
 	{
 		jboolean isCopy = false;
-		jmethodID toString = env->GetMethodID(env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
-		jstring s = static_cast<jstring>(env->CallObjectMethod(ex, toString));
-		const char* utf = env->GetStringUTFChars(s, &isCopy);
+		jmethodID toString = this->env->GetMethodID(this->env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
+		jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
+		const char* utf = this->env->GetStringUTFChars(s, &isCopy);
 		std::stringstream stream;
 		stream << "ERROR: Could not register native functions" << utf;
-		env->ExceptionClear();
+		this->env->ExceptionClear();
 		ReaScriptError(stream.str().c_str());
 	}
 	else
@@ -140,15 +143,15 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
  */
 void JvmManager::StartApp()
 {
-	jclass transformatorClass = env->FindClass("de/mossgrabers/transformator/Transformator");
+	jclass transformatorClass = this->env->FindClass("de/mossgrabers/transformator/Transformator");
 	if (transformatorClass == nullptr)
 		return;
 	// Call main start method
-	jmethodID methodID = env->GetStaticMethodID(transformatorClass, "main", "([Ljava/lang/String;)V");
+	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "main", "([Ljava/lang/String;)V");
 	if (methodID == nullptr)
 		return;
 	const char*iniPath = GetResourcePath();
-	jobjectArray applicationArgs = env->NewObjectArray(1, env->FindClass("java/lang/String"), nullptr);
-	env->SetObjectArrayElement(applicationArgs, 0, env->NewStringUTF(iniPath));
-	env->CallStaticVoidMethod(transformatorClass, methodID, applicationArgs);
+	jobjectArray applicationArgs = this->env->NewObjectArray(1, this->env->FindClass("java/lang/String"), nullptr);
+	this->env->SetObjectArrayElement(applicationArgs, 0, this->env->NewStringUTF(iniPath));
+	this->env->CallStaticVoidMethod(transformatorClass, methodID, applicationArgs);
 }

@@ -116,7 +116,11 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
-		Main_OnCommandEx(value, 0, this->model.GetProject());
+		// UI operations must be executed on the main tread
+		this->model.AddFunction([=]()
+		{
+			Main_OnCommandEx(value, 0, this->model.GetProject());
+		});
 	};
 };
 
@@ -128,8 +132,13 @@ public:
 	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override
 	{
 		const int actionID = NamedCommandLookup(value.c_str());
-		if (actionID > 0)
+		if (actionID <= 0)
+			return;
+		// UI operations must be executed on the main tread
+		this->model.AddFunction([=]()
+		{
 			Main_OnCommandEx(actionID, 0, this->model.GetProject());
+		});
 	};
 };
 
