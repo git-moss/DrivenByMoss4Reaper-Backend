@@ -145,7 +145,6 @@
     <ClInclude Include="ClipProcessor.h" />
     <ClInclude Include="DeviceProcessor.h" />
     <ClInclude Include="de_mossgrabers_transformator_TransformatorApplication.h" />
-    <ClInclude Include="DrivenByMossExtension.h" />
     <ClInclude Include="DrivenByMossSurface.h" />
     <ClInclude Include="FunctionExecutor.h" />
     <ClInclude Include="JvmManager.h" />
@@ -179,7 +178,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="DrivenByMossExtension.cpp" />
     <ClCompile Include="DrivenByMossSurface.cpp" />
     <ClCompile Include="FunctionExecutor.cpp" />
     <ClCompile Include="JvmManager.cpp" />

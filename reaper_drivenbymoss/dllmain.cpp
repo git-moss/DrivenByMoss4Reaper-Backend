@@ -15,9 +15,19 @@
 #include "DrivenByMossSurface.h"
 
 
+// Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
+// to be connected on port 8989, only then the start continues!
+const bool DEBUG = false;
+
+// The global extension variables required to bridge from C to C++
+DrivenByMossSurface *gSurface = nullptr;
+JvmManager *jvmManager = nullptr;
+
+
 static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
 {
-	return new DrivenByMossSurface();
+	// Prevent a second instance...
+	return gSurface == nullptr ? new DrivenByMossSurface(jvmManager) : nullptr;
 }
 
 static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
@@ -50,6 +60,8 @@ extern "C"
 
 			REAPERAPI_LoadAPI(rec->GetFunc);
 
+			jvmManager = new JvmManager(DEBUG);
+
 			int result = rec->Register("csurf", &drivenbymoss_reg);
 			if (!result)
 				ShowConsoleMsg("Could not instantiate DrivenByMoss surface extension.");
@@ -59,6 +71,8 @@ extern "C"
 		else
 		{
 			// On shutdown...
+			if (jvmManager != nullptr)
+				delete jvmManager;
 			return 0;
 		}
 	}

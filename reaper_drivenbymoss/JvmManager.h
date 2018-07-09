@@ -17,9 +17,15 @@ public:
 	JvmManager(bool enableDebug);
 	~JvmManager();
 
-	void Create(const std::string &currentPath);
-	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
-	void StartApp();
+	void init (const std::string &currentPath, void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
+	{
+		if (this->isInitialised)
+			return;
+		this->isInitialised = true;
+		this->Create(currentPath);
+		this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, receiveModelDataCPP);
+		this->StartApp();
+	}
 
 private:
 	// Pointer to the JVM (Java Virtual Machine)
@@ -32,4 +38,10 @@ private:
 	std::unique_ptr<JavaVMOption[]> options;
 
 	bool debug;
+	bool isInitialised = false;
+
+
+	void Create(const std::string &currentPath);
+	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
+	void StartApp();
 };

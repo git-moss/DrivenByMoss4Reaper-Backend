@@ -15,9 +15,18 @@
 class DrivenByMossSurface : public IReaperControlSurface
 {
 public:
-	DrivenByMossSurface();
+	DrivenByMossSurface(JvmManager *jvmManager);
 	~DrivenByMossSurface();
 
+	OscParser &GetOscParser() noexcept
+	{
+		return oscParser;
+	}
+
+	std::string CollectData(bool dump)
+	{
+		return this->dataCollector.CollectData(dump);
+	};
 
 	const char *GetTypeString() override
 	{
@@ -117,5 +126,8 @@ public:
 
 private:
 	FunctionExecutor functionExecutor;
-	DrivenByMossExtension extension;
+	Model model;
+	OscParser oscParser{ model };
+	DataCollector dataCollector{ model };
+	JvmManager *jvmManager;
 };
