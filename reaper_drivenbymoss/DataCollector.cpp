@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
 
 #include "DataCollector.h"
 

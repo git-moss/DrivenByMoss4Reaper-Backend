@@ -18,7 +18,7 @@
 
 // Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
 // to be connected on port 8989, only then the start continues!
-const bool DEBUG = false;
+const bool DEBUG_JAVA { false };
 
 // The global extension variables required to bridge from C to C++
 DrivenByMossSurface *gSurface = nullptr;
@@ -61,7 +61,7 @@ extern "C"
 
 			REAPERAPI_LoadAPI(rec->GetFunc);
 
-			jvmManager = new JvmManager(DEBUG);
+			jvmManager = new JvmManager(DEBUG_JAVA);
 
 			int result = rec->Register("csurf", &drivenbymoss_reg);
 			if (!result)

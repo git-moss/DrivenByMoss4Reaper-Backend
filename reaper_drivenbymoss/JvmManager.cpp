@@ -5,7 +5,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #include <windows.h>
-#elif
+#else
 #include <unistd.h>
 #include <dirent.h>
 #endif
@@ -16,7 +16,6 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <filesystem>
 
 #include "JvmManager.h"
 #include "ReaDebug.h"
@@ -64,8 +63,12 @@ JvmManager::~JvmManager()
  */
 void JvmManager::Create(const std::string &currentPath)
 {
+#ifdef _WIN32
 	const int result = _chdir(currentPath.c_str());
-	if (result < 0)
+#else
+    const int result = chdir(currentPath.c_str());
+#endif
+    if (result < 0)
 	{
 		ReaDebug() << "ERROR: Could not change current directory to " << currentPath;
 		return;
@@ -211,7 +214,7 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
 		files.push_back(file);
 	} while (FindNextFile(hFind, &data) != 0);
 	FindClose(hFind);
-#elif
+#else
 	std::shared_ptr<DIR> directory_ptr(opendir(dir.c_str()), [](DIR* dir) { dir && closedir(dir); });
 	struct dirent *dirent_ptr;
 	if (!directory_ptr)

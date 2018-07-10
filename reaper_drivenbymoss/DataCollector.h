@@ -21,7 +21,7 @@ public:
 	DataCollector(Model &model);
 	virtual ~DataCollector();
 
-	std::string DataCollector::CollectData(const bool &dump);
+	std::string CollectData(const bool &dump);
 
 private:
 	Model &model;

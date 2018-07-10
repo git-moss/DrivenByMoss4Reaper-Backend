@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <thread>
+#include <cmath>
 #include "DeviceProcessor.h"
 
 
@@ -24,10 +25,6 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	if (path.empty())
 		return;
 	const char *part = path.at(0).c_str();
-
-	ReaProject *project = this->model.GetProject();
-	const MediaTrack * const track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
-	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
 
 	if (std::strcmp(part, "page") == 0)
 	{
@@ -204,14 +201,13 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 
 	ReaProject *project = this->model.GetProject();
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
-	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
 
 	if (std::strcmp(part, "add") == 0)
 	{
 		int position = TrackFX_AddByName(track, value.c_str(), false, -1);
 		if (position < 0)
 			return;
-		const int insert = atoi(path.at(1).c_str());
+		// const int insert = atoi(path.at(1).c_str());
 		// The plugin should be moved up to insert position but calling SNM_MoveOrRemoveTrackFX
 		// does not work (the function seems to be NULL)
 	}

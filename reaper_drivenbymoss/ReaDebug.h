@@ -16,13 +16,13 @@ public:
 	ReaDebug() noexcept;
 	~ReaDebug();
 
-	ReaDebug &ReaDebug::operator << (const char *value);
-	ReaDebug &ReaDebug::operator << (int value);
-	ReaDebug &ReaDebug::operator << (size_t value);
-	ReaDebug &ReaDebug::operator << (int64_t value);
-	ReaDebug &ReaDebug::operator << (double value);
-	ReaDebug &ReaDebug::operator << (void *value);
-	ReaDebug &ReaDebug::operator << (const std::string& value);
+	ReaDebug &operator << (const char *value);
+	ReaDebug &operator << (int value);
+	ReaDebug &operator << (size_t value);
+	ReaDebug &operator << (int64_t value);
+	ReaDebug &operator << (double value);
+	ReaDebug &operator << (void *value);
+	ReaDebug &operator << (const std::string& value);
 
 private:
 	std::string buffer;

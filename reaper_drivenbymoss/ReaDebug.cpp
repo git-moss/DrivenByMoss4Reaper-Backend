@@ -42,15 +42,23 @@ ReaDebug &ReaDebug::operator << (int64_t value)
 ReaDebug &ReaDebug::operator << (double value)
 {
 	char buf[64];
+#ifdef _WIN32
 	sprintf_s(buf, "%.2f", value);
-	buffer.append(buf);
+#else
+    snprintf(buf, 64, "%.2f", value);
+#endif
+    buffer.append(buf);
 	return *this;
 }
 
 ReaDebug &ReaDebug::operator << (void *value)
 {
 	char buf[32];
+#ifdef _WIN32
 	sprintf_s(buf, "%p", value);
+#else
+    snprintf(buf, 32, "%p", value);
+#endif
 	buffer.append(buf);
 	return *this;
 }

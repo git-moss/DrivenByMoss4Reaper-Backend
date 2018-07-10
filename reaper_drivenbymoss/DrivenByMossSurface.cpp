@@ -124,7 +124,7 @@ DrivenByMossSurface::DrivenByMossSurface(JvmManager *aJvmManager) : model(functi
 	gSurface = this;
 
 	std::string currentPath = GetExePath();
-	jvmManager->init(currentPath, &processNoArgCPP, &processStringArgCPP, &processIntArgCPP, &processDoubleArgCPP, &receiveModelDataCPP);
+	jvmManager->init(currentPath, (void *) &processNoArgCPP, (void *) &processStringArgCPP, (void *) &processIntArgCPP, (void *) &processDoubleArgCPP, (void *) &receiveModelDataCPP);
 }
 
 

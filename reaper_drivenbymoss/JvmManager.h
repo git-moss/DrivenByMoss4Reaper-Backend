@@ -44,7 +44,7 @@ private:
 	void Create(const std::string &currentPath);
 	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
 	void StartApp();
-	std::string JvmManager::CreateClasspath(const std::string &dir) const;
+	std::string CreateClasspath(const std::string &dir) const;
 	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
 	bool HasEnding(std::string const &fullString, std::string const &ending) const;
 };

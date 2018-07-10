@@ -1,0 +1,419 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */; };
+		8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FC20F40E3B00F5FF39 /* stdafx.h */; };
+		8554F21E20F40E4000F5FF39 /* DrivenByMossExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */; };
+		8554F21F20F40E4000F5FF39 /* dllmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */; };
+		8554F22020F40E4000F5FF39 /* DeviceProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */; };
+		8554F22120F40E4000F5FF39 /* DataCollector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20020F40E3B00F5FF39 /* DataCollector.h */; };
+		8554F22220F40E4000F5FF39 /* ClipProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20120F40E3C00F5FF39 /* ClipProcessor.h */; };
+		8554F22320F40E4000F5FF39 /* DrivenByMossExtension.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20220F40E3C00F5FF39 /* DrivenByMossExtension.cpp */; };
+		8554F22420F40E4000F5FF39 /* DataCollector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20320F40E3C00F5FF39 /* DataCollector.cpp */; };
+		8554F22520F40E4000F5FF39 /* FunctionExecutor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */; };
+		8554F22620F40E4000F5FF39 /* TrackProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */; };
+		8554F22720F40E4000F5FF39 /* TransportProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20620F40E3C00F5FF39 /* TransportProcessor.h */; };
+		8554F22820F40E4000F5FF39 /* DrivenByMossSurface.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */; };
+		8554F22920F40E4000F5FF39 /* JvmManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20820F40E3C00F5FF39 /* JvmManager.cpp */; };
+		8554F22A20F40E4000F5FF39 /* MastertrackProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */; };
+		8554F22B20F40E4000F5FF39 /* Model.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20A20F40E3D00F5FF39 /* Model.h */; };
+		8554F22C20F40E4000F5FF39 /* reaper_plugin_functions.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20B20F40E3D00F5FF39 /* reaper_plugin_functions.h */; };
+		8554F22D20F40E4000F5FF39 /* FunctionExecutor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */; };
+		8554F22E20F40E4000F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20D20F40E3D00F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h */; };
+		8554F22F20F40E4000F5FF39 /* TrackProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */; };
+		8554F23020F40E4000F5FF39 /* DeviceProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */; };
+		8554F23120F40E4000F5FF39 /* OscProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21020F40E3E00F5FF39 /* OscProcessor.h */; };
+		8554F23220F40E4000F5FF39 /* JvmManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21120F40E3E00F5FF39 /* JvmManager.h */; };
+		8554F23320F40E4000F5FF39 /* MidiProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21220F40E3E00F5FF39 /* MidiProcessor.h */; };
+		8554F23420F40E4000F5FF39 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21320F40E3E00F5FF39 /* Model.cpp */; };
+		8554F23520F40E4000F5FF39 /* MidiProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21420F40E3E00F5FF39 /* MidiProcessor.cpp */; };
+		8554F23620F40E4000F5FF39 /* OscParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21520F40E3E00F5FF39 /* OscParser.h */; };
+		8554F23720F40E4000F5FF39 /* stdafx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21620F40E3F00F5FF39 /* stdafx.cpp */; };
+		8554F23820F40E4000F5FF39 /* ClipProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */; };
+		8554F23920F40E4000F5FF39 /* DrivenByMossSurface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21820F40E3F00F5FF39 /* DrivenByMossSurface.cpp */; };
+		8554F23A20F40E4000F5FF39 /* MastertrackProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21920F40E3F00F5FF39 /* MastertrackProcessor.cpp */; };
+		8554F23B20F40E4000F5FF39 /* targetver.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21A20F40E3F00F5FF39 /* targetver.h */; };
+		8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21B20F40E4000F5FF39 /* reaper_plugin.h */; };
+		855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855CF89420F4B8EA0001F74A /* ReaDebug.cpp */; };
+		855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = 855CF89520F4B8EB0001F74A /* ReaDebug.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OscParser.cpp; path = ../reaper_drivenbymoss/OscParser.cpp; sourceTree = "<group>"; };
+		8554F1FC20F40E3B00F5FF39 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stdafx.h; path = ../reaper_drivenbymoss/stdafx.h; sourceTree = "<group>"; };
+		8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrivenByMossExtension.h; path = ../reaper_drivenbymoss/DrivenByMossExtension.h; sourceTree = "<group>"; };
+		8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = dllmain.cpp; path = ../reaper_drivenbymoss/dllmain.cpp; sourceTree = "<group>"; };
+		8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DeviceProcessor.cpp; path = ../reaper_drivenbymoss/DeviceProcessor.cpp; sourceTree = "<group>"; };
+		8554F20020F40E3B00F5FF39 /* DataCollector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataCollector.h; path = ../reaper_drivenbymoss/DataCollector.h; sourceTree = "<group>"; };
+		8554F20120F40E3C00F5FF39 /* ClipProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClipProcessor.h; path = ../reaper_drivenbymoss/ClipProcessor.h; sourceTree = "<group>"; };
+		8554F20220F40E3C00F5FF39 /* DrivenByMossExtension.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrivenByMossExtension.cpp; path = ../reaper_drivenbymoss/DrivenByMossExtension.cpp; sourceTree = "<group>"; };
+		8554F20320F40E3C00F5FF39 /* DataCollector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataCollector.cpp; path = ../reaper_drivenbymoss/DataCollector.cpp; sourceTree = "<group>"; };
+		8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FunctionExecutor.cpp; path = ../reaper_drivenbymoss/FunctionExecutor.cpp; sourceTree = "<group>"; };
+		8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TrackProcessor.cpp; path = ../reaper_drivenbymoss/TrackProcessor.cpp; sourceTree = "<group>"; };
+		8554F20620F40E3C00F5FF39 /* TransportProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransportProcessor.h; path = ../reaper_drivenbymoss/TransportProcessor.h; sourceTree = "<group>"; };
+		8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrivenByMossSurface.h; path = ../reaper_drivenbymoss/DrivenByMossSurface.h; sourceTree = "<group>"; };
+		8554F20820F40E3C00F5FF39 /* JvmManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = JvmManager.cpp; path = ../reaper_drivenbymoss/JvmManager.cpp; sourceTree = "<group>"; };
+		8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MastertrackProcessor.h; path = ../reaper_drivenbymoss/MastertrackProcessor.h; sourceTree = "<group>"; };
+		8554F20A20F40E3D00F5FF39 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = ../reaper_drivenbymoss/Model.h; sourceTree = "<group>"; };
+		8554F20B20F40E3D00F5FF39 /* reaper_plugin_functions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = reaper_plugin_functions.h; path = ../reaper_drivenbymoss/reaper_plugin_functions.h; sourceTree = "<group>"; };
+		8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FunctionExecutor.h; path = ../reaper_drivenbymoss/FunctionExecutor.h; sourceTree = "<group>"; };
+		8554F20D20F40E3D00F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = de_mossgrabers_transformator_TransformatorApplication.h; path = ../reaper_drivenbymoss/de_mossgrabers_transformator_TransformatorApplication.h; sourceTree = "<group>"; };
+		8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TrackProcessor.h; path = ../reaper_drivenbymoss/TrackProcessor.h; sourceTree = "<group>"; };
+		8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DeviceProcessor.h; path = ../reaper_drivenbymoss/DeviceProcessor.h; sourceTree = "<group>"; };
+		8554F21020F40E3E00F5FF39 /* OscProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OscProcessor.h; path = ../reaper_drivenbymoss/OscProcessor.h; sourceTree = "<group>"; };
+		8554F21120F40E3E00F5FF39 /* JvmManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JvmManager.h; path = ../reaper_drivenbymoss/JvmManager.h; sourceTree = "<group>"; };
+		8554F21220F40E3E00F5FF39 /* MidiProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MidiProcessor.h; path = ../reaper_drivenbymoss/MidiProcessor.h; sourceTree = "<group>"; };
+		8554F21320F40E3E00F5FF39 /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = ../reaper_drivenbymoss/Model.cpp; sourceTree = "<group>"; };
+		8554F21420F40E3E00F5FF39 /* MidiProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MidiProcessor.cpp; path = ../reaper_drivenbymoss/MidiProcessor.cpp; sourceTree = "<group>"; };
+		8554F21520F40E3E00F5FF39 /* OscParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OscParser.h; path = ../reaper_drivenbymoss/OscParser.h; sourceTree = "<group>"; };
+		8554F21620F40E3F00F5FF39 /* stdafx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = stdafx.cpp; path = ../reaper_drivenbymoss/stdafx.cpp; sourceTree = "<group>"; };
+		8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ClipProcessor.cpp; path = ../reaper_drivenbymoss/ClipProcessor.cpp; sourceTree = "<group>"; };
+		8554F21820F40E3F00F5FF39 /* DrivenByMossSurface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrivenByMossSurface.cpp; path = ../reaper_drivenbymoss/DrivenByMossSurface.cpp; sourceTree = "<group>"; };
+		8554F21920F40E3F00F5FF39 /* MastertrackProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MastertrackProcessor.cpp; path = ../reaper_drivenbymoss/MastertrackProcessor.cpp; sourceTree = "<group>"; };
+		8554F21A20F40E3F00F5FF39 /* targetver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = targetver.h; path = ../reaper_drivenbymoss/targetver.h; sourceTree = "<group>"; };
+		8554F21B20F40E4000F5FF39 /* reaper_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = reaper_plugin.h; path = ../reaper_drivenbymoss/reaper_plugin.h; sourceTree = "<group>"; };
+		855CF89420F4B8EA0001F74A /* ReaDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ReaDebug.cpp; path = ../reaper_drivenbymoss/ReaDebug.cpp; sourceTree = "<group>"; };
+		855CF89520F4B8EB0001F74A /* ReaDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaDebug.h; path = ../reaper_drivenbymoss/ReaDebug.h; sourceTree = "<group>"; };
+		85823BC220F40CD000E4CC57 /* libDrivenByMoss4Reaper-Backend.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libDrivenByMoss4Reaper-Backend.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		85823BBF20F40CD000E4CC57 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		85823BB920F40CCF00E4CC57 = {
+			isa = PBXGroup;
+			children = (
+				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
+				855CF89520F4B8EB0001F74A /* ReaDebug.h */,
+				85823BC320F40CD000E4CC57 /* Products */,
+				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
+				8554F20120F40E3C00F5FF39 /* ClipProcessor.h */,
+				8554F20320F40E3C00F5FF39 /* DataCollector.cpp */,
+				8554F20020F40E3B00F5FF39 /* DataCollector.h */,
+				8554F20D20F40E3D00F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h */,
+				8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */,
+				8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */,
+				8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */,
+				8554F20220F40E3C00F5FF39 /* DrivenByMossExtension.cpp */,
+				8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */,
+				8554F21820F40E3F00F5FF39 /* DrivenByMossSurface.cpp */,
+				8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */,
+				8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */,
+				8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */,
+				8554F20820F40E3C00F5FF39 /* JvmManager.cpp */,
+				8554F21120F40E3E00F5FF39 /* JvmManager.h */,
+				8554F21920F40E3F00F5FF39 /* MastertrackProcessor.cpp */,
+				8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */,
+				8554F21420F40E3E00F5FF39 /* MidiProcessor.cpp */,
+				8554F21220F40E3E00F5FF39 /* MidiProcessor.h */,
+				8554F21320F40E3E00F5FF39 /* Model.cpp */,
+				8554F20A20F40E3D00F5FF39 /* Model.h */,
+				8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */,
+				8554F21520F40E3E00F5FF39 /* OscParser.h */,
+				8554F21020F40E3E00F5FF39 /* OscProcessor.h */,
+				8554F20B20F40E3D00F5FF39 /* reaper_plugin_functions.h */,
+				8554F21B20F40E4000F5FF39 /* reaper_plugin.h */,
+				8554F21620F40E3F00F5FF39 /* stdafx.cpp */,
+				8554F1FC20F40E3B00F5FF39 /* stdafx.h */,
+				8554F21A20F40E3F00F5FF39 /* targetver.h */,
+				8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */,
+				8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */,
+				8554F20620F40E3C00F5FF39 /* TransportProcessor.h */,
+			);
+			sourceTree = "<group>";
+		};
+		85823BC320F40CD000E4CC57 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				85823BC220F40CD000E4CC57 /* libDrivenByMoss4Reaper-Backend.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		85823BC020F40CD000E4CC57 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8554F23220F40E4000F5FF39 /* JvmManager.h in Headers */,
+				8554F23620F40E4000F5FF39 /* OscParser.h in Headers */,
+				8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */,
+				855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */,
+				8554F22A20F40E4000F5FF39 /* MastertrackProcessor.h in Headers */,
+				8554F22220F40E4000F5FF39 /* ClipProcessor.h in Headers */,
+				8554F22D20F40E4000F5FF39 /* FunctionExecutor.h in Headers */,
+				8554F22720F40E4000F5FF39 /* TransportProcessor.h in Headers */,
+				8554F22E20F40E4000F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h in Headers */,
+				8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */,
+				8554F23020F40E4000F5FF39 /* DeviceProcessor.h in Headers */,
+				8554F23320F40E4000F5FF39 /* MidiProcessor.h in Headers */,
+				8554F21E20F40E4000F5FF39 /* DrivenByMossExtension.h in Headers */,
+				8554F23B20F40E4000F5FF39 /* targetver.h in Headers */,
+				8554F22F20F40E4000F5FF39 /* TrackProcessor.h in Headers */,
+				8554F22C20F40E4000F5FF39 /* reaper_plugin_functions.h in Headers */,
+				8554F22120F40E4000F5FF39 /* DataCollector.h in Headers */,
+				8554F22B20F40E4000F5FF39 /* Model.h in Headers */,
+				8554F22820F40E4000F5FF39 /* DrivenByMossSurface.h in Headers */,
+				8554F23120F40E4000F5FF39 /* OscProcessor.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		85823BC120F40CD000E4CC57 /* DrivenByMoss4Reaper-Backend */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 85823BC620F40CD000E4CC57 /* Build configuration list for PBXNativeTarget "DrivenByMoss4Reaper-Backend" */;
+			buildPhases = (
+				85823BBE20F40CD000E4CC57 /* Sources */,
+				85823BBF20F40CD000E4CC57 /* Frameworks */,
+				85823BC020F40CD000E4CC57 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "DrivenByMoss4Reaper-Backend";
+			productName = "DrivenByMoss4Reaper-Backend";
+			productReference = 85823BC220F40CD000E4CC57 /* libDrivenByMoss4Reaper-Backend.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		85823BBA20F40CCF00E4CC57 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0940;
+				ORGANIZATIONNAME = "Jürgen Moßgraber";
+				TargetAttributes = {
+					85823BC120F40CD000E4CC57 = {
+						CreatedOnToolsVersion = 9.4;
+					};
+				};
+			};
+			buildConfigurationList = 85823BBD20F40CCF00E4CC57 /* Build configuration list for PBXProject "DrivenByMoss4Reaper-Backend" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 85823BB920F40CCF00E4CC57;
+			productRefGroup = 85823BC320F40CD000E4CC57 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				85823BC120F40CD000E4CC57 /* DrivenByMoss4Reaper-Backend */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		85823BBE20F40CD000E4CC57 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */,
+				8554F23420F40E4000F5FF39 /* Model.cpp in Sources */,
+				8554F22620F40E4000F5FF39 /* TrackProcessor.cpp in Sources */,
+				8554F23A20F40E4000F5FF39 /* MastertrackProcessor.cpp in Sources */,
+				8554F22320F40E4000F5FF39 /* DrivenByMossExtension.cpp in Sources */,
+				8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */,
+				8554F22420F40E4000F5FF39 /* DataCollector.cpp in Sources */,
+				8554F22020F40E4000F5FF39 /* DeviceProcessor.cpp in Sources */,
+				8554F22520F40E4000F5FF39 /* FunctionExecutor.cpp in Sources */,
+				8554F21F20F40E4000F5FF39 /* dllmain.cpp in Sources */,
+				8554F23720F40E4000F5FF39 /* stdafx.cpp in Sources */,
+				8554F22920F40E4000F5FF39 /* JvmManager.cpp in Sources */,
+				8554F23820F40E4000F5FF39 /* ClipProcessor.cpp in Sources */,
+				8554F23920F40E4000F5FF39 /* DrivenByMossSurface.cpp in Sources */,
+				8554F23520F40E4000F5FF39 /* MidiProcessor.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		85823BC420F40CD000E4CC57 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		85823BC520F40CD000E4CC57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		85823BC720F40CD000E4CC57 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
+					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		85823BC820F40CD000E4CC57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
+					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		85823BBD20F40CCF00E4CC57 /* Build configuration list for PBXProject "DrivenByMoss4Reaper-Backend" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85823BC420F40CD000E4CC57 /* Debug */,
+				85823BC520F40CD000E4CC57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		85823BC620F40CD000E4CC57 /* Build configuration list for PBXNativeTarget "DrivenByMoss4Reaper-Backend" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85823BC720F40CD000E4CC57 /* Debug */,
+				85823BC820F40CD000E4CC57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 85823BBA20F40CCF00E4CC57 /* Project object */;
+}
