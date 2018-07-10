@@ -378,6 +378,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = "~/Library/Application Support/REAPER/UserPlugins";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
@@ -385,7 +387,7 @@
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
 					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
 				);
-				INSTALL_PATH = /Applications/REAPER64.app/Contents/Plugins;
+				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
 				LIBRARY_SEARCH_PATHS = "$(SYSTEM_LIBRARY_DIR)/Frameworks/JavaVM.framework/Versions/A";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -397,6 +399,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = "~/Library/Application Support/REAPER/UserPlugins";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
@@ -404,7 +408,7 @@
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
 					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
 				);
-				INSTALL_PATH = /Applications/REAPER64.app/Contents/Plugins;
+				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
 				LIBRARY_SEARCH_PATHS = "$(SYSTEM_LIBRARY_DIR)/Frameworks/JavaVM.framework/Versions/A";
 				PRODUCT_NAME = "$(TARGET_NAME)";

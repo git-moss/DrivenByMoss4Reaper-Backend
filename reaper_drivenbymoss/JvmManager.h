@@ -17,15 +17,12 @@ public:
 	JvmManager(bool enableDebug);
 	~JvmManager();
 
-	void init (const std::string &currentPath, void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
-	{
-		if (this->isInitialised)
-			return;
-		this->isInitialised = true;
-		this->Create(currentPath);
-		this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, receiveModelDataCPP);
-		this->StartApp();
-	}
+    void init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
+    
+    bool isRunning()
+    {
+        return this->isInitialised && this->jvm != nullptr;
+    }
 
 private:
 	// Pointer to the JVM (Java Virtual Machine)
@@ -41,10 +38,11 @@ private:
 	bool isInitialised = false;
 
 
-	void Create(const std::string &currentPath);
+	void Create();
 	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
 	void StartApp();
-	std::string CreateClasspath(const std::string &dir) const;
+	std::string CreateClasspath() const;
 	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
+    std::string GetLibraryPath() const;
 	bool HasEnding(std::string const &fullString, std::string const &ending) const;
 };

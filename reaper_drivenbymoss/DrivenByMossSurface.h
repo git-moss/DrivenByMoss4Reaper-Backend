@@ -15,7 +15,7 @@
 class DrivenByMossSurface : public IReaperControlSurface
 {
 public:
-	DrivenByMossSurface(JvmManager *jvmManager);
+	DrivenByMossSurface();
 	~DrivenByMossSurface();
 
 	OscParser &GetOscParser() noexcept
@@ -129,5 +129,4 @@ private:
 	Model model;
 	OscParser oscParser{ model };
 	DataCollector dataCollector{ model };
-	JvmManager *jvmManager;
 };

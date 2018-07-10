@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "85823BC120F40CD000E4CC57"
-               BuildableName = "libreaper_drivenbymoss.dylib"
+               BuildableName = "reaper_drivenbymoss.dylib"
                BlueprintName = "reaper_drivenbymoss"
                ReferencedContainer = "container:DrivenByMoss4Reaper-Backend.xcodeproj">
             </BuildableReference>
@@ -33,7 +33,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "85823BC120F40CD000E4CC57"
-            BuildableName = "libreaper_drivenbymoss.dylib"
+            BuildableName = "reaper_drivenbymoss.dylib"
             BlueprintName = "reaper_drivenbymoss"
             ReferencedContainer = "container:DrivenByMoss4Reaper-Backend.xcodeproj">
          </BuildableReference>
@@ -60,7 +60,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "85823BC120F40CD000E4CC57"
-            BuildableName = "libreaper_drivenbymoss.dylib"
+            BuildableName = "reaper_drivenbymoss.dylib"
             BlueprintName = "reaper_drivenbymoss"
             ReferencedContainer = "container:DrivenByMoss4Reaper-Backend.xcodeproj">
          </BuildableReference>
@@ -78,7 +78,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "85823BC120F40CD000E4CC57"
-            BuildableName = "libreaper_drivenbymoss.dylib"
+            BuildableName = "reaper_drivenbymoss.dylib"
             BlueprintName = "reaper_drivenbymoss"
             ReferencedContainer = "container:DrivenByMoss4Reaper-Backend.xcodeproj">
          </BuildableReference>

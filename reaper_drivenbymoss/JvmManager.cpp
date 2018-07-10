@@ -8,6 +8,7 @@
 #else
 #include <unistd.h>
 #include <dirent.h>
+#include <dlfcn.h>
 #endif
 
 #include <iostream>
@@ -56,25 +57,27 @@ JvmManager::~JvmManager()
 }
 
 
+void JvmManager::init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
+{
+    if (this->isInitialised)
+        return;
+    this->isInitialised = true;
+    this->Create();
+    if (this->jvm == nullptr)
+        return;
+    this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, receiveModelDataCPP);
+    this->StartApp();
+}
+
+
 /**
  * Create an instance of the Java Virtual Machine.
- *
- * @param currentPath The path where the drivenbymoss-libs folder is located
  */
-void JvmManager::Create(const std::string &currentPath)
+void JvmManager::Create()
 {
-#ifdef _WIN32
-	const int result = _chdir(currentPath.c_str());
-#else
-    const int result = chdir(currentPath.c_str());
-#endif
-    if (result < 0)
-	{
-		ReaDebug() << "ERROR: Could not change current directory to " << currentPath;
-		return;
-	}
-
-	std::string classpath = this->CreateClasspath(currentPath);
+	std::string classpath = this->CreateClasspath();
+    if (classpath.empty())
+        return;
 
 	JavaVMInitArgs vm_args{};
 	JavaVMOption * const  opts = this->options.get();
@@ -99,7 +102,7 @@ void JvmManager::Create(const std::string &currentPath)
 	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
-		ReaDebug() << "ERROR: Could not start Java Virtual Machine.";
+		ReaDebug() << "ERROR: Could not start Java Virtual Machine with " << classpath;
 		return;
 	}
 }
@@ -163,35 +166,84 @@ void JvmManager::StartApp()
 }
 
 
-std::string JvmManager::CreateClasspath(const std::string &dir) const
-{
-	const std::string subdir = "/Plugins/drivenbymoss-libs";
-	const std::string &path = dir + subdir;
-	std::stringstream stream;
-
-	for (const std::string &file : this->GetDirectoryFiles(path))
-	{
-		if (this->HasEnding(file, ".jar"))
-			stream << "." << subdir << "/" << file << ";";
-	}
-	std::string result = stream.str();
-	return "-Djava.class.path=" + result.substr(0, result.length() - 1);
-}
-
-
 #ifdef _WIN32
 // Convert a string to wide char
 std::wstring stringToWs(const std::string& s)
 {
-	int slength = (int)s.length() + 1;
-	int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-	wchar_t* buf = new wchar_t[len];
-	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-	std::wstring r(buf);
-	delete[] buf;
-	return r;
+    int slength = (int)s.length() + 1;
+    int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+    wchar_t* buf = new wchar_t[len];
+    MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+    std::wstring r(buf);
+    delete[] buf;
+    return r;
+}
+#else
+std::string getDylibPath()
+{
+    Dl_info info;
+    if (dladdr((void *)getDylibPath, &info) == 0)
+        return std::string{};
+    return std::string{ info.dli_fname };
 }
 #endif
+
+
+std::string JvmManager::CreateClasspath() const
+{
+    std::string libDir = GetLibraryPath();
+    if (libDir.empty())
+        return libDir;
+    
+    int success = chdir(libDir.c_str());
+    
+
+    const std::string subdir = "drivenbymoss-libs";
+    const std::string path = libDir + subdir;
+
+    std::stringstream stream;
+	for (const std::string &file : this->GetDirectoryFiles(path))
+	{
+		if (this->HasEnding(file, ".jar"))
+			stream << "./" << subdir << "/" << file << ";";
+	}
+	std::string result = stream.str();
+    if (result.empty())
+    {
+        ReaDebug() << "No JAR files found in library path: " << path;
+        return result;
+    }
+	return "-Djava.class.path=" + result.substr(0, result.length() - 1);
+}
+
+
+std::string JvmManager::GetLibraryPath() const
+{
+#ifdef _WIN32
+    std::string currentPath = GetExePath();
+    const int result = _chdir(currentPath.c_str());
+    if (result < 0)
+    {
+        ReaDebug() << "ERROR: Could not change current directory to " << currentPath;
+        return "";
+    }
+    return currentPath;
+#else
+    #ifdef DEBUG
+    return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
+    #else
+    const std::string dylibName{ "reaper_drivenbymoss.dylib" };
+    const std::string dylibPath = getDylibPath();
+    if (dylibPath.empty())
+    {
+        ReaDebug() << "Could not retrieve library path.";
+        return "";
+    }
+    const std::string subdir = "/Plugins/drivenbymoss-libs";
+    return dylibPath.substr(0, dylibPath.size() - dylibName.size());
+    #endif
+#endif
+}
 
 
 std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) const
