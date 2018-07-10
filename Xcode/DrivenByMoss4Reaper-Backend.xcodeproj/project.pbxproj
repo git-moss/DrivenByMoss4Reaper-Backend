@@ -42,6 +42,7 @@
 		8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21B20F40E4000F5FF39 /* reaper_plugin.h */; };
 		855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855CF89420F4B8EA0001F74A /* ReaDebug.cpp */; };
 		855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = 855CF89520F4B8EB0001F74A /* ReaDebug.h */; };
+		85E1A7AA20F4FD0800D38CC1 /* JavaVM in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E1A7A920F4FD0600D38CC1 /* JavaVM */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -80,7 +81,9 @@
 		8554F21B20F40E4000F5FF39 /* reaper_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = reaper_plugin.h; path = ../reaper_drivenbymoss/reaper_plugin.h; sourceTree = "<group>"; };
 		855CF89420F4B8EA0001F74A /* ReaDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ReaDebug.cpp; path = ../reaper_drivenbymoss/ReaDebug.cpp; sourceTree = "<group>"; };
 		855CF89520F4B8EB0001F74A /* ReaDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaDebug.h; path = ../reaper_drivenbymoss/ReaDebug.h; sourceTree = "<group>"; };
-		85823BC220F40CD000E4CC57 /* libDrivenByMoss4Reaper-Backend.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libDrivenByMoss4Reaper-Backend.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		85823BC220F40CD000E4CC57 /* reaper_drivenbymoss.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = reaper_drivenbymoss.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		85E1A7A420F4FB0000D38CC1 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Library; path = ../../../../../../Library; sourceTree = "<group>"; };
+		85E1A7A920F4FD0600D38CC1 /* JavaVM */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = JavaVM; path = ../../../../../../System/Library/Frameworks/JavaVM.framework/Versions/A/JavaVM; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +91,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				85E1A7AA20F4FD0800D38CC1 /* JavaVM in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,15 +137,25 @@
 				8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */,
 				8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */,
 				8554F20620F40E3C00F5FF39 /* TransportProcessor.h */,
+				85E1A7A320F4FB0000D38CC1 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
 		85823BC320F40CD000E4CC57 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				85823BC220F40CD000E4CC57 /* libDrivenByMoss4Reaper-Backend.dylib */,
+				85823BC220F40CD000E4CC57 /* reaper_drivenbymoss.dylib */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		85E1A7A320F4FB0000D38CC1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				85E1A7A920F4FD0600D38CC1 /* JavaVM */,
+				85E1A7A420F4FB0000D38CC1 /* Library */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -177,9 +191,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		85823BC120F40CD000E4CC57 /* DrivenByMoss4Reaper-Backend */ = {
+		85823BC120F40CD000E4CC57 /* reaper_drivenbymoss */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 85823BC620F40CD000E4CC57 /* Build configuration list for PBXNativeTarget "DrivenByMoss4Reaper-Backend" */;
+			buildConfigurationList = 85823BC620F40CD000E4CC57 /* Build configuration list for PBXNativeTarget "reaper_drivenbymoss" */;
 			buildPhases = (
 				85823BBE20F40CD000E4CC57 /* Sources */,
 				85823BBF20F40CD000E4CC57 /* Frameworks */,
@@ -189,9 +203,9 @@
 			);
 			dependencies = (
 			);
-			name = "DrivenByMoss4Reaper-Backend";
+			name = reaper_drivenbymoss;
 			productName = "DrivenByMoss4Reaper-Backend";
-			productReference = 85823BC220F40CD000E4CC57 /* libDrivenByMoss4Reaper-Backend.dylib */;
+			productReference = 85823BC220F40CD000E4CC57 /* reaper_drivenbymoss.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -220,7 +234,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				85823BC120F40CD000E4CC57 /* DrivenByMoss4Reaper-Backend */,
+				85823BC120F40CD000E4CC57 /* reaper_drivenbymoss */,
 			);
 		};
 /* End PBXProject section */
@@ -366,13 +380,16 @@
 				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_PREFIX = "";
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
 					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
 				);
+				INSTALL_PATH = /Applications/REAPER64.app/Contents/Plugins;
+				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
+				LIBRARY_SEARCH_PATHS = "$(SYSTEM_LIBRARY_DIR)/Frameworks/JavaVM.framework/Versions/A";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
+				SKIP_INSTALL = NO;
 			};
 			name = Debug;
 		};
@@ -382,13 +399,16 @@
 				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_PREFIX = "";
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
 					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
 				);
+				INSTALL_PATH = /Applications/REAPER64.app/Contents/Plugins;
+				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
+				LIBRARY_SEARCH_PATHS = "$(SYSTEM_LIBRARY_DIR)/Frameworks/JavaVM.framework/Versions/A";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
+				SKIP_INSTALL = NO;
 			};
 			name = Release;
 		};
@@ -404,7 +424,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		85823BC620F40CD000E4CC57 /* Build configuration list for PBXNativeTarget "DrivenByMoss4Reaper-Backend" */ = {
+		85823BC620F40CD000E4CC57 /* Build configuration list for PBXNativeTarget "reaper_drivenbymoss" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				85823BC720F40CD000E4CC57 /* Debug */,

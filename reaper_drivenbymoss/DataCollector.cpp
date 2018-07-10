@@ -276,7 +276,6 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 			std::stringstream stream;
 			stream << trackAddress << "send/" << sendCounter + 1 << "/";
 			std::string sendAddress = stream.str();
-			const int arrayIndex = index * this->model.trackBankSize + sendCounter;
 			if (sendCounter < numSends)
 			{
 				result = GetTrackSendName(track, sendCounter, name, LENGTH);

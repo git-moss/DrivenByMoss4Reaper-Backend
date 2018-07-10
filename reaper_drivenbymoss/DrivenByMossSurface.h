@@ -49,77 +49,77 @@ public:
 		functionExecutor.ExecuteFunctions();
 	}
 
-	virtual void SetTrackListChange()
+	void SetTrackListChange() override
 	{
 		// TODO Use notification functions to update the model. On Java call only send the changed data and dont retrieve it
 		// ShowConsoleMsg("SetTrackListChange\n");
 	}
 
-	virtual void SetSurfaceVolume(MediaTrack *trackid, double volume)
+	void SetSurfaceVolume(MediaTrack *trackid, double volume) override
 	{
 		// ShowConsoleMsg("SetSurfaceVolume\n");
 	}
 
-	virtual void SetSurfacePan(MediaTrack *trackid, double pan)
+	void SetSurfacePan(MediaTrack *trackid, double pan) override
 	{
 		// ShowConsoleMsg("SetSurfacePan\n");
 	}
 
-	virtual void SetSurfaceMute(MediaTrack *trackid, bool mute)
+	void SetSurfaceMute(MediaTrack *trackid, bool mute) override
 	{
 		// ShowConsoleMsg("SetSurfaceMute\n");
 	}
 
-	virtual void SetSurfaceSelected(MediaTrack *trackid, bool selected)
+	void SetSurfaceSelected(MediaTrack *trackid, bool selected) override
 	{
 		// ShowConsoleMsg("SetSurfaceSelected\n");
 	}
 
-	virtual void SetSurfaceSolo(MediaTrack *trackid, bool solo)
+	void SetSurfaceSolo(MediaTrack *trackid, bool solo) override
 	{
 		// trackid==master means "any solo"
 		// ShowConsoleMsg("SetSurfaceSolo\n");
 	}
 
-	virtual void SetSurfaceRecArm(MediaTrack *trackid, bool recarm)
+	void SetSurfaceRecArm(MediaTrack *trackid, bool recarm) override
 	{
 		// ShowConsoleMsg("SetSurfaceRecArm\n");
 	}
 
-	virtual void SetPlayState(bool play, bool pause, bool rec)
+	void SetPlayState(bool play, bool pause, bool rec) override
 	{
 		// ShowConsoleMsg("SetPlayState\n");
 	}
 
-	virtual void SetRepeatState(bool rep)
+	void SetRepeatState(bool rep) override
 	{
 		// ShowConsoleMsg("SetRepeatState\n");
 	}
 
-	virtual void SetTrackTitle(MediaTrack *trackid, const char *title)
+	void SetTrackTitle(MediaTrack *trackid, const char *title) override
 	{
 		// ShowConsoleMsg("SetTrackTitle\n");
 	}
 
-	virtual bool GetTouchState(MediaTrack *trackid, int isPan)
+	bool GetTouchState(MediaTrack *trackid, int isPan) override
 	{
 		// ShowConsoleMsg("GetTouchState\n");
 		return false;
 	}
 
-	virtual void SetAutoMode(int mode)
+	void SetAutoMode(int mode) override
 	{
 		// ShowConsoleMsg("SetAutoMode\n");
 	}
 
 
-	virtual void ResetCachedVolPanStates()
+	void ResetCachedVolPanStates() override
 	{
 		// ShowConsoleMsg("ResetCachedVolPanStates\n");
 	}
 
 
-	virtual void OnTrackSelection(MediaTrack *trackid)
+	void OnTrackSelection(MediaTrack *trackid) override
 	{
 		// ShowConsoleMsg("OnTrackSelection\n");
 	}
