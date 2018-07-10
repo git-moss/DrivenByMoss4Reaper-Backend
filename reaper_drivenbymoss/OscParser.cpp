@@ -3,6 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "OscParser.h"
+#include "ReaDebug.h"
 
 
 /**
@@ -157,9 +158,7 @@ void OscParser::Process(const std::string &command, const double &value) const
 void OscParser::LogError(const std::string command, const std::out_of_range &oor) const
 {
 	(void)oor; // Ignore not used
-	std::ostringstream message;
-	message << "No function " << command << " registered!";
-	ReaScriptError(message.str().c_str());
+	ReaDebug() << "No function " << command << " registered!";
 }
 
 

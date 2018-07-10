@@ -142,26 +142,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ClipProcessor.h" />
-    <ClInclude Include="DeviceProcessor.h" />
-    <ClInclude Include="de_mossgrabers_transformator_TransformatorApplication.h" />
-    <ClInclude Include="DrivenByMossSurface.h" />
-    <ClInclude Include="FunctionExecutor.h" />
-    <ClInclude Include="JvmManager.h" />
-    <ClInclude Include="MastertrackProcessor.h" />
-    <ClInclude Include="MidiProcessor.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="OscParser.h" />
-    <ClInclude Include="OscProcessor.h" />
-    <ClInclude Include="reaper_plugin.h" />
-    <ClInclude Include="reaper_plugin_functions.h" />
-    <ClInclude Include="DataCollector.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="TrackProcessor.h" />
-    <ClInclude Include="TransportProcessor.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\reaper_drivenbymoss\ClipProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DataCollector.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DeviceProcessor.cpp" />
@@ -174,8 +154,31 @@
     <ClCompile Include="..\reaper_drivenbymoss\MidiProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Model.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\OscParser.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\ReaDebug.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\stdafx.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\TrackProcessor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\DataCollector.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\DeviceProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_transformator_TransformatorApplication.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossExtension.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossSurface.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\FunctionExecutor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\JvmManager.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\MastertrackProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\MidiProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\Model.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\OscParser.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\OscProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\ReaDebug.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin_functions.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\stdafx.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\targetver.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\TrackProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\TransportProcessor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

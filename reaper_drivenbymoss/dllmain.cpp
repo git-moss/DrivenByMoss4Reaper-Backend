@@ -13,6 +13,7 @@
 #include <jni.h>
 
 #include "DrivenByMossSurface.h"
+#include "ReaDebug.h"
 
 
 // Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
@@ -64,7 +65,7 @@ extern "C"
 
 			int result = rec->Register("csurf", &drivenbymoss_reg);
 			if (!result)
-				ShowConsoleMsg("Could not instantiate DrivenByMoss surface extension.");
+				ReaDebug() << ("Could not instantiate DrivenByMoss surface extension.");
 
 			return 1;
 		}

@@ -4,8 +4,10 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <windows.h>
 #elif
 #include <unistd.h>
+#include <dirent.h>
 #endif
 
 #include <iostream>
@@ -13,8 +15,11 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
-#include <iostream>
+#include <vector>
+#include <filesystem>
+
 #include "JvmManager.h"
+#include "ReaDebug.h"
 #include "reaper_plugin_functions.h"
 
 
@@ -26,7 +31,7 @@
 JvmManager::JvmManager(bool enableDebug) : jvm(nullptr), env(nullptr)
 {
 	this->debug = enableDebug;
-	this->options = std::make_unique<JavaVMOption []> (this->debug ? 4 : 1);
+	this->options = std::make_unique<JavaVMOption[]>(this->debug ? 4 : 1);
 }
 
 
@@ -37,7 +42,6 @@ JvmManager::~JvmManager()
 {
 	if (this->jvm != nullptr)
 	{
-		// TODO It seems that Platform.exit() also kills Reaper.exe
 		jclass transformatorClass = env->FindClass("de/mossgrabers/transformator/Transformator");
 		if (transformatorClass != nullptr)
 		{
@@ -63,14 +67,15 @@ void JvmManager::Create(const std::string &currentPath)
 	const int result = _chdir(currentPath.c_str());
 	if (result < 0)
 	{
-		ReaScriptError("ERROR: Could not change current directory!");
+		ReaDebug() << "ERROR: Could not change current directory to " << currentPath;
 		return;
 	}
 
+	std::string classpath = this->CreateClasspath(currentPath);
+
 	JavaVMInitArgs vm_args{};
 	JavaVMOption * const  opts = this->options.get();
-	// TODO create from given folder...
-	opts[0].optionString = (char *) "-Djava.class.path=./drivenbymoss-libs/batik-anim-1.9.1.jar;./drivenbymoss-libs/batik-awt-util-1.9.1.jar;./drivenbymoss-libs/batik-bridge-1.9.1.jar;./drivenbymoss-libs/batik-constants-1.9.1.jar;./drivenbymoss-libs/batik-css-1.9.1.jar;./drivenbymoss-libs/batik-dom-1.9.1.jar;./drivenbymoss-libs/batik-ext-1.9.1.jar;./drivenbymoss-libs/batik-gvt-1.9.1.jar;./drivenbymoss-libs/batik-i18n-1.9.1.jar;./drivenbymoss-libs/batik-parser-1.9.1.jar;./drivenbymoss-libs/batik-script-1.9.1.jar;./drivenbymoss-libs/batik-svg-dom-1.9.1.jar;./drivenbymoss-libs/batik-svggen-1.9.1.jar;./drivenbymoss-libs/batik-transcoder-1.9.1.jar;./drivenbymoss-libs/batik-util-1.9.1.jar;./drivenbymoss-libs/batik-xml-1.9.1.jar;./drivenbymoss-libs/commons-io-1.3.1.jar;./drivenbymoss-libs/commons-lang3-3.2.1.jar;./drivenbymoss-libs/commons-logging-1.0.4.jar;./drivenbymoss-libs/coremidi4j-1.1.jar;./drivenbymoss-libs/DrivenByMoss4Reaper-2.10.jar;./drivenbymoss-libs/javaosc-core-0.4.jar;./drivenbymoss-libs/jna-4.0.0.jar;./drivenbymoss-libs/jython-2.7.0.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-arm.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-linux-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-osx-x86_64.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86.jar;./drivenbymoss-libs/libusb4java-1.2.0-windows-x86_64.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-javadoc.jar;./drivenbymoss-libs/purejavahidapi-0.0.11-sources.jar;./drivenbymoss-libs/purejavahidapi-0.0.11.jar;./drivenbymoss-libs/rhino-1.7.7.jar;./drivenbymoss-libs/serializer-2.7.2.jar;./drivenbymoss-libs/usb4java-1.2.0.jar;./drivenbymoss-libs/xalan-2.7.2.jar;./drivenbymoss-libs/xml-apis-1.3.04.jar;./drivenbymoss-libs/xml-apis-ext-1.3.04.jar;./drivenbymoss-libs/xmlgraphics-commons-2.2.jar;./drivenbymoss-libs/inieditor-r6.jar";
+	opts[0].optionString = (char *)classpath.c_str();
 	if (this->debug)
 	{
 		opts[1].optionString = (char *) "-Xdebug";
@@ -91,7 +96,7 @@ void JvmManager::Create(const std::string &currentPath)
 	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
-		ReaScriptError("ERROR: Could not start Java Virtual Machine.");
+		ReaDebug() << "ERROR: Could not start Java Virtual Machine.";
 		return;
 	}
 }
@@ -122,19 +127,17 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 	if (result == 0)
 		return;
 	jthrowable ex = this->env->ExceptionOccurred();
+	ReaDebug dbg{};
+	dbg << "ERROR: Could not register native functions";
 	if (ex)
 	{
 		jboolean isCopy = false;
 		jmethodID toString = this->env->GetMethodID(this->env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
 		jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
 		const char* utf = this->env->GetStringUTFChars(s, &isCopy);
-		std::stringstream stream;
-		stream << "ERROR: Could not register native functions" << utf;
+		dbg << utf;
 		this->env->ExceptionClear();
-		ReaScriptError(stream.str().c_str());
 	}
-	else
-		ReaScriptError("ERROR: Could not register native functions");
 }
 
 
@@ -154,4 +157,76 @@ void JvmManager::StartApp()
 	jobjectArray applicationArgs = this->env->NewObjectArray(1, this->env->FindClass("java/lang/String"), nullptr);
 	this->env->SetObjectArrayElement(applicationArgs, 0, this->env->NewStringUTF(iniPath));
 	this->env->CallStaticVoidMethod(transformatorClass, methodID, applicationArgs);
+}
+
+
+std::string JvmManager::CreateClasspath(const std::string &dir) const
+{
+	const std::string subdir = "/Plugins/drivenbymoss-libs";
+	const std::string &path = dir + subdir;
+	std::stringstream stream;
+
+	for (const std::string &file : this->GetDirectoryFiles(path))
+	{
+		if (this->HasEnding(file, ".jar"))
+			stream << "." << subdir << "/" << file << ";";
+	}
+	std::string result = stream.str();
+	return "-Djava.class.path=" + result.substr(0, result.length() - 1);
+}
+
+
+#ifdef _WIN32
+// Convert a string to wide char
+std::wstring stringToWs(const std::string& s)
+{
+	int slength = (int)s.length() + 1;
+	int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
+#endif
+
+
+std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) const
+{
+	std::vector<std::string> files{};
+#ifdef _WIN32
+	std::string pattern(dir);
+	pattern.append("\\*");
+	WIN32_FIND_DATA data;
+	HANDLE hFind = hFind = FindFirstFile(stringToWs(pattern).c_str(), &data);
+	if (hFind == INVALID_HANDLE_VALUE)
+	{
+		ReaDebug() << "Error looking up JAR files in: " << pattern;
+		return files;
+	}
+	do
+	{
+		std::wstring ws(data.cFileName);
+		std::string file(ws.begin(), ws.end());
+		files.push_back(file);
+	} while (FindNextFile(hFind, &data) != 0);
+	FindClose(hFind);
+#elif
+	std::shared_ptr<DIR> directory_ptr(opendir(dir.c_str()), [](DIR* dir) { dir && closedir(dir); });
+	struct dirent *dirent_ptr;
+	if (!directory_ptr)
+	{
+		ReaDebug() << "Error looking up JAR files in: " << dir;
+		return files;
+	}
+	while ((dirent_ptr = readdir(directory_ptr.get())) != nullptr)
+		files.push_back(std::string(dirent_ptr->d_name));
+#endif
+	return files;
+}
+
+
+bool JvmManager::HasEnding(std::string const &str, std::string const &end) const
+{
+	return str.length() < end.length() ? false : str.compare(str.length() - end.length(), end.length(), end) == 0;
 }
