@@ -23,6 +23,23 @@
 #include "reaper_plugin_functions.h"
 
 
+#ifdef _WIN32
+/**
+* Convert a string to wide char.
+*/
+std::wstring stringToWs(const std::string& s)
+{
+	int slength = (int)s.length() + 1;
+	int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
+#endif
+
+
 /**
  * Constructor.
  *
@@ -84,8 +101,14 @@ void JvmManager::init (void *processNoArgCPP, void *processStringArgCPP, void *p
  */
 void JvmManager::Create()
 {
-    // TODO do it the C++ way, free on shutdown, wrap for OSX
-    void *lib_handle = dlopen("/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/MacOS/libjli.dylib", RTLD_NOW);
+    // TODO do it the C++ way, free on shutdown, wrap for OSX, configure path from JAVA_HOME
+#ifdef _WIN32
+	// Java 10: C:\Program Files\Java\jdk-10\bin\server\jvm.dll
+	std::string libPath = "C:\\Program Files\\Java\\jdk1.8.0_162\\jre\\bin\\server\\jvm.dll";
+	HMODULE lib_handle = LoadLibrary(stringToWs (libPath).c_str());
+#else
+	void *lib_handle = dlopen("/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/MacOS/libjli.dylib", RTLD_NOW);
+#endif
     if (!lib_handle)
     {
         ReaDebug() << "Could not load Java dynamic library.";
@@ -116,7 +139,11 @@ void JvmManager::Create()
 	// Load and initialize Java VM and JNI interface
 	// NOTE: SEGV (or exception 0xC0000005) is generated intentionally on JVM startup 
 	// to verify certain CPU/OS features! Advice debugger to skip it.
-    jint (*lib_func)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *)) dlsym(lib_handle, "JNI_CreateJavaVM");
+#ifdef _WIN32
+	jint(*lib_func)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *)) GetProcAddress(lib_handle, "JNI_CreateJavaVM");
+#else
+	jint(*lib_func)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *)) dlsym(lib_handle, "JNI_CreateJavaVM");
+#endif
     const jint rc =  lib_func(&jvm,(void**)&env,&vm_args);
     
 	// TODO const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
@@ -184,23 +211,6 @@ void JvmManager::StartApp()
 	this->env->SetObjectArrayElement(applicationArgs, 0, this->env->NewStringUTF(iniPath));
 	this->env->CallStaticVoidMethod(transformatorClass, methodID, applicationArgs);
 }
-
-
-#ifdef _WIN32
-/**
- * Convert a string to wide char.
- */
-std::wstring stringToWs(const std::string& s)
-{
-    int slength = (int)s.length() + 1;
-    int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-    wchar_t* buf = new wchar_t[len];
-    MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-    std::wstring r(buf);
-    delete[] buf;
-    return r;
-}
-#endif
 
 
 /**
