@@ -57,6 +57,15 @@ JvmManager::~JvmManager()
 }
 
 
+/**
+ * Start and initialise the JVM.
+ *
+ * @param processNoArgCPP The processing method with no arguments
+ * @param processStringArgCPP The processing method with a string argument
+ * @param processIntArgCPP The processing method with an integer argument
+ * @param processDoubleArgCPP The processing method with a double argument
+ * @param receiveModelDataCPP The callback for getting a model update
+ */
 void JvmManager::init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
 {
     if (this->isInitialised)
@@ -167,7 +176,9 @@ void JvmManager::StartApp()
 
 
 #ifdef _WIN32
-// Convert a string to wide char
+/**
+ * Convert a string to wide char.
+ */
 std::wstring stringToWs(const std::string& s)
 {
     int slength = (int)s.length() + 1;
@@ -178,25 +189,53 @@ std::wstring stringToWs(const std::string& s)
     delete[] buf;
     return r;
 }
-#else
+#endif
+
+/**
+ * Get the full path to the DLL. Uses the trick to retrieve it from a local function.
+ *
+ * @return The full path or empty if error
+ */
 std::string getDylibPath()
 {
+#ifdef _WIN32
+	// Long paths might be 65K on Window 10 but the path we are after should never be longer than 260
+	char path[MAX_PATH];
+	HMODULE hm = NULL;
+	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR) &getDylibPath, &hm))
+		return std::string{};
+	GetModuleFileNameA(hm, path, sizeof(path));
+	return std::string{ path };
+#else
     Dl_info info;
     if (dladdr((void *)getDylibPath, &info) == 0)
         return std::string{};
     return std::string{ info.dli_fname };
-}
 #endif
+}
 
 
+/**
+ * Create the classpath from all JAR files found in the drivenbymoss library folder.
+ *
+ * @return The full classpath including the VM parameter
+ */
 std::string JvmManager::CreateClasspath() const
 {
     std::string libDir = GetLibraryPath();
     if (libDir.empty())
         return libDir;
     
-    int success = chdir(libDir.c_str());
-    
+#ifdef _WIN32
+	const int status = _chdir(libDir.c_str());
+#else
+	const int status = chdir(libDir.c_str());
+#endif
+	if (status < 0)
+	{
+		ReaDebug() << "ERROR: Could not change current directory to " << libDir;
+		return "";
+	}
 
     const std::string subdir = "drivenbymoss-libs";
     const std::string path = libDir + subdir;
@@ -217,35 +256,41 @@ std::string JvmManager::CreateClasspath() const
 }
 
 
+/**
+ * Get the full path from which the DLL/dynlib was loaded.
+ *
+ * @return The path or error if empty
+ */
 std::string JvmManager::GetLibraryPath() const
 {
-#ifdef _WIN32
-    std::string currentPath = GetExePath();
-    const int result = _chdir(currentPath.c_str());
-    if (result < 0)
-    {
-        ReaDebug() << "ERROR: Could not change current directory to " << currentPath;
-        return "";
-    }
-    return currentPath;
-#else
-    #ifdef DEBUG
-    return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
-    #else
-    const std::string dylibName{ "reaper_drivenbymoss.dylib" };
-    const std::string dylibPath = getDylibPath();
-    if (dylibPath.empty())
-    {
-        ReaDebug() << "Could not retrieve library path.";
-        return "";
-    }
-    const std::string subdir = "/Plugins/drivenbymoss-libs";
-    return dylibPath.substr(0, dylibPath.size() - dylibName.size());
-    #endif
+#ifdef DEBUG
+	// Used on Mac if running in the debugger since the dylib location is temporary
+	// TODO Test if it works with "~/Library/Application Support/REAPER/UserPlugins/"
+	return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
 #endif
+
+	const std::string fullLibPath = getDylibPath();
+	if (fullLibPath.empty())
+	{
+		ReaDebug() << "Could not retrieve library path.";
+		return "";
+	}
+
+#ifdef _WIN32
+	const std::string dylibName{ "reaper_drivenbymoss.dll" };
+#else
+	const std::string dylibName{ "reaper_drivenbymoss.dylib" };
+#endif
+	return fullLibPath.substr(0, fullLibPath.size() - dylibName.size());
 }
 
 
+/**
+ * Get all files in the given directory.
+ *
+ * @param dir The directory
+ * @return All found files (includes "." and "..")
+ */
 std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) const
 {
 	std::vector<std::string> files{};
@@ -281,6 +326,12 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
 }
 
 
+/**
+ * Test if the given string ends with the end-string.
+ * @param str The string to test
+ * @param end The string to test if str ends with it
+ * @return True if str ends with end
+ */
 bool JvmManager::HasEnding(std::string const &str, std::string const &end) const
 {
 	return str.length() < end.length() ? false : str.compare(str.length() - end.length(), end.length(), end) == 0;

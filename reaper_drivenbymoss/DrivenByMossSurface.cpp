@@ -11,7 +11,7 @@ extern DrivenByMossSurface *gSurface;
 /**
  * Constructor.
  */
-DrivenByMossSurface::DrivenByMossSurface() : model(functionExecutor)
+DrivenByMossSurface::DrivenByMossSurface() noexcept : model(functionExecutor)
 {
 	gSurface = this;
 }

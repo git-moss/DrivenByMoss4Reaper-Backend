@@ -26,7 +26,7 @@ public:
 private:
 	Model &model;
 
-	const int BUFFER_SIZE{ 65535 };
+	const static int BUFFER_SIZE{ 65535 };
 	std::unique_ptr<char []> trackStateChunk;
 
 

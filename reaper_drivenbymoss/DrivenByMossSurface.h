@@ -15,7 +15,7 @@
 class DrivenByMossSurface : public IReaperControlSurface
 {
 public:
-	DrivenByMossSurface();
+	DrivenByMossSurface() noexcept;
 	~DrivenByMossSurface();
 
 	OscParser &GetOscParser() noexcept
