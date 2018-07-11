@@ -42,7 +42,6 @@
 		8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21B20F40E4000F5FF39 /* reaper_plugin.h */; };
 		855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855CF89420F4B8EA0001F74A /* ReaDebug.cpp */; };
 		855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = 855CF89520F4B8EB0001F74A /* ReaDebug.h */; };
-		85E1A7AA20F4FD0800D38CC1 /* JavaVM in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E1A7A920F4FD0600D38CC1 /* JavaVM */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -91,7 +90,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				85E1A7AA20F4FD0800D38CC1 /* JavaVM in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,11 +383,11 @@
 				EXECUTABLE_PREFIX = "";
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
-					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
-				LIBRARY_SEARCH_PATHS = "$(SYSTEM_LIBRARY_DIR)/Frameworks/JavaVM.framework/Versions/A";
+				LIBRARY_SEARCH_PATHS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
 			};
@@ -406,11 +404,11 @@
 				EXECUTABLE_PREFIX = "";
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/**",
-					"/Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
-				LIBRARY_SEARCH_PATHS = "$(SYSTEM_LIBRARY_DIR)/Frameworks/JavaVM.framework/Versions/A";
+				LIBRARY_SEARCH_PATHS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
 			};

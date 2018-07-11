@@ -84,6 +84,14 @@ void JvmManager::init (void *processNoArgCPP, void *processStringArgCPP, void *p
  */
 void JvmManager::Create()
 {
+    // TODO do it the C++ way, free on shutdown, wrap for OSX
+    void *lib_handle = dlopen("/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/MacOS/libjli.dylib", RTLD_NOW);
+    if (!lib_handle)
+    {
+        ReaDebug() << "Could not load Java dynamic library.";
+        return;
+    }
+    
 	std::string classpath = this->CreateClasspath();
     if (classpath.empty())
         return;
@@ -108,7 +116,10 @@ void JvmManager::Create()
 	// Load and initialize Java VM and JNI interface
 	// NOTE: SEGV (or exception 0xC0000005) is generated intentionally on JVM startup 
 	// to verify certain CPU/OS features! Advice debugger to skip it.
-	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
+    jint (*lib_func)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *)) dlsym(lib_handle, "JNI_CreateJavaVM");
+    const jint rc =  lib_func(&jvm,(void**)&env,&vm_args);
+    
+	// TODO const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
 		ReaDebug() << "ERROR: Could not start Java Virtual Machine with " << classpath;
@@ -191,6 +202,7 @@ std::wstring stringToWs(const std::string& s)
 }
 #endif
 
+
 /**
  * Get the full path to the DLL. Uses the trick to retrieve it from a local function.
  *
@@ -244,7 +256,8 @@ std::string JvmManager::CreateClasspath() const
 	for (const std::string &file : this->GetDirectoryFiles(path))
 	{
 		if (this->HasEnding(file, ".jar"))
-			stream << "./" << subdir << "/" << file << ";";
+            stream << path << "/" << file << ";";
+			//stream << "./" << subdir << "/" << file << ";";
 	}
 	std::string result = stream.str();
     if (result.empty())
@@ -265,8 +278,7 @@ std::string JvmManager::GetLibraryPath() const
 {
 #ifdef DEBUG
 	// Used on Mac if running in the debugger since the dylib location is temporary
-	// TODO Test if it works with "~/Library/Application Support/REAPER/UserPlugins/"
-	return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
+    return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
 #endif
 
 	const std::string fullLibPath = getDylibPath();
