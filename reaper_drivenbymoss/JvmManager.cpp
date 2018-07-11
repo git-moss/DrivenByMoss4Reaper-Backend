@@ -1,4 +1,4 @@
-// Written by Jürgen Moßgraber - mossgrabers.de
+// Written by Jï¿½rgen Moï¿½graber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
@@ -21,6 +21,8 @@
 #include "JvmManager.h"
 #include "ReaDebug.h"
 #include "reaper_plugin_functions.h"
+#undef max
+#undef min
 
 
 #ifdef _WIN32
@@ -119,7 +121,6 @@ void JvmManager::Create()
     if (classpath.empty())
         return;
 
-	JavaVMInitArgs vm_args{};
 	JavaVMOption * const  opts = this->options.get();
 	opts[0].optionString = (char *)classpath.c_str();
 	if (this->debug)
@@ -130,6 +131,7 @@ void JvmManager::Create()
 	}
 
 	// Minimum required Java version
+	JavaVMInitArgs vm_args{};
 	vm_args.version = JNI_VERSION_1_8;
 	vm_args.nOptions = this->debug ? 4 : 1;
 	vm_args.options = this->options.get();

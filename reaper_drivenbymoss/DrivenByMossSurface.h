@@ -1,10 +1,12 @@
-// Written by Jürgen Moßgraber - mossgrabers.de
+// Written by Jï¿½rgen Moï¿½graber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #pragma once
 
 #include "reaper_plugin_functions.h"
+#undef max
+#undef min
 #include "DrivenByMossExtension.h"
 #include "FunctionExecutor.h"
 
