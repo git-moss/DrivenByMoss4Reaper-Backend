@@ -69,7 +69,6 @@ JvmManager::~JvmManager()
 			if (mid != nullptr)
 				env->CallStaticVoidMethod(transformatorClass, mid);
 		}
-		this->jvm->DestroyJavaVM();
 		this->jvm = nullptr;
 	}
 	this->options.reset();
@@ -140,6 +139,8 @@ void JvmManager::Create()
 	// Load and initialize Java VM and JNI interface
 	// NOTE: SEGV (or exception 0xC0000005) is generated intentionally on JVM startup 
 	// to verify certain CPU/OS features! Advice debugger to skip it.
+    // In Xcode: Create a breakpoint, edit it, add action, enter the line: pro hand -p true -s false SIGSEGV
+    // Check option: Automatically continue...
 	jint(*JNI_CreateJavaVM)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *))
 #ifdef _WIN32
 		GetProcAddress(this->jvmLibHandle, "JNI_CreateJavaVM");
@@ -196,7 +197,7 @@ std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath)
 #ifdef _WIN32
 	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll", "\\jre\\bin\\server\\jvm.dll" };
 #else
-	std::vector<std::string> libSubPaths{ "/Contents/MacOS/libjli.dylib" };
+    std::vector<std::string> libSubPaths{ "/../MacOS/libjli.dylib" };
 #endif
 	std::string libPath{};
 	for (const std::string &p : libSubPaths)
@@ -232,7 +233,12 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 	};
 
 	jclass transformatorAppClass = this->env->FindClass("de/mossgrabers/transformator/TransformatorApplication");
-	const int result = this->env->RegisterNatives(transformatorAppClass, methods, 5);
+	if (transformatorAppClass == nullptr)
+    {
+        ReaDebug() << "TransformatorApplication.class could not be retrieved.";
+        return;
+    }
+    const int result = this->env->RegisterNatives(transformatorAppClass, methods, 5);
 	if (result == 0)
 		return;
 	jthrowable ex = this->env->ExceptionOccurred();
@@ -256,8 +262,11 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 void JvmManager::StartApp()
 {
 	jclass transformatorClass = this->env->FindClass("de/mossgrabers/transformator/Transformator");
-	if (transformatorClass == nullptr)
-		return;
+    if (transformatorClass == nullptr)
+    {
+        ReaDebug() << "Transformator.class could not be retrieved.";
+        return;
+    }
 	// Call main start method
 	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "main", "([Ljava/lang/String;)V");
 	if (methodID == nullptr)
@@ -322,9 +331,15 @@ std::string JvmManager::CreateClasspath() const
 	for (const std::string &file : this->GetDirectoryFiles(path))
 	{
 		if (this->HasEnding(file, ".jar"))
-			stream << path << "/" << file << ";";
-		//stream << "./" << subdir << "/" << file << ";";
-	}
+        {
+            stream << path << "/" << file;
+#ifdef _WIN32
+            stream<< ";";
+#else
+            stream<< ":";
+#endif
+        }
+    }
 	std::string result = stream.str();
 	if (result.empty())
 	{
@@ -344,7 +359,7 @@ std::string JvmManager::GetLibraryPath() const
 {
 #ifdef DEBUG
 	// Used on Mac if running in the debugger since the dylib location is temporary
-	return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
+	// return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
 #endif
 
 	const std::string fullLibPath = getDylibPath();

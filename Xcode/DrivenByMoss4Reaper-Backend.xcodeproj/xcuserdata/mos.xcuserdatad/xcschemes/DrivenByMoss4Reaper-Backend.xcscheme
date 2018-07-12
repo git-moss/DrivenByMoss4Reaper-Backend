@@ -65,6 +65,13 @@
             ReferencedContainer = "container:DrivenByMoss4Reaper-Backend.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "JAVA_HOME"
+            value = "/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>

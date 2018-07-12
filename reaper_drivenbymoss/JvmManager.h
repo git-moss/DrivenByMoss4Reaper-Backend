@@ -38,7 +38,7 @@ private:
 #ifdef _WIN32
 	HMODULE jvmLibHandle;
 #else
-	void *lib_handle;
+	void *jvmLibHandle;
 #endif
 
 	bool debug;
