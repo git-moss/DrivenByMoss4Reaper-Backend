@@ -1,4 +1,4 @@
-// Written by J�rgen Mo�graber - mossgrabers.de
+// Written by Jürgen Moßgraber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
@@ -11,12 +11,13 @@
 #include <dlfcn.h>
 #endif
 
-#include <iostream>
+#include <string>
+#include <vector>
 #include <cstring>
 #include <cstdlib>
-#include <string>
+#include <iostream>
 #include <sstream>
-#include <vector>
+#include <fstream>
 
 #include "JvmManager.h"
 #include "ReaDebug.h"
@@ -47,7 +48,7 @@ std::wstring stringToWs(const std::string& s)
  *
  * @param enableDebug True to enable debugging
  */
-JvmManager::JvmManager(bool enableDebug) : jvm(nullptr), env(nullptr)
+JvmManager::JvmManager(bool enableDebug) : jvm(nullptr), env(nullptr), jvmLibHandle(nullptr)
 {
 	this->debug = enableDebug;
 	this->options = std::make_unique<JavaVMOption[]>(this->debug ? 4 : 1);
@@ -73,6 +74,15 @@ JvmManager::~JvmManager()
 	}
 	this->options.reset();
 	this->env = nullptr;
+
+	// Unload JVM library
+	if (this->jvmLibHandle)
+#ifdef _WIN32
+		FreeLibrary(this->jvmLibHandle);
+#else
+		dlclose(this->jvmLibHandle);
+#endif
+	this->jvmLibHandle = nullptr;
 }
 
 
@@ -85,16 +95,16 @@ JvmManager::~JvmManager()
  * @param processDoubleArgCPP The processing method with a double argument
  * @param receiveModelDataCPP The callback for getting a model update
  */
-void JvmManager::init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
+void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
 {
-    if (this->isInitialised)
-        return;
-    this->isInitialised = true;
-    this->Create();
-    if (this->jvm == nullptr)
-        return;
-    this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, receiveModelDataCPP);
-    this->StartApp();
+	if (this->isInitialised)
+		return;
+	this->isInitialised = true;
+	this->Create();
+	if (this->jvm == nullptr)
+		return;
+	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, receiveModelDataCPP);
+	this->StartApp();
 }
 
 
@@ -103,23 +113,12 @@ void JvmManager::init (void *processNoArgCPP, void *processStringArgCPP, void *p
  */
 void JvmManager::Create()
 {
-    // TODO do it the C++ way, free on shutdown, wrap for OSX, configure path from JAVA_HOME
-#ifdef _WIN32
-	// Java 10: C:\Program Files\Java\jdk-10\bin\server\jvm.dll
-	std::string libPath = "C:\\Program Files\\Java\\jdk1.8.0_162\\jre\\bin\\server\\jvm.dll";
-	HMODULE lib_handle = LoadLibrary(stringToWs (libPath).c_str());
-#else
-	void *lib_handle = dlopen("/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/MacOS/libjli.dylib", RTLD_NOW);
-#endif
-    if (!lib_handle)
-    {
-        ReaDebug() << "Could not load Java dynamic library.";
-        return;
-    }
-    
+	if (!LoadJvmLibrary())
+		return;
+
 	std::string classpath = this->CreateClasspath();
-    if (classpath.empty())
-        return;
+	if (classpath.empty())
+		return;
 
 	JavaVMOption * const  opts = this->options.get();
 	opts[0].optionString = (char *)classpath.c_str();
@@ -141,19 +140,74 @@ void JvmManager::Create()
 	// Load and initialize Java VM and JNI interface
 	// NOTE: SEGV (or exception 0xC0000005) is generated intentionally on JVM startup 
 	// to verify certain CPU/OS features! Advice debugger to skip it.
+	jint(*JNI_CreateJavaVM)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *))
 #ifdef _WIN32
-	jint(*lib_func)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *)) GetProcAddress(lib_handle, "JNI_CreateJavaVM");
+		GetProcAddress(this->jvmLibHandle, "JNI_CreateJavaVM");
 #else
-	jint(*lib_func)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *)) dlsym(lib_handle, "JNI_CreateJavaVM");
+		dlsym(this->jvmLibHandle, "JNI_CreateJavaVM");
 #endif
-    const jint rc =  lib_func(&jvm,(void**)&env,&vm_args);
-    
-	// TODO const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
+	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
 		ReaDebug() << "ERROR: Could not start Java Virtual Machine with " << classpath;
 		return;
 	}
+}
+
+
+/**
+ * Looks up the Java Virtual Machine library from the JAVA_HOME environment variable and loads it.
+ *
+ * @return True on success
+ */
+bool JvmManager::LoadJvmLibrary()
+{
+	// Look up the JAVA_HOME variable
+	const char *variable = std::getenv("JAVA_HOME");
+	if (variable == nullptr)
+	{
+		ReaDebug() << "JAVA_HOME environment variable is not configured!";
+		return false;
+	}
+	std::string javaHomePath = variable;
+	std::string libPath = LookupJvmLibrary(javaHomePath);
+	if (libPath.empty())
+		return false;
+
+#ifdef _WIN32
+	this->jvmLibHandle = LoadLibrary(stringToWs(libPath).c_str());
+#else
+	this->jvmLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
+#endif
+	if (!this->jvmLibHandle)
+	{
+		ReaDebug() << "Could not load Java dynamic library.";
+		return false;
+	}
+	return true;
+}
+
+
+/**
+ * Tests several options to find the JVBM library in the JAVA_HOME folder.
+ */
+std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath)
+{
+#ifdef _WIN32
+	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll", "\\jre\\bin\\server\\jvm.dll" };
+#else
+	std::vector<std::string> libSubPaths{ "/Contents/MacOS/libjli.dylib" };
+#endif
+	std::string libPath{};
+	for (const std::string &p : libSubPaths)
+	{
+		libPath = javaHomePath + p;
+		std::ifstream in(libPath);
+		if (in.good())
+			return libPath;
+	}
+	ReaDebug() << "Java dynamic library not found at " << libPath;
+	return "";
 }
 
 
@@ -226,15 +280,15 @@ std::string getDylibPath()
 	// Long paths might be 65K on Window 10 but the path we are after should never be longer than 260
 	char path[MAX_PATH];
 	HMODULE hm = NULL;
-	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR) &getDylibPath, &hm))
+	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&getDylibPath, &hm))
 		return std::string{};
 	GetModuleFileNameA(hm, path, sizeof(path));
 	return std::string{ path };
 #else
-    Dl_info info;
-    if (dladdr((void *)getDylibPath, &info) == 0)
-        return std::string{};
-    return std::string{ info.dli_fname };
+	Dl_info info;
+	if (dladdr((void *)getDylibPath, &info) == 0)
+		return std::string{};
+	return std::string{ info.dli_fname };
 #endif
 }
 
@@ -246,10 +300,10 @@ std::string getDylibPath()
  */
 std::string JvmManager::CreateClasspath() const
 {
-    std::string libDir = GetLibraryPath();
-    if (libDir.empty())
-        return libDir;
-    
+	std::string libDir = GetLibraryPath();
+	if (libDir.empty())
+		return libDir;
+
 #ifdef _WIN32
 	const int status = _chdir(libDir.c_str());
 #else
@@ -261,22 +315,22 @@ std::string JvmManager::CreateClasspath() const
 		return "";
 	}
 
-    const std::string subdir = "drivenbymoss-libs";
-    const std::string path = libDir + subdir;
+	const std::string subdir = "drivenbymoss-libs";
+	const std::string path = libDir + subdir;
 
-    std::stringstream stream;
+	std::stringstream stream;
 	for (const std::string &file : this->GetDirectoryFiles(path))
 	{
 		if (this->HasEnding(file, ".jar"))
-            stream << path << "/" << file << ";";
-			//stream << "./" << subdir << "/" << file << ";";
+			stream << path << "/" << file << ";";
+		//stream << "./" << subdir << "/" << file << ";";
 	}
 	std::string result = stream.str();
-    if (result.empty())
-    {
-        ReaDebug() << "No JAR files found in library path: " << path;
-        return result;
-    }
+	if (result.empty())
+	{
+		ReaDebug() << "No JAR files found in library path: " << path;
+		return result;
+	}
 	return "-Djava.class.path=" + result.substr(0, result.length() - 1);
 }
 
@@ -290,7 +344,7 @@ std::string JvmManager::GetLibraryPath() const
 {
 #ifdef DEBUG
 	// Used on Mac if running in the debugger since the dylib location is temporary
-    return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
+	return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
 #endif
 
 	const std::string fullLibPath = getDylibPath();
@@ -302,6 +356,8 @@ std::string JvmManager::GetLibraryPath() const
 
 #ifdef _WIN32
 	const std::string dylibName{ "reaper_drivenbymoss.dll" };
+#elif LINUX
+	const std::string dylibName{ "reaper_drivenbymoss.so" };
 #else
 	const std::string dylibName{ "reaper_drivenbymoss.dylib" };
 #endif

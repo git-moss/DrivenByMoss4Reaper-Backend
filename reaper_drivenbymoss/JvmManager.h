@@ -35,6 +35,12 @@ private:
 	// JVM invocation options
 	std::unique_ptr<JavaVMOption[]> options;
 
+#ifdef _WIN32
+	HMODULE jvmLibHandle;
+#else
+	void *lib_handle;
+#endif
+
 	bool debug;
 	bool isInitialised = false;
 
@@ -42,8 +48,12 @@ private:
 	void Create();
 	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
 	void StartApp();
+
+	bool LoadJvmLibrary();
+	std::string LookupJvmLibrary(const std::string &javaHomePath);
 	std::string CreateClasspath() const;
 	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
     std::string GetLibraryPath() const;
+
 	bool HasEnding(std::string const &fullString, std::string const &ending) const;
 };
