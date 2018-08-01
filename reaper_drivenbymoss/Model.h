@@ -22,6 +22,7 @@ public:
 	const int sendBankSize{ 8 };
 	const int deviceBankSize{ 8 };
 	const int parameterBankSize{ 8 };
+	const int markerBankSize{ 8 };
 
 	double masterVolume{ 0 };
 	double masterPan{ 0 };
@@ -41,6 +42,9 @@ public:
 	int deviceParamBankOffset{ 0 };
 	int deviceExpandedType{ 3 };
 	int deviceCount{ 0 };
+
+	int markerBankOffset{ 0 };
+	int markerCount{ 0 };
 
 
 	Model(FunctionExecutor &functionExecutor);

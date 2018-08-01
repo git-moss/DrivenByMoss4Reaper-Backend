@@ -60,6 +60,9 @@
     <ClCompile Include="..\reaper_drivenbymoss\ReaDebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\reaper_drivenbymoss\MarkerProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h">
@@ -120,6 +123,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\ReaDebug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\MarkerProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

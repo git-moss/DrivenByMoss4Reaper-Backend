@@ -42,7 +42,11 @@ DataCollector::DataCollector(Model &aModel) :
 	deviceParamName(aModel.parameterBankSize, ""),
 	deviceParamValue(aModel.parameterBankSize, 0),
 	deviceParamValueStr(aModel.parameterBankSize, ""),
-	devicePresetsStr(128, "")
+	devicePresetsStr(128, ""),
+	markerExists(aModel.markerBankSize, 0),
+	markerNumber(aModel.markerBankSize, 0),
+	markerName(aModel.markerBankSize, ""),
+	markerColor(aModel.markerBankSize, "")
 {
 	this->trackStateChunk = std::make_unique<char []> (BUFFER_SIZE);
 }
@@ -75,6 +79,7 @@ std::string DataCollector::CollectData(const bool &dump)
 	CollectMasterTrackData(ss, project, dump);
 	CollectClipData(ss, project, dump);
 	CollectBrowserData(ss, project, dump);
+	CollectMarkerData(ss, project, dump);
 
 	return ss.str();
 }
@@ -405,6 +410,55 @@ void DataCollector::CollectBrowserData(std::stringstream &ss, ReaProject *projec
 	int numberOfPresets;
 	const int selectedIndex = TrackFX_GetPresetIndex(track, this->model.deviceBankOffset + this->model.deviceSelected, &numberOfPresets);
 	this->devicePresetIndex = CollectIntValue(ss, "/browser/selected/index", this->devicePresetIndex, selectedIndex, dump);
+}
+
+
+/**
+* Collect the (changed) marker data.
+*
+* @param ss The stream where to append the formatted data
+* @param project The current Reaper project
+* @param dump If true all data is collected not only the changed one since the last call
+*/
+void DataCollector::CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump)
+{
+	int markerIndex = this->model.markerBankOffset;
+	int bankMarkerIndex = 1;
+
+	this->model.markerCount = CollectIntValue(ss, "/marker/count", this->model.markerCount, CountProjectMarkers(project, nullptr, nullptr), dump);
+
+	const char* name;
+	bool isRegion;
+	double markerPos;
+	double regionEnd;
+	int markerRegionIndexNumber;
+	int markerColor;
+
+	for (int index = 0; index < this->model.markerBankSize; index++)
+	{
+		std::stringstream das;
+		das << "/marker/" << bankMarkerIndex << "/";
+		std::string markerAddress = das.str();
+
+		// Marker exists flag and number of markers
+		const bool exists = markerIndex < this->model.markerCount ? 1 : 0;
+		CollectIntArrayValue(ss, (markerAddress + "exists").c_str(), index, this->markerExists, exists, dump);
+		CollectIntArrayValue(ss, (markerAddress + "number").c_str(), index, this->markerNumber, markerIndex, dump);
+
+		int result = exists ? EnumProjectMarkers3(project, index, &isRegion, &markerPos, &regionEnd, &name, &markerRegionIndexNumber, &markerColor) : 0;
+
+		// Marker name
+		CollectStringArrayValue(ss, (markerAddress + "name").c_str(), index, this->markerName, result ? name : "", dump);
+
+		// Marker color
+		int red = 0, green = 0, blue = 0;
+		if (exists)
+			ColorFromNative(markerColor & 0xFEFFFFFF, &red, &green, &blue);
+		CollectStringArrayValue(ss, (markerAddress + "color").c_str(), index, this->markerColor, FormatColor(red, green, blue).c_str(), dump);
+
+		markerIndex += 1;
+		bankMarkerIndex += 1;
+	}
 }
 
 

@@ -150,6 +150,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossSurface.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\FunctionExecutor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\JvmManager.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\MarkerProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\MastertrackProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\MidiProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Model.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossSurface.h" />
     <ClInclude Include="..\reaper_drivenbymoss\FunctionExecutor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\JvmManager.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\MarkerProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MastertrackProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MidiProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Model.h" />

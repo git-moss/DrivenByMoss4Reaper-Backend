@@ -112,6 +112,12 @@ private:
 	int grooveTolerance{};
 	int quantizeStrength{};
 
+	// Marker values
+	std::vector<int> markerExists;
+	std::vector<int> markerNumber;
+	std::vector<std::string> markerName;
+	std::vector<std::string> markerColor;
+
 
 	void CollectProjectData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectTransportData(std::stringstream &ss, ReaProject *project, const bool &dump);
@@ -120,6 +126,7 @@ private:
 	void CollectMasterTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump);
 
 	void AdjustTrackBank(ReaProject *project);
 	int GetTrackLockState(MediaTrack *track);
