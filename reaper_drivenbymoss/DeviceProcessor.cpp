@@ -37,16 +37,22 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		{
 			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - this->model.deviceBankSize);
 		}
+		return;
 	}
-	else if (std::strcmp(part, "+") == 0)
+	
+	if (std::strcmp(part, "+") == 0)
 	{
 		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + 1);
+		return;
 	}
-	else if (std::strcmp(part, "-") == 0)
+	
+	if (std::strcmp(part, "-") == 0)
 	{
 		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - 1);
+		return;
 	}
-	else if (std::strcmp(part, "param") == 0)
+	
+	if (std::strcmp(part, "param") == 0)
 	{
 		part = path.at(1).c_str();
 
@@ -75,6 +81,23 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 			if (this->model.deviceParamBankSelected >= 1)
 				this->model.deviceParamBankSelectedTemp -= 1;
 		}
+		return;
+	}
+	
+	ReaProject *project = this->model.GetProject();
+	const int index = atoi(part) - 1;
+
+	const char *cmd = path.at(1).c_str();
+	if (std::strcmp(cmd, "remove") == 0)
+	{
+		// Currently only possible via SWS
+		return;
+	}
+
+	if (std::strcmp(cmd, "duplicate") == 0)
+	{
+		// Currently only possible via SWS
+		return;
 	}
 }
 

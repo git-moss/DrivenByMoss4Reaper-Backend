@@ -19,7 +19,7 @@ TrackProcessor::TrackProcessor(Model &aModel) : OscProcessor(aModel)
 /** {@inheritDoc} */
 void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 {
-	if (path.empty())
+	if (path.size() < 2)
 		return;
 	const char *part = path.at(0).c_str();
 
@@ -36,6 +36,37 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 			if (this->model.trackBankOffset > 0)
 				this->model.trackBankOffset -= this->model.trackBankSize;
 		}
+		return;
+	}
+
+	if (std::strcmp(part, "scrollto") == 0)
+	{
+		const int position = atoi(path.at(1).c_str());
+
+		ReaProject *project = this->model.GetProject();
+		if (position >= CountSelectedTracks(project))
+			return;
+
+		MediaTrack *track = GetTrack(project, position);
+		SetOnlyTrackSelected(track);
+		SetMixerScroll(track);
+		this->model.deviceSelected = 0;
+		this->model.deviceParamBankSelectedTemp = 0;
+		return;
+	}
+
+	ReaProject *project = this->model.GetProject();
+	const int index = atoi(path.at(0).c_str()) - 1;
+	if (index < 0)
+		return;
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
+
+	const char *cmd = path.at(1).c_str();
+	if (std::strcmp(cmd, "remove") == 0)
+	{
+		if (track)
+			DeleteTrack(track);
+		return;
 	}
 }
 
