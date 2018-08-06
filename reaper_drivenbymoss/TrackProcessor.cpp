@@ -65,7 +65,15 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 	if (std::strcmp(cmd, "remove") == 0)
 	{
 		if (track)
-			DeleteTrack(track);
+		{
+			// UI operations must be executed on the main tread
+			this->model.AddFunction([=]()
+			{
+				Undo_BeginBlock2(project);
+				DeleteTrack(track);
+				Undo_EndBlock2(project, "Delete track", 0);
+			});
+		}
 		return;
 	}
 }

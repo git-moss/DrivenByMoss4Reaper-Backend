@@ -184,7 +184,11 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Undo_DoUndo2(this->model.GetProject());
+		// UI operations must be executed on the main tread
+		this->model.AddFunction([=]()
+		{
+			Undo_DoUndo2(this->model.GetProject());
+		});
 	};
 };
 
@@ -195,7 +199,11 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Undo_DoRedo2(this->model.GetProject());
+		// UI operations must be executed on the main tread
+		this->model.AddFunction([=]()
+		{
+			Undo_DoRedo2(this->model.GetProject());
+		});
 	};
 };
 
