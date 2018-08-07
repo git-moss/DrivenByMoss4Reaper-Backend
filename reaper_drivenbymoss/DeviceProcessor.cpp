@@ -85,18 +85,24 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	}
 	
 	ReaProject *project = this->model.GetProject();
-	const int index = atoi(part) - 1;
+	const int fx = atoi(part) - 1;
+
+	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	if (track == nullptr)
+		return;
 
 	const char *cmd = path.at(1).c_str();
 	if (std::strcmp(cmd, "remove") == 0)
 	{
-		// Currently only possible via SWS
+		// TODO Test
+		TrackFX_Delete(track, fx);
 		return;
 	}
 
 	if (std::strcmp(cmd, "duplicate") == 0)
 	{
-		// Currently only possible via SWS
+		// TODO Test
+		TrackFX_CopyToTrack(track, fx, track, fx + 1, false);
 		return;
 	}
 }
@@ -230,9 +236,10 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		int position = TrackFX_AddByName(track, value.c_str(), false, -1);
 		if (position < 0)
 			return;
-		// const int insert = atoi(path.at(1).c_str());
-		// The plugin should be moved up to insert position but calling SNM_MoveOrRemoveTrackFX
+		const int insert = atoi(path.at(1).c_str());
+		// TODO: Test The plugin should be moved up to insert position but calling SNM_MoveOrRemoveTrackFX
 		// does not work (the function seems to be NULL)
+		TrackFX_CopyToTrack(track, position, track, insert, true);
 	}
 }
 

@@ -129,12 +129,14 @@ void DataCollector::CollectTransportData(std::stringstream &ss, ReaProject *proj
 	this->globalTimesig = CollectIntValue(ss, "/numerator", this->globalTimesig, timesig, dump);
 	this->globalDenomOut = CollectIntValue(ss, "/denominator", this->globalDenomOut, denomOut, dump);
 
+	// Result is in seconds
 	cursorPos = this->play ? GetPlayPositionEx(project) : GetCursorPositionEx(project);
 	TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
-	this->playPosition = CollectDoubleValue(ss, "/time", this->playPosition, startBPM * cursorPos / 60, dump);
+	this->playPosition = CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
 	char timeStr[20];
 	format_timestr(cursorPos, timeStr, 20);
 	this->strPlayPosition = CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
+	// 2 = measures.beats
 	format_timestr_pos(cursorPos, timeStr, 20, 2);
 	this->strBeatPosition = CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
 
