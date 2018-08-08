@@ -67,7 +67,10 @@ JvmManager::~JvmManager()
 		{
 			jmethodID mid = env->GetStaticMethodID(transformatorClass, "shutdown", "()V");
 			if (mid != nullptr)
+			{
 				env->CallStaticVoidMethod(transformatorClass, mid);
+				this->HandleException("Could not call shutdown.");
+			}
 		}
 		this->jvm = nullptr;
 	}
@@ -173,7 +176,10 @@ bool JvmManager::LoadJvmLibrary()
 	std::string javaHomePath = variable;
 	std::string libPath = LookupJvmLibrary(javaHomePath);
 	if (libPath.empty())
+	{
+		ReaDebug() << "Could not find Java dynamic library.";
 		return false;
+	}
 
 #ifdef _WIN32
 	this->jvmLibHandle = LoadLibrary(stringToWs(libPath).c_str());
@@ -196,6 +202,8 @@ std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath)
 {
 #ifdef _WIN32
 	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll", "\\jre\\bin\\server\\jvm.dll" };
+#elif LINUX
+	std::vector<std::string> libSubPaths{ "/jre/lib/amd64/jli/libjli.so", "/lib/jli/libjli.so" };
 #else
     std::vector<std::string> libSubPaths{ "/../MacOS/libjli.dylib" };
 #endif
@@ -239,20 +247,8 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
         return;
     }
     const int result = this->env->RegisterNatives(transformatorAppClass, methods, 5);
-	if (result == 0)
-		return;
-	jthrowable ex = this->env->ExceptionOccurred();
-	ReaDebug dbg{};
-	dbg << "ERROR: Could not register native functions";
-	if (ex)
-	{
-		jboolean isCopy = false;
-		jmethodID toString = this->env->GetMethodID(this->env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
-		jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
-		const char* utf = this->env->GetStringUTFChars(s, &isCopy);
-		dbg << utf;
-		this->env->ExceptionClear();
-	}
+	if (result != 0)
+		this->HandleException("ERROR: Could not register native functions");
 }
 
 
@@ -275,6 +271,7 @@ void JvmManager::StartApp()
 	jobjectArray applicationArgs = this->env->NewObjectArray(1, this->env->FindClass("java/lang/String"), nullptr);
 	this->env->SetObjectArrayElement(applicationArgs, 0, this->env->NewStringUTF(iniPath));
 	this->env->CallStaticVoidMethod(transformatorClass, methodID, applicationArgs);
+	this->HandleException("ERROR: Could not call startup.");
 }
 
 
@@ -430,4 +427,27 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
 bool JvmManager::HasEnding(std::string const &str, std::string const &end) const
 {
 	return str.length() < end.length() ? false : str.compare(str.length() - end.length(), end.length(), end) == 0;
+}
+
+
+/**
+ * Check if a Java exception occured and log it.
+ *
+ * @param message The error message to display
+ */
+void JvmManager::HandleException(const char *message) const
+{
+	if (!this->env->ExceptionCheck())
+		return;
+	jthrowable ex = this->env->ExceptionOccurred();
+	ReaDebug dbg{};
+	dbg << message;
+	if (ex)
+	{
+		const jmethodID toString = this->env->GetMethodID(this->env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
+		const jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
+		jboolean isCopy = false;
+		dbg << this->env->GetStringUTFChars(s, &isCopy);
+		this->env->ExceptionClear();
+	}
 }

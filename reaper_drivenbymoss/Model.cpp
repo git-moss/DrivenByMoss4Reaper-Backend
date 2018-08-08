@@ -11,10 +11,10 @@
  * Constructor.
  */
 Model::Model(FunctionExecutor &aFunctionExecutor) :
-	functionExecutor(aFunctionExecutor),
 	trackVolume(this->trackBankSize, 0),
 	trackPan(this->trackBankSize, 0),
-	trackSendVolume(this->trackBankSize, std::vector<double>(sendBankSize, 0))
+	trackSendVolume(this->trackBankSize, std::vector<double>(sendBankSize, 0)),
+	functionExecutor(aFunctionExecutor)
 {
 	// Intentionally empty
 }

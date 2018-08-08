@@ -55,5 +55,6 @@ private:
 	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
     std::string GetLibraryPath() const;
 
+	void HandleException(const char *message) const;
 	bool HasEnding(std::string const &fullString, std::string const &ending) const;
 };
