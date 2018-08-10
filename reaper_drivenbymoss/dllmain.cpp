@@ -1,4 +1,4 @@
-// Written by Jürgen Moßgraber - mossgrabers.de
+// Written by Jï¿½rgen Moï¿½graber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
@@ -139,7 +139,7 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
         jvmManager = new JvmManager(DEBUG_JAVA);
         jvmManager->init((void *) &processNoArgCPP, (void *) &processStringArgCPP, (void *) &processIntArgCPP, (void *) &processDoubleArgCPP, (void *) &receiveModelDataCPP);
     }
-    // Prevent a second instance and ensure that JVM has asuccessfully started...
+    // Prevent a second instance and ensure that JVM has successfully started...
 	return gSurface == nullptr && jvmManager->isRunning() ? new DrivenByMossSurface() : nullptr;
 }
 

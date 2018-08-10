@@ -150,6 +150,11 @@ void JvmManager::Create()
 #else
 		dlsym(this->jvmLibHandle, "JNI_CreateJavaVM");
 #endif
+	if (JNI_CreateJavaVM == nullptr)
+	{
+		ReaDebug() << "ERROR: Could not lookup CreateJavaVm function in library with " << classpath;
+		return;
+	}
 	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
@@ -203,7 +208,7 @@ std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath)
 #ifdef _WIN32
 	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll", "\\jre\\bin\\server\\jvm.dll" };
 #elif LINUX
-	std::vector<std::string> libSubPaths{ "/jre/lib/amd64/jli/libjli.so", "/lib/jli/libjli.so" };
+	std::vector<std::string> libSubPaths{ "/jre/lib/amd64/server/libjvm.so", "/lib/jli/libjli.so" };
 #else
     std::vector<std::string> libSubPaths{ "/../MacOS/libjli.dylib" };
 #endif
