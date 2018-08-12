@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		850C4C492120173A0059A6B0 /* MarkerProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 850C4C47212017370059A6B0 /* MarkerProcessor.cpp */; };
+		850C4C4A2120173A0059A6B0 /* MarkerProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 850C4C48212017380059A6B0 /* MarkerProcessor.h */; };
 		8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */; };
 		8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FC20F40E3B00F5FF39 /* stdafx.h */; };
 		8554F21E20F40E4000F5FF39 /* DrivenByMossExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */; };
@@ -45,6 +47,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		850C4C47212017370059A6B0 /* MarkerProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarkerProcessor.cpp; path = ../reaper_drivenbymoss/MarkerProcessor.cpp; sourceTree = "<group>"; };
+		850C4C48212017380059A6B0 /* MarkerProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarkerProcessor.h; path = ../reaper_drivenbymoss/MarkerProcessor.h; sourceTree = "<group>"; };
 		8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OscParser.cpp; path = ../reaper_drivenbymoss/OscParser.cpp; sourceTree = "<group>"; };
 		8554F1FC20F40E3B00F5FF39 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stdafx.h; path = ../reaper_drivenbymoss/stdafx.h; sourceTree = "<group>"; };
 		8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrivenByMossExtension.h; path = ../reaper_drivenbymoss/DrivenByMossExtension.h; sourceTree = "<group>"; };
@@ -99,6 +103,8 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				850C4C47212017370059A6B0 /* MarkerProcessor.cpp */,
+				850C4C48212017380059A6B0 /* MarkerProcessor.h */,
 				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
 				855CF89520F4B8EB0001F74A /* ReaDebug.h */,
 				85823BC320F40CD000E4CC57 /* Products */,
@@ -164,6 +170,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8554F23220F40E4000F5FF39 /* JvmManager.h in Headers */,
+				850C4C4A2120173A0059A6B0 /* MarkerProcessor.h in Headers */,
 				8554F23620F40E4000F5FF39 /* OscParser.h in Headers */,
 				8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */,
 				855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */,
@@ -248,6 +255,7 @@
 				8554F23A20F40E4000F5FF39 /* MastertrackProcessor.cpp in Sources */,
 				8554F22320F40E4000F5FF39 /* DrivenByMossExtension.cpp in Sources */,
 				8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */,
+				850C4C492120173A0059A6B0 /* MarkerProcessor.cpp in Sources */,
 				8554F22420F40E4000F5FF39 /* DataCollector.cpp in Sources */,
 				8554F22020F40E4000F5FF39 /* DeviceProcessor.cpp in Sources */,
 				8554F22520F40E4000F5FF39 /* FunctionExecutor.cpp in Sources */,
