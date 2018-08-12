@@ -27,4 +27,5 @@ private:
 	void EnableRepeatPlugin(ReaProject *project, MediaTrack *track, bool enable);
 	void SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution);
 	void SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value);
+	void SetIsActivated(ReaProject *project, bool enable);
 };
