@@ -18,7 +18,11 @@
 
 // Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
 // to be connected on port 8989, only then the start continues!
-const bool DEBUG_JAVA { true };
+#ifdef _DEBUG
+const bool DEBUG_JAVA{ true };
+#else
+const bool DEBUG_JAVA{ false };
+#endif
 
 // The global extension variables required to bridge from C to C++
 DrivenByMossSurface *gSurface = nullptr;
