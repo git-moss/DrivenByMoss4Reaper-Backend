@@ -51,7 +51,7 @@ std::wstring stringToWs(const std::string& s)
 JvmManager::JvmManager(bool enableDebug) : jvm(nullptr), env(nullptr), jvmLibHandle(nullptr)
 {
 	this->debug = enableDebug;
-	this->options = std::make_unique<JavaVMOption[]>(this->debug ? 4 : 1);
+	this->options = std::make_unique<JavaVMOption[]>(this->debug ? 3 : 1);
 }
 
 
@@ -128,13 +128,12 @@ void JvmManager::Create()
 	{
 		opts[1].optionString = (char *) "-Xdebug";
 		opts[2].optionString = (char *) "-Xrunjdwp:transport=dt_socket,address=8989,server=y,suspend=y";
-		opts[3].optionString = (char *) "-Xcheck:jni";
 	}
 
 	// Minimum required Java version
 	JavaVMInitArgs vm_args{};
 	vm_args.version = JNI_VERSION_1_8;
-	vm_args.nOptions = this->debug ? 4 : 1;
+	vm_args.nOptions = this->debug ? 3 : 1;
 	vm_args.options = this->options.get();
 	// Invalid options make the JVM init fail
 	vm_args.ignoreUnrecognized = JNI_FALSE;

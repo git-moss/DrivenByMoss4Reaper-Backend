@@ -105,6 +105,10 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 	{
 		EnableRepeatPlugin(project, track, value > 0);
 	}
+	else if (std::strcmp(cmd, "active") == 0)
+	{
+		SetIsActivated(project, value > 0);
+	}
 	else if (std::strcmp(cmd, "solo") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_SOLO", value);
@@ -317,4 +321,34 @@ void TrackProcessor::SetColorOfTrack(ReaProject *project, MediaTrack *track, std
 	Undo_BeginBlock2(project);
 	SetTrackColor(track, ColorToNative(red, green, blue));
 	Undo_EndBlock2(project, "Set track color", 0);
+}
+
+
+void TrackProcessor::SetIsActivated(ReaProject *project, bool enable)
+{
+	this->model.AddFunction([=]()
+	{
+		if (enable)
+		{
+			Undo_BeginBlock2(project);
+			Main_OnCommandEx(UNLOCK_TRACK_CONTROLS, 0, project);
+			Main_OnCommandEx(SET_ALL_FX_ONLINE, 0, project);
+			ExecuteActionEx(project, UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
+			ExecuteActionEx(project, UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS);
+			ExecuteActionEx(project, UNBYPASS_ALL_FX_ON_SELECTED_TRACKS);
+			Main_OnCommandEx(UNMUTE_TRACKS, 0, project);
+			Undo_EndBlock2(project, "Enable track", 0);
+		}
+		else
+		{
+			Undo_BeginBlock2(project);
+			Main_OnCommandEx(MUTE_TRACKS, 0, project);
+			ExecuteActionEx(project, BYPASS_ALL_FX_ON_SELECTED_TRACKS);
+			ExecuteActionEx(project, MUTE_ALL_SENDS_ON_SELECTED_TRACKS);
+			ExecuteActionEx(project, MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
+			Main_OnCommandEx(SET_ALL_FX_OFFLINE, 0, project);
+			Main_OnCommandEx(LOCK_TRACK_CONTROLS, 0, project);
+			Undo_EndBlock2(project, "Disable track", 0);
+		}
+	});
 }

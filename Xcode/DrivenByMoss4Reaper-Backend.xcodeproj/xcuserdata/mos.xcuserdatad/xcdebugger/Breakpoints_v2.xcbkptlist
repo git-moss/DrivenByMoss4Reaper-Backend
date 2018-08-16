@@ -10,7 +10,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "Yes"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "553098322.395022"
+            timestampString = "555756865.032918"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "144"
@@ -34,39 +34,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "553098322.396436"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "115"
-            endingLineNumber = "115"
-            landmarkName = "JvmManager::Create()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "553098322.397118"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "119"
-            endingLineNumber = "119"
-            landmarkName = "JvmManager::Create()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "553098322.397725"
+            timestampString = "555756865.033921"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "319"
@@ -82,7 +50,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "Yes"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "553098322.398335"
+            timestampString = "555756865.034302"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "150"
@@ -102,16 +70,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "553098322.398942"
+            timestampString = "555756865.034686"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "124"
-            endingLineNumber = "124"
-            landmarkName = "JvmManager::Create()"
+            startingLineNumber = "216"
+            endingLineNumber = "216"
+            landmarkName = "JvmManager::LookupJvmLibrary(const std::string &amp;javaHomePath)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
