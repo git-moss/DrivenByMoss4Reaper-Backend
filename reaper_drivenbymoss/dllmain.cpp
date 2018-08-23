@@ -169,7 +169,13 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case WM_INITDIALOG:
 		{
 			if (jvmManager != nullptr)
+			{
+#ifdef _WIN32
+				SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(jvmManager->GetJavaHomePath()).c_str());
+#elif
 				SetDlgItemText(hwndDlg, IDC_JAVA_HOME, jvmManager->GetJavaHomePath().c_str());
+#endif
+			}
 		}
 		break;
 
