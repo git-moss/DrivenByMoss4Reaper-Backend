@@ -28,12 +28,6 @@ const bool DEBUG_JAVA{ false };
 #endif
 
 
-#ifndef _WIN32 // MAC resources
-#include "swell-dlggen.h"
-#include "res.rc_mac_dlg"
-#undef BEGIN
-#undef END
-#endif
 
 REAPER_PLUGIN_HINSTANCE g_hInst;
 
@@ -242,3 +236,11 @@ extern "C"
 		}
 	}
 };
+
+
+#ifndef _WIN32 // MAC resources
+#include "swell-dlggen.h"
+#include "res.rc_mac_dlg"
+#undef BEGIN
+#undef END
+#endif
