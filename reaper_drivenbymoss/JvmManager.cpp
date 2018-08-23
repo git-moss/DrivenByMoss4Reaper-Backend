@@ -25,7 +25,9 @@
 #undef max
 #undef min
 
+#ifdef WIN32
 extern std::wstring stringToWs(const std::string& s);
+#endif
 
 /**
  * Constructor.

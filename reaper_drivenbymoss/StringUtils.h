@@ -1,9 +1,10 @@
-// Written by Jürgen Moßgraber - mossgrabers.de
+// Written by Jï¿½rgen Moï¿½graber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #pragma once
 
+#ifdef _WIN32
 #include <codecvt>
 
 
@@ -16,3 +17,5 @@ std::wstring stringToWs(const std::string& s)
 	std::wstring_convert<convert_type, wchar_t> converter;
 	return converter.from_bytes(s);
 }
+
+#endif

@@ -19,13 +19,20 @@
 #include "DrivenByMossSurface.h"
 #include "ReaDebug.h"
 
-
 // Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
 // to be connected on port 8989, only then the start continues!
 #ifdef _DEBUG
 const bool DEBUG_JAVA{ true };
 #else
 const bool DEBUG_JAVA{ false };
+#endif
+
+
+#ifndef _WIN32 // MAC resources
+#include "swell-dlggen.h"
+#include "res.rc_mac_dlg"
+#undef BEGIN
+#undef END
 #endif
 
 REAPER_PLUGIN_HINSTANCE g_hInst;
@@ -162,7 +169,7 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case WM_INITDIALOG:
 		{
 			if (jvmManager != nullptr)
-				SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(jvmManager->GetJavaHomePath()).c_str());
+				SetDlgItemText(hwndDlg, IDC_JAVA_HOME, jvmManager->GetJavaHomePath().c_str());
 		}
 		break;
 
