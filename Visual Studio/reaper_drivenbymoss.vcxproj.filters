@@ -128,5 +128,19 @@
     <ClInclude Include="..\reaper_drivenbymoss\MarkerProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\afxres.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\StringUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\reaper_drivenbymoss\res.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

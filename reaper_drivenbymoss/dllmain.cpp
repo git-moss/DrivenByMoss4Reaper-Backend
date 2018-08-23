@@ -1,4 +1,4 @@
-// Written by J�rgen Mo�graber - mossgrabers.de
+// Written by Jürgen Moßgraber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
@@ -12,6 +12,10 @@
 #include <thread>
 #include <jni.h>
 
+#include "wdltypes.h"
+#include "resource.h"
+
+#include "StringUtils.h"
 #include "DrivenByMossSurface.h"
 #include "ReaDebug.h"
 
@@ -24,10 +28,11 @@ const bool DEBUG_JAVA{ true };
 const bool DEBUG_JAVA{ false };
 #endif
 
+REAPER_PLUGIN_HINSTANCE g_hInst;
+
 // The global extension variables required to bridge from C to C++
 DrivenByMossSurface *gSurface = nullptr;
 JvmManager *jvmManager = nullptr;
-
 
 /**
  * Java callback for an OSC style command to be executed in Reaper without a parameter.
@@ -38,14 +43,14 @@ JvmManager *jvmManager = nullptr;
  */
 void processNoArgCPP(JNIEnv *env, jobject object, jstring command)
 {
-    if (env == nullptr || gSurface == nullptr)
-        return;
-    const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-    if (cmd == nullptr)
-        return;
-    std::string path(cmd);
-    gSurface->GetOscParser().Process(path);
-    env->ReleaseStringUTFChars(command, cmd);
+	if (env == nullptr || gSurface == nullptr)
+		return;
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
+	std::string path(cmd);
+	gSurface->GetOscParser().Process(path);
+	env->ReleaseStringUTFChars(command, cmd);
 }
 
 
@@ -59,22 +64,22 @@ void processNoArgCPP(JNIEnv *env, jobject object, jstring command)
  */
 void processStringArgCPP(JNIEnv *env, jobject object, jstring command, jstring value)
 {
-    if (env == nullptr || gSurface == nullptr)
-        return;
-    const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-    if (cmd == nullptr)
-        return;
-    const char *val = env->GetStringUTFChars(value, JNI_FALSE);
-    if (val == nullptr)
-    {
-        env->ReleaseStringUTFChars(command, cmd);
-        return;
-    }
-    std::string path(cmd);
-    std::string valueString(val);
-    gSurface->GetOscParser().Process(path, valueString);
-    env->ReleaseStringUTFChars(command, cmd);
-    env->ReleaseStringUTFChars(value, val);
+	if (env == nullptr || gSurface == nullptr)
+		return;
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
+	const char *val = env->GetStringUTFChars(value, JNI_FALSE);
+	if (val == nullptr)
+	{
+		env->ReleaseStringUTFChars(command, cmd);
+		return;
+	}
+	std::string path(cmd);
+	std::string valueString(val);
+	gSurface->GetOscParser().Process(path, valueString);
+	env->ReleaseStringUTFChars(command, cmd);
+	env->ReleaseStringUTFChars(value, val);
 }
 
 
@@ -88,14 +93,14 @@ void processStringArgCPP(JNIEnv *env, jobject object, jstring command, jstring v
  */
 void processIntArgCPP(JNIEnv *env, jobject object, jstring command, jint value)
 {
-    if (env == nullptr || gSurface == nullptr)
-        return;
-    const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-    if (cmd == nullptr)
-        return;
-    std::string path(cmd);
-    gSurface->GetOscParser().Process(path, value);
-    env->ReleaseStringUTFChars(command, cmd);
+	if (env == nullptr || gSurface == nullptr)
+		return;
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
+	std::string path(cmd);
+	gSurface->GetOscParser().Process(path, value);
+	env->ReleaseStringUTFChars(command, cmd);
 }
 
 
@@ -109,14 +114,14 @@ void processIntArgCPP(JNIEnv *env, jobject object, jstring command, jint value)
  */
 void processDoubleArgCPP(JNIEnv *env, jobject object, jstring command, jdouble value)
 {
-    if (env == nullptr || gSurface == nullptr)
-        return;
-    const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-    if (cmd == nullptr)
-        return;
-    std::string path(cmd);
-    gSurface->GetOscParser().Process(path, value);
-    env->ReleaseStringUTFChars(command, cmd);
+	if (env == nullptr || gSurface == nullptr)
+		return;
+	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
+	if (cmd == nullptr)
+		return;
+	std::string path(cmd);
+	gSurface->GetOscParser().Process(path, value);
+	env->ReleaseStringUTFChars(command, cmd);
 }
 
 /**
@@ -129,27 +134,57 @@ void processDoubleArgCPP(JNIEnv *env, jobject object, jstring command, jdouble v
  */
 jstring receiveModelDataCPP(JNIEnv *env, jobject object, jboolean dump)
 {
-    if (env == nullptr || gSurface == nullptr)
-        return nullptr;
-    std::string result = gSurface->CollectData(dump);
-    return env->NewStringUTF(result.c_str());
+	if (env == nullptr || gSurface == nullptr)
+		return nullptr;
+	std::string result = gSurface->CollectData(dump);
+	return env->NewStringUTF(result.c_str());
 }
 
 
+// Callback function for Reaper to create an instance of the extension
 static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
 {
-    if (jvmManager == nullptr)
-    {
-        jvmManager = new JvmManager(DEBUG_JAVA);
-        jvmManager->init((void *) &processNoArgCPP, (void *) &processStringArgCPP, (void *) &processIntArgCPP, (void *) &processDoubleArgCPP, (void *) &receiveModelDataCPP);
-    }
-    // Prevent a second instance and ensure that JVM has successfully started...
+	if (jvmManager == nullptr)
+	{
+		jvmManager = new JvmManager(DEBUG_JAVA);
+		jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP, (void *)&receiveModelDataCPP);
+	}
+	// Prevent a second instance and ensure that JVM has successfully started...
 	return gSurface == nullptr && jvmManager->isRunning() ? new DrivenByMossSurface() : nullptr;
+}
+
+
+// Processing function for the configuration dialog
+static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+		case WM_INITDIALOG:
+		{
+			if (jvmManager != nullptr)
+				SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(jvmManager->GetJavaHomePath()).c_str());
+		}
+		break;
+
+		case WM_COMMAND:
+		{
+			WORD value = LOWORD(wParam);
+			switch (value)
+			{
+				case IDC_BUTTON_CONFIGURE:
+					if (jvmManager != nullptr)
+						jvmManager->DisplayWindow();
+					break;
+			}
+			break;
+		}
+	}
+	return 0;
 }
 
 static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
 {
-	return NULL;
+	return CreateDialogParam(g_hInst, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, (LPARAM)initConfigString);
 }
 
 
@@ -171,6 +206,8 @@ extern "C"
 	{
 		if (rec)
 		{
+			g_hInst = hInstance;
+
 			// On startup...
 			if (rec->caller_version != REAPER_PLUGIN_VERSION || !rec->GetFunc)
 				return 0;

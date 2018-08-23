@@ -94,14 +94,12 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	const char *cmd = path.at(1).c_str();
 	if (std::strcmp(cmd, "remove") == 0)
 	{
-		// TODO Test
 		TrackFX_Delete(track, fx);
 		return;
 	}
 
 	if (std::strcmp(cmd, "duplicate") == 0)
 	{
-		// TODO Test
 		TrackFX_CopyToTrack(track, fx, track, fx + 1, false);
 		return;
 	}
@@ -237,8 +235,6 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		if (position < 0)
 			return;
 		const int insert = atoi(path.at(1).c_str());
-		// TODO: Test The plugin should be moved up to insert position but calling SNM_MoveOrRemoveTrackFX
-		// does not work (the function seems to be NULL)
 		TrackFX_CopyToTrack(track, position, track, insert, true);
 	}
 }

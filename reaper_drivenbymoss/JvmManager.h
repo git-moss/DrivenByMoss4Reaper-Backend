@@ -1,4 +1,4 @@
-// Written by J�rgen Mo�graber - mossgrabers.de
+// Written by Jürgen Moßgraber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
@@ -20,14 +20,23 @@ public:
 
     void init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
     
-    bool isRunning()
+    bool isRunning() const
     {
         return this->isInitialised && this->jvm != nullptr;
     }
 
+	const std::string &GetJavaHomePath() const
+	{
+		return this->javaHomePath;
+	}
+
+	void DisplayWindow() const;
+
 private:
+	std::string javaHomePath;
+
 	// Pointer to the JVM (Java Virtual Machine)
-	JavaVM * jvm;
+	JavaVM *jvm;
 
 	// Pointer to native interface
 	JNIEnv *env;
@@ -50,7 +59,7 @@ private:
 	void StartApp();
 
 	bool LoadJvmLibrary();
-	std::string LookupJvmLibrary(const std::string &javaHomePath);
+	std::string LookupJvmLibrary(const std::string &javaHomePath) const;
 	std::string CreateClasspath() const;
 	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
     std::string GetLibraryPath() const;

@@ -25,23 +25,7 @@
 #undef max
 #undef min
 
-
-#ifdef _WIN32
-/**
-* Convert a string to wide char.
-*/
-std::wstring stringToWs(const std::string& s)
-{
-	int slength = (int)s.length() + 1;
-	int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-	wchar_t* buf = new wchar_t[len];
-	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-	std::wstring r(buf);
-	delete[] buf;
-	return r;
-}
-#endif
-
+extern std::wstring stringToWs(const std::string& s);
 
 /**
  * Constructor.
@@ -177,8 +161,8 @@ bool JvmManager::LoadJvmLibrary()
 		ReaDebug() << "JAVA_HOME environment variable is not configured!";
 		return false;
 	}
-	std::string javaHomePath = variable;
-	std::string libPath = LookupJvmLibrary(javaHomePath);
+	this->javaHomePath = variable;
+	std::string libPath = LookupJvmLibrary(this->javaHomePath);
 	if (libPath.empty())
 	{
 		ReaDebug() << "Could not find Java dynamic library.";
@@ -202,7 +186,7 @@ bool JvmManager::LoadJvmLibrary()
 /**
  * Tests several options to find the JVBM library in the JAVA_HOME folder.
  */
-std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath)
+std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
 {
 #ifdef _WIN32
 	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll", "\\jre\\bin\\server\\jvm.dll" };
@@ -244,43 +228,63 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 		{ (char*) "receiveModelData", (char*) "(Z)Ljava/lang/String;", receiveModelDataCPP }
 	};
 
-	jclass transformatorAppClass = this->env->FindClass("de/mossgrabers/transformator/TransformatorApplication");
-	if (transformatorAppClass == nullptr)
+	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/ui/MainFrame");
+	if (mainFrameClass == nullptr)
     {
-        ReaDebug() << "TransformatorApplication.class could not be retrieved.";
+        ReaDebug() << "MainFrame.class could not be retrieved.";
         return;
     }
-    const int result = this->env->RegisterNatives(transformatorAppClass, methods, 5);
+    const int result = this->env->RegisterNatives(mainFrameClass, methods, 5);
 	if (result != 0)
 		this->HandleException("ERROR: Could not register native functions");
 }
 
 
 /**
- * Call the main method in the main class of the JVM.
+ * Call the startup method in the main class of the JVM.
  */
 void JvmManager::StartApp()
 {
-	jclass transformatorClass = this->env->FindClass("de/mossgrabers/transformator/Transformator");
+	jclass transformatorClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
     if (transformatorClass == nullptr)
     {
-        ReaDebug() << "Transformator.class could not be retrieved.";
+        ReaDebug() << "Controller.class could not be retrieved.";
         return;
     }
 	// Call main start method
-	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "main", "([Ljava/lang/String;)V");
+	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "startup", "(Ljava/lang/String;)V");
 	if (methodID == nullptr)
 		return;
-	const char*iniPath = GetResourcePath();
-	jobjectArray applicationArgs = this->env->NewObjectArray(1, this->env->FindClass("java/lang/String"), nullptr);
-	this->env->SetObjectArrayElement(applicationArgs, 0, this->env->NewStringUTF(iniPath));
-	this->env->CallStaticVoidMethod(transformatorClass, methodID, applicationArgs);
+	jstring iniPath = this->env->NewStringUTF(GetResourcePath());
+	this->env->CallStaticVoidMethod(transformatorClass, methodID, iniPath);
 	this->HandleException("ERROR: Could not call startup.");
 }
 
 
 /**
+ * Call the displayWindow method in the main class of the JVM.
+ */
+void JvmManager::DisplayWindow() const
+{
+	jclass transformatorClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
+	if (transformatorClass == nullptr)
+	{
+		ReaDebug() << "Controller.class could not be retrieved.";
+		return;
+	}
+	// Call displayWindow method
+	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "displayWindow", "()V");
+	if (methodID == nullptr)
+		return;
+	this->env->CallStaticVoidMethod(transformatorClass, methodID);
+	this->HandleException("ERROR: Could not call displayWindow.");
+}
+
+
+/**
  * Get the full path to the DLL. Uses the trick to retrieve it from a local function.
+ *
+ * Note: Don't make this a class member!
  *
  * @return The full path or empty if error
  */
