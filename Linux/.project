@@ -30,5 +30,10 @@
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/reaper_drivenbymoss</locationURI>
 		</link>
+		<link>
+			<name>reaper_drivenbymoss/swell-modstub-generic.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/libraries/WDL/swell/swell-modstub-generic.cpp</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
