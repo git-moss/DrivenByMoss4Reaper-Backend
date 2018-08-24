@@ -142,14 +142,20 @@ jstring receiveModelDataCPP(JNIEnv *env, jobject object, jboolean dump)
 }
 
 
-// Callback function for Reaper to create an instance of the extension
-static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
+static void createJVM()
 {
 	if (jvmManager == nullptr)
 	{
 		jvmManager = new JvmManager(DEBUG_JAVA);
 		jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP, (void *)&receiveModelDataCPP);
 	}
+}
+
+
+// Callback function for Reaper to create an instance of the extension
+static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
+{
+	createJVM();
 	// Prevent a second instance and ensure that JVM has successfully started...
 	return gSurface == nullptr && jvmManager->isRunning() ? new DrivenByMossSurface() : nullptr;
 }
@@ -191,6 +197,7 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
 {
+	createJVM();
 	return CreateDialogParam(g_hInst, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, (LPARAM)initConfigString);
 }
 
