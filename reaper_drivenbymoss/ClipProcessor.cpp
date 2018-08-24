@@ -17,6 +17,49 @@ ClipProcessor::ClipProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
+void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
+{
+	if (path.empty())
+		return;
+
+	ReaProject *project = this->model.GetProject();
+	const char *cmd = path.at(0).c_str();
+
+	if (std::strcmp(cmd, "duplicate") == 0)
+	{
+		this->model.AddFunction([=]()
+		{
+			// Item: Duplicate items
+			Main_OnCommandEx(41295, 0, project);
+		});
+		return;
+	}
+
+	if (std::strcmp(cmd, "duplicateContent") == 0)
+	{
+		this->model.AddFunction([=]()
+		{
+			Undo_BeginBlock2(project);
+
+			// Item: Duplicate items
+			Main_OnCommandEx(41295, 0, project);
+
+			// SWS: Add item(s) to left of selected item(s) to selection
+			const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
+			if (actionID > 0)
+				Main_OnCommandEx(actionID, 0, this->model.GetProject());
+
+			// Item: Glue items
+			Main_OnCommandEx(41588, 0, project);
+
+			Undo_EndBlock2(project, "Duplicate content of clip", 0);
+		});
+		return;
+	}
+}
+
+
+/** {@inheritDoc} */
 void ClipProcessor::Process(std::string command, std::deque<std::string> &path, double value)
 {
 	if (path.empty())

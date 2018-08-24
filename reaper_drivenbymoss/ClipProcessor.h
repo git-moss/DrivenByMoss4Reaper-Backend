@@ -15,6 +15,8 @@ class ClipProcessor : public OscProcessor
 public:
 	ClipProcessor(Model &model);
 
+	void Process(std::string command, std::deque<std::string> &path) override;
+
 	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
 		Process(command, path, static_cast<double> (value));
