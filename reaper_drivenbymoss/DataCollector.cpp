@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "DataCollector.h"
+#include "ReaDebug.h"
 
 
 /**
@@ -565,34 +566,55 @@ void DataCollector::CollectStringArrayValue(std::stringstream &ss, const char *c
 {
 	if ((newValue && std::strcmp(currentValues.at(index).c_str(), newValue) != 0) || dump)
 	{
-		if (newValue == nullptr)
+		try
 		{
-			ss << command << " " << "" << "\n";
-			currentValues.at(index).assign("");
-			return;
+			if (newValue == nullptr)
+			{
+				ss << command << " " << "" << "\n";
+				currentValues.at(index).assign("");
+				return;
+			}
+			ss << command << " " << newValue << "\n";
+			currentValues.at(index).assign(newValue);
 		}
-		ss << command << " " << newValue << "\n";
-		currentValues.at(index).assign(newValue);
+		catch (const std::out_of_range &oor)
+		{
+			ReaDebug() << "Out of Range error: " << oor.what();
+		}
 	}
 }
 
 
 void DataCollector::CollectDoubleArrayValue(std::stringstream &ss, const char *command, int index, std::vector<double> &currentValues, double newValue, const bool &dump) const
 {
-	if (std::fabs(currentValues.at(index) - newValue) > 0.0000000001 || dump)
+	try
 	{
-		ss << command << " " << newValue << "\n";
-		currentValues.at(index) = newValue;
+		if (std::fabs(currentValues.at(index) - newValue) > 0.0000000001 || dump)
+		{
+			ss << command << " " << newValue << "\n";
+			currentValues.at(index) = newValue;
+		}
+	}
+	catch (const std::out_of_range &oor)
+	{
+		ReaDebug() << "Out of Range error: " << oor.what();
 	}
 }
 
 
 void DataCollector::CollectIntArrayValue(std::stringstream &ss, const char *command, int index, std::vector<int> &currentValues, int newValue, const bool &dump) const
 {
-	if (currentValues.at(index) != newValue || dump)
+	try
 	{
-		ss << command << " " << newValue << "\n";
-		currentValues.at(index) = newValue;
+		if (currentValues.at(index) != newValue || dump)
+		{
+			ss << command << " " << newValue << "\n";
+			currentValues.at(index) = newValue;
+		}
+	}
+	catch (const std::out_of_range &oor)
+	{
+		ReaDebug() << "Out of Range error: " << oor.what();
 	}
 }
 

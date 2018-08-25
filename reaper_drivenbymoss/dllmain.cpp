@@ -230,7 +230,7 @@ extern "C"
 
 			int result = rec->Register("csurf", &drivenbymoss_reg);
 			if (!result)
-				ReaDebug() << ("Could not instantiate DrivenByMoss surface extension.");
+				ReaDebug() << "Could not instantiate DrivenByMoss surface extension.";
 
 			return 1;
 		}
