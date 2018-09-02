@@ -31,7 +31,8 @@ OscParser::OscParser(Model &model) :
 	deviceProcessor(model),
 	clipProcessor(model),
 	midiProcessor(model),
-	markerProcessor(model)
+	markerProcessor(model),
+	theModel(model)
 {
 	this->processors["play"] = &playProcessor;
 	this->processors["stop"] = &stopProcessor;
@@ -63,19 +64,22 @@ OscParser::OscParser(Model &model) :
  */
 void OscParser::Process(const std::string &command) const
 {
-	std::deque<std::string> elements = this->Split(command);
-	if (elements.empty())
-		return;
-	std::string cmd = elements.front();
-	elements.pop_front();
-	try
+	this->theModel.AddFunction([=]()
 	{
-		this->processors.at(cmd)->Process(cmd, elements);
-	}
-	catch (const std::out_of_range &oor)
-	{
-		LogError(command, oor);
-	}
+		std::deque<std::string> elements = this->Split(command);
+		if (elements.empty())
+			return;
+		std::string cmd = elements.front();
+		elements.pop_front();
+		try
+		{
+			this->processors.at(cmd)->Process(cmd, elements);
+		}
+		catch (const std::out_of_range &oor)
+		{
+			LogError(command, oor);
+		}
+	});
 }
 
 
@@ -87,19 +91,22 @@ void OscParser::Process(const std::string &command) const
  */
 void OscParser::Process(const std::string &command, const std::string &value) const
 {
-	std::deque<std::string> elements = this->Split(command);
-	if (elements.empty())
-		return;
-	std::string cmd = elements.front();
-	elements.pop_front();
-	try
+	this->theModel.AddFunction([=]()
 	{
-		this->processors.at(cmd)->Process(cmd, elements, value);
-	}
-	catch (const std::out_of_range &oor)
-	{
-		LogError(command, oor);
-	}
+		std::deque<std::string> elements = this->Split(command);
+		if (elements.empty())
+			return;
+		std::string cmd = elements.front();
+		elements.pop_front();
+		try
+		{
+			this->processors.at(cmd)->Process(cmd, elements, value);
+		}
+		catch (const std::out_of_range &oor)
+		{
+			LogError(command, oor);
+		}
+	});
 }
 
 
@@ -111,19 +118,22 @@ void OscParser::Process(const std::string &command, const std::string &value) co
  */
 void OscParser::Process(const std::string &command, const int &value) const
 {
-	std::deque<std::string> elements = this->Split(command);
-	if (elements.empty())
-		return;
-	std::string cmd = elements.front();
-	elements.pop_front();
-	try
+	this->theModel.AddFunction([=]()
 	{
-		this->processors.at(cmd)->Process(cmd, elements, value);
-	}
-	catch (const std::out_of_range &oor)
-	{
-		LogError(command, oor);
-	}
+		std::deque<std::string> elements = this->Split(command);
+		if (elements.empty())
+			return;
+		std::string cmd = elements.front();
+		elements.pop_front();
+		try
+		{
+			this->processors.at(cmd)->Process(cmd, elements, value);
+		}
+		catch (const std::out_of_range &oor)
+		{
+			LogError(command, oor);
+		}
+	});
 }
 
 
@@ -135,19 +145,22 @@ void OscParser::Process(const std::string &command, const int &value) const
  */
 void OscParser::Process(const std::string &command, const double &value) const
 {
-	std::deque<std::string> elements = this->Split(command);
-	if (elements.empty())
-		return;
-	std::string cmd = elements.front();
-	elements.pop_front();
-	try
+	this->theModel.AddFunction([=]()
 	{
-		this->processors.at(cmd)->Process(cmd, elements, value);
-	}
-	catch (const std::out_of_range &oor)
-	{
-		LogError(command, oor);
-	}
+		std::deque<std::string> elements = this->Split(command);
+		if (elements.empty())
+			return;
+		std::string cmd = elements.front();
+		elements.pop_front();
+		try
+		{
+			this->processors.at(cmd)->Process(cmd, elements, value);
+		}
+		catch (const std::out_of_range &oor)
+		{
+			LogError(command, oor);
+		}
+	});
 }
 
 

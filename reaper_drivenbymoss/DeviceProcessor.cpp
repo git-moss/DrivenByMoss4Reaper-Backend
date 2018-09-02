@@ -39,19 +39,19 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		}
 		return;
 	}
-	
+
 	if (std::strcmp(part, "+") == 0)
 	{
 		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + 1);
 		return;
 	}
-	
+
 	if (std::strcmp(part, "-") == 0)
 	{
 		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - 1);
 		return;
 	}
-	
+
 	if (std::strcmp(part, "param") == 0)
 	{
 		part = path.at(1).c_str();
@@ -83,7 +83,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		}
 		return;
 	}
-	
+
 	ReaProject *project = this->model.GetProject();
 	const int fx = atoi(part) - 1;
 
@@ -135,13 +135,9 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		if (selDevice < 0)
 			return;
 		bool open = value > 0;
-		// UI operations must be executed on the main tread
-		this->model.AddFunction([=]()
-		{
-			if (open)
-				TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
-			TrackFX_SetOpen(track, selDevice, open);
-		});
+		if (open)
+			TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
+		TrackFX_SetOpen(track, selDevice, open);
 	}
 	else if (std::strcmp(part, "expand") == 0)
 	{
@@ -152,12 +148,8 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		this->model.deviceExpandedType = expandedType;
 		if (!isOpen)
 			return;
-		// UI operations must be executed on the main tread
-		this->model.AddFunction([=]()
-		{
-			TrackFX_SetOpen(track, selDevice, 0);
-			TrackFX_Show(track, selDevice, expandedType);
-		});
+		TrackFX_SetOpen(track, selDevice, 0);
+		TrackFX_Show(track, selDevice, expandedType);
 	}
 	else if (std::strcmp(part, "page") == 0)
 	{

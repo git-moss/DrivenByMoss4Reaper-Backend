@@ -27,33 +27,43 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
 
 	if (std::strcmp(cmd, "duplicate") == 0)
 	{
-		this->model.AddFunction([=]()
-		{
-			// Item: Duplicate items
-			Main_OnCommandEx(41295, 0, project);
-		});
+		// Item: Duplicate items
+		Main_OnCommandEx(41295, 0, project);
 		return;
 	}
 
 	if (std::strcmp(cmd, "duplicateContent") == 0)
 	{
-		this->model.AddFunction([=]()
+		Undo_BeginBlock2(project);
+
+		// Item: Duplicate items
+		Main_OnCommandEx(41295, 0, project);
+
+		// SWS: Add item(s) to left of selected item(s) to selection
+		const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
+		if (actionID > 0)
+			Main_OnCommandEx(actionID, 0, this->model.GetProject());
+
+		// Item: Glue items
+		Main_OnCommandEx(41588, 0, project);
+
+		Undo_EndBlock2(project, "Duplicate content of clip", 0);
+		return;
+	}
+
+	if (std::strcmp(cmd, "note") == 0)
+	{
+		if (path.size() < 3)
+			return;
+		int note = std::atoi(path.at(1).c_str());
+		const char *noteCmd = path.at(2).c_str();
+
+		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			Undo_BeginBlock2(project);
+			// TODO Implement clear
+			return;
+		}
 
-			// Item: Duplicate items
-			Main_OnCommandEx(41295, 0, project);
-
-			// SWS: Add item(s) to left of selected item(s) to selection
-			const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
-			if (actionID > 0)
-				Main_OnCommandEx(actionID, 0, this->model.GetProject());
-
-			// Item: Glue items
-			Main_OnCommandEx(41588, 0, project);
-
-			Undo_EndBlock2(project, "Duplicate content of clip", 0);
-		});
 		return;
 	}
 }
@@ -80,8 +90,10 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 			itemStart = static_cast<double>(value) * 60.0 / startBPM;
 			SetMediaItemInfo_Value(item, "D_POSITION", itemStart);
 		}
+		return;
 	}
-	else if (std::strcmp(cmd, "end") == 0)
+
+	if (std::strcmp(cmd, "end") == 0)
 	{
 		if (CountSelectedMediaItems(project) > 0)
 		{
@@ -94,8 +106,10 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 			itemEnd = static_cast<double>(value) * 60.0 / startBPM;
 			SetMediaItemInfo_Value(item, "D_LENGTH", itemEnd - itemStart);
 		}
+		return;
 	}
-	else if (std::strcmp(cmd, "loopStart") == 0)
+
+	if (std::strcmp(cmd, "loopStart") == 0)
 	{
 		double loopStart, loopEnd;
 		GetSet_LoopTimeRange2(project, 0, 0, &loopStart, &loopEnd, 0);
@@ -104,8 +118,10 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		TimeMap_GetTimeSigAtTime(project, loopStart, &timesig, &denomOut, &startBPM);
 		loopStart = static_cast<double>(value) * 60.0 / startBPM;
 		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
+		return;
 	}
-	else if (std::strcmp(cmd, "loopEnd") == 0)
+
+	if (std::strcmp(cmd, "loopEnd") == 0)
 	{
 		double loopStart, loopEnd;
 		GetSet_LoopTimeRange2(project, 0, 0, &loopStart, &loopEnd, 0);
@@ -114,6 +130,29 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		TimeMap_GetTimeSigAtTime(project, loopEnd, &timesig, &denomOut, &startBPM);
 		loopEnd = static_cast<double>(value) * 60.0 / startBPM;
 		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
+		return;
+	}
+
+	if (std::strcmp(cmd, "transpose") == 0)
+	{
+		// TODO Implement transpose
+		return;
+	}
+
+	if (std::strcmp(cmd, "note") == 0)
+	{
+		if (path.size() < 3)
+			return;
+		int note = std::atoi(path.at(1).c_str());
+		const char *noteCmd = path.at(2).c_str();
+
+		if (std::strcmp(noteCmd, "clear") == 0)
+		{
+			// TODO Implement clear
+			return;
+		}
+
+		return;
 	}
 }
 
@@ -130,6 +169,49 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 	if (std::strcmp(cmd, "color") == 0)
 	{
 		SetColorOfClip(project, value);
+		return;
+	}
+
+	if (std::strcmp(cmd, "note") == 0)
+	{
+		if (path.size() < 3)
+			return;
+
+		MediaItem *item = GetSelectedMediaItem(project, 0);
+		if (item == nullptr)
+			return;
+		MediaItem_Take *take = GetActiveTake(item);
+		if (take == nullptr)
+			return;
+
+		const int pitch = std::atoi(path.at(1).c_str());
+		const char *noteCmd = path.at(2).c_str();
+
+		std::vector<std::string> parts = this->SplitString(value, ' ');
+		if (parts.size() != 3)
+			return;
+
+		const double pos = std::atof(parts.at(0).c_str());
+		const double length = std::atof(parts.at(1).c_str());
+		const int velocity = std::atoi(parts.at(2).c_str());
+
+		const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, pos);
+		const double ppqPosEnd = MIDI_GetPPQPosFromProjQN(take, pos + length);
+
+		if (std::strcmp(noteCmd, "toggle") == 0)
+		{
+			// TODO Implement toggle
+			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
+			return;
+		}
+
+		if (std::strcmp(noteCmd, "set") == 0)
+		{
+			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
+			return;
+		}
+
+		return;
 	}
 }
 

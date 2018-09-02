@@ -37,10 +37,15 @@ private:
 	int projectEngine{};
 
 	// Clip values
+	std::string clipColor{};
 	double clipMusicalStart{};
 	double clipMusicalEnd{};
-	double globalMusicalLoopStart{};
-	double globalMusicalLoopEnd{};
+	double clipMusicalPlayPosition{};
+	// Note hash
+	std::string noteHash{};
+	std::string notesStr{};
+
+	// Transport values
 	int globalTimesig{};
 	int globalDenomOut{};
 	double playPosition{};
@@ -48,8 +53,6 @@ private:
 	std::string strBeatPosition{};
 	int prerollMeasures{};
 	int prerollClick{};
-
-	// Transport values
 	int play{};
 	int record{};
 	int repeat{};
@@ -125,6 +128,7 @@ private:
 	void CollectTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMasterTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectClipNotes(std::stringstream &ss, ReaProject *project, MediaItem *item, const bool &dump);
 	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump);
 

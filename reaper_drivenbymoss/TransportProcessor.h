@@ -116,11 +116,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
-		// UI operations must be executed on the main tread
-		this->model.AddFunction([=]()
-		{
-			Main_OnCommandEx(value, 0, this->model.GetProject());
-		});
+		Main_OnCommandEx(value, 0, this->model.GetProject());
 	};
 };
 
@@ -134,11 +130,7 @@ public:
 		const int actionID = NamedCommandLookup(value.c_str());
 		if (actionID <= 0)
 			return;
-		// UI operations must be executed on the main tread
-		this->model.AddFunction([=]()
-		{
-			Main_OnCommandEx(actionID, 0, this->model.GetProject());
-		});
+		Main_OnCommandEx(actionID, 0, this->model.GetProject());
 	};
 };
 
@@ -184,11 +176,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		// UI operations must be executed on the main tread
-		this->model.AddFunction([=]()
-		{
-			Undo_DoUndo2(this->model.GetProject());
-		});
+		Undo_DoUndo2(this->model.GetProject());
 	};
 };
 
@@ -199,11 +187,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		// UI operations must be executed on the main tread
-		this->model.AddFunction([=]()
-		{
-			Undo_DoRedo2(this->model.GetProject());
-		});
+		Undo_DoRedo2(this->model.GetProject());
 	};
 };
 

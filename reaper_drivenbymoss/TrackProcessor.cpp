@@ -66,13 +66,9 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 	{
 		if (track)
 		{
-			// UI operations must be executed on the main tread
-			this->model.AddFunction([=]()
-			{
-				Undo_BeginBlock2(project);
-				DeleteTrack(track);
-				Undo_EndBlock2(project, "Delete track", 0);
-			});
+			Undo_BeginBlock2(project);
+			DeleteTrack(track);
+			Undo_EndBlock2(project, "Delete track", 0);
 		}
 		return;
 	}
@@ -226,21 +222,17 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int beats)
 {
 	const int selectedTrackCount = CountSelectedTracks(project);
-	if (selectedTrackCount > 0)
-	{
-		Undo_BeginBlock2(project);
+	if (selectedTrackCount == 0)
+		return;
 
-		// Stop playback to update the play cursor position
-		Main_OnCommandEx(1016, 0, project);
+	Undo_BeginBlock2(project);
 
-		// Disable recording on all tracks
-		const int trackCount = CountTracks(project);
-		for (int idx = 0; idx < trackCount; idx++)
-		{
-			track = GetTrack(project, idx);
-			SetMediaTrackInfo_Value(track, "I_RECARM", 0);
-		}
-	}
+	// Stop playback to update the play cursor position
+	Main_OnCommandEx(1016, 0, project);
+
+	// Disable recording on all tracks
+	for (int idx = 0; idx < CountTracks(project); idx++)
+		SetMediaTrackInfo_Value(GetTrack(project, idx), "I_RECARM", 0);
 
 	// Create a new midi clip on the given track
 	const double cursorPos = GetCursorPositionEx(project);
@@ -249,6 +241,8 @@ void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int 
 	// Calculate length in seconds of n beats
 	const double length = static_cast<double>(beats) * 60.0 / bpmOut;
 	MediaItem *item = CreateNewMIDIItemInProj(track, cursorPos, cursorPos + length, 0);
+	if (item == nullptr)
+		return;
 
 	// Remove all current selections
 	SelectAllMediaItems(project, 0);
@@ -326,29 +320,26 @@ void TrackProcessor::SetColorOfTrack(ReaProject *project, MediaTrack *track, std
 
 void TrackProcessor::SetIsActivated(ReaProject *project, bool enable)
 {
-	this->model.AddFunction([=]()
+	if (enable)
 	{
-		if (enable)
-		{
-			Undo_BeginBlock2(project);
-			Main_OnCommandEx(UNLOCK_TRACK_CONTROLS, 0, project);
-			Main_OnCommandEx(SET_ALL_FX_ONLINE, 0, project);
-			ExecuteActionEx(project, UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, UNBYPASS_ALL_FX_ON_SELECTED_TRACKS);
-			Main_OnCommandEx(UNMUTE_TRACKS, 0, project);
-			Undo_EndBlock2(project, "Enable track", 0);
-		}
-		else
-		{
-			Undo_BeginBlock2(project);
-			Main_OnCommandEx(MUTE_TRACKS, 0, project);
-			ExecuteActionEx(project, BYPASS_ALL_FX_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, MUTE_ALL_SENDS_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
-			Main_OnCommandEx(SET_ALL_FX_OFFLINE, 0, project);
-			Main_OnCommandEx(LOCK_TRACK_CONTROLS, 0, project);
-			Undo_EndBlock2(project, "Disable track", 0);
-		}
-	});
+		Undo_BeginBlock2(project);
+		Main_OnCommandEx(UNLOCK_TRACK_CONTROLS, 0, project);
+		Main_OnCommandEx(SET_ALL_FX_ONLINE, 0, project);
+		ExecuteActionEx(project, UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, UNBYPASS_ALL_FX_ON_SELECTED_TRACKS);
+		Main_OnCommandEx(UNMUTE_TRACKS, 0, project);
+		Undo_EndBlock2(project, "Enable track", 0);
+	}
+	else
+	{
+		Undo_BeginBlock2(project);
+		Main_OnCommandEx(MUTE_TRACKS, 0, project);
+		ExecuteActionEx(project, BYPASS_ALL_FX_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, MUTE_ALL_SENDS_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
+		Main_OnCommandEx(SET_ALL_FX_OFFLINE, 0, project);
+		Main_OnCommandEx(LOCK_TRACK_CONTROLS, 0, project);
+		Undo_EndBlock2(project, "Disable track", 0);
+	}
 }
