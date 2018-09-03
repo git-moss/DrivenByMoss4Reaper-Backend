@@ -3,6 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "TrackProcessor.h"
+#include "ReaperUtils.h"
 
 
 /**
@@ -43,7 +44,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 	{
 		const int position = atoi(path.at(1).c_str());
 
-		ReaProject *project = this->model.GetProject();
+		ReaProject *project = ReaperUtils::GetProject();
 		if (position >= CountSelectedTracks(project))
 			return;
 
@@ -55,7 +56,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 		return;
 	}
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const int index = atoi(path.at(0).c_str()) - 1;
 	if (index < 0)
 		return;
@@ -81,7 +82,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const int index = atoi(path.at(0).c_str()) - 1;
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
 	const char *cmd = path.at(1).c_str();
@@ -161,7 +162,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const int index = atoi(path.at(0).c_str()) - 1;
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
 	const char *cmd = path.at(1).c_str();
@@ -171,8 +172,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			this->model.trackVolume.at(index) = this->model.DBToValue(SLIDER2DB(value * 1000.0));
-			SetMediaTrackInfo_Value(track, "D_VOL", this->model.trackVolume.at(index));
+			this->model.tracks.at(index)->trackVolume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
+			SetMediaTrackInfo_Value(track, "D_VOL", this->model.tracks.at(index)->trackVolume);
 		}
 	}
 	else if (std::strcmp(cmd, "pan") == 0)
@@ -180,8 +181,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			this->model.trackPan.at(index) = value * 2 - 1;
-			SetMediaTrackInfo_Value(track, "D_PAN", this->model.trackPan.at(index));
+			this->model.tracks.at(index)->trackPan = value * 2 - 1;
+			SetMediaTrackInfo_Value(track, "D_PAN", this->model.tracks.at(index)->trackPan);
 		}
 	}
 	else if (std::strcmp(cmd, "send") == 0)
@@ -190,8 +191,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		const char *subcmd = path.at(3).c_str();
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
-			this->model.trackSendVolume.at(index).at(sendIndex) = this->model.DBToValue(SLIDER2DB(value * 1000.0));
-			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", this->model.trackSendVolume.at(index).at(sendIndex));
+			this->model.tracks.at(index)->trackSendVolume.at(sendIndex) = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
+			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", this->model.tracks.at(index)->trackSendVolume.at(sendIndex));
 		}
 	}
 	else if (std::strcmp(cmd, "noterepeatlength") == 0)
@@ -206,7 +207,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const int index = atoi(path.at(0).c_str()) - 1;
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
 	const char *cmd = path.at(1).c_str();

@@ -148,7 +148,6 @@
     <ClCompile Include="..\reaper_drivenbymoss\DataCollector.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DeviceProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\dllmain.cpp" />
-    <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossExtension.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossSurface.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\FunctionExecutor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\JvmManager.cpp" />
@@ -159,15 +158,16 @@
     <ClCompile Include="..\reaper_drivenbymoss\OscParser.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\ReaDebug.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\stdafx.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\Track.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\TrackProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\afxres.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\Collectors.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DataCollector.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DeviceProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_transformator_TransformatorApplication.h" />
-    <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossExtension.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossSurface.h" />
     <ClInclude Include="..\reaper_drivenbymoss\FunctionExecutor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\JvmManager.h" />
@@ -178,12 +178,14 @@
     <ClInclude Include="..\reaper_drivenbymoss\OscParser.h" />
     <ClInclude Include="..\reaper_drivenbymoss\OscProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ReaDebug.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\ReaperUtils.h" />
     <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin.h" />
     <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin_functions.h" />
     <ClInclude Include="..\reaper_drivenbymoss\resource.h" />
     <ClInclude Include="..\reaper_drivenbymoss\stdafx.h" />
     <ClInclude Include="..\reaper_drivenbymoss\StringUtils.h" />
     <ClInclude Include="..\reaper_drivenbymoss\targetver.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\Track.h" />
     <ClInclude Include="..\reaper_drivenbymoss\TrackProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\TransportProcessor.h" />
   </ItemGroup>

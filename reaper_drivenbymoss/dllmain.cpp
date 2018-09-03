@@ -144,11 +144,10 @@ jstring receiveModelDataCPP(JNIEnv *env, jobject object, jboolean dump)
 
 static void createJVM()
 {
-	if (jvmManager == nullptr)
-	{
-		jvmManager = new JvmManager(DEBUG_JAVA);
-		jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP, (void *)&receiveModelDataCPP);
-	}
+	if (jvmManager != nullptr)
+		return;
+	jvmManager = new JvmManager(DEBUG_JAVA);
+	jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP, (void *)&receiveModelDataCPP);
 }
 
 

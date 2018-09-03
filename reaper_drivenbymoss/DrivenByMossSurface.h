@@ -7,8 +7,10 @@
 #include "reaper_plugin_functions.h"
 #undef max
 #undef min
-#include "DrivenByMossExtension.h"
 #include "FunctionExecutor.h"
+#include "OscParser.h"
+#include "JvmManager.h"
+#include "DataCollector.h"
 
 
 /**

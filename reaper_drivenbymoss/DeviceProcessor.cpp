@@ -6,6 +6,7 @@
 #include <thread>
 #include <cmath>
 #include "DeviceProcessor.h"
+#include "ReaperUtils.h"
 
 
 /**
@@ -84,7 +85,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		return;
 	}
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const int fx = atoi(part) - 1;
 
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
@@ -113,7 +114,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		return;
 	const char *part = path.at(0).c_str();
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
 	if (track == nullptr)
 		return;
@@ -191,7 +192,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		return;
 	const char *part = path.at(0).c_str();
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
 	if (track == nullptr)
 		return;
@@ -218,7 +219,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		return;
 	const char *part = path.at(0).c_str();
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
 
 	if (std::strcmp(part, "add") == 0)

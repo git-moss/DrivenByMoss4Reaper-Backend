@@ -24,6 +24,7 @@ public:
 
 private:
 	Model &model;
+	int projectState{ -1 };
 
 	const static int BUFFER_SIZE{ 65535 };
 	std::unique_ptr<char []> trackStateChunk;
@@ -127,23 +128,12 @@ private:
 	void CollectDeviceData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMasterTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectClipNotes(std::stringstream &ss, ReaProject *project, MediaItem *item, const bool &dump);
 	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectClipNotes(std::stringstream &ss, ReaProject *project, MediaItem *item, const bool &dump);
+	void CollectSessionData(std::stringstream &ss, ReaProject *project, const bool &dump);
 
 	void AdjustTrackBank(ReaProject *project);
-	int GetTrackLockState(MediaTrack *track);
-	std::string FormatColor(int red, int green, int blue) const;
-	std::string FormatDB(double value) const;
-	std::string FormatPan(double value) const;
 	void LoadDevicePresetFile(std::stringstream &ss, MediaTrack *track, int fx, const bool &dump);
-
-	const char *CollectStringValue(std::stringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump) const;
-	int CollectIntValue(std::stringstream &ss, const char *command, int currentValue, const int newValue, const bool &dump) const;
-	double CollectDoubleValue(std::stringstream &ss, const char *command, double currentValue, const double newValue, const bool &dump) const;
-
-	void CollectStringArrayValue(std::stringstream &ss, const char *command, int index, std::vector<std::string> &currentValues, const char *newValue, const bool &dump) const;
-	void CollectIntArrayValue(std::stringstream &ss, const char *command, int index, std::vector<int> &currentValues, int newValue, const bool &dump) const;
-	void CollectDoubleArrayValue(std::stringstream &ss, const char *command, int index, std::vector<double> &currentValues, double newValue, const bool &dump) const;
 };

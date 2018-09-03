@@ -5,8 +5,8 @@
 #pragma once
 
 #include <string>
-
 #include "OscProcessor.h"
+#include "ReaperUtils.h"
 
 
 class PlayProcessor : public OscProcessor
@@ -16,7 +16,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		const int playState = GetPlayStateEx(this->model.GetProject());
+		const int playState = GetPlayStateEx(ReaperUtils::GetProject());
 		if (playState & 1)
 			CSurf_OnPlay();
 		else
@@ -57,7 +57,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Main_OnCommandEx(1068, 0, this->model.GetProject());
+		Main_OnCommandEx(1068, 0, ReaperUtils::GetProject());
 	};
 };
 
@@ -73,7 +73,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path, double value) override
 	{
-		ReaProject * const project = this->model.GetProject();
+		ReaProject * const project = ReaperUtils::GetProject();
 		const double end = GetProjectLength(project);
 		SetEditCurPos2(project, value < end ? value : end, true, true);
 	};
@@ -86,7 +86,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		ReaProject *project = this->model.GetProject();
+		ReaProject *project = ReaperUtils::GetProject();
 		const char *direction = path.at(0).c_str();
 		if (strcmp(direction, "+") == 0)
 			Main_OnCommandEx(41137, 0, project);
@@ -116,7 +116,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path, int value) override
 	{
-		Main_OnCommandEx(value, 0, this->model.GetProject());
+		Main_OnCommandEx(value, 0, ReaperUtils::GetProject());
 	};
 };
 
@@ -130,7 +130,7 @@ public:
 		const int actionID = NamedCommandLookup(value.c_str());
 		if (actionID <= 0)
 			return;
-		Main_OnCommandEx(actionID, 0, this->model.GetProject());
+		Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
 	};
 };
 
@@ -165,7 +165,7 @@ public:
 		const char *direction = path.at(0).c_str();
 		const int actionID = NamedCommandLookup(strcmp(direction, "+") == 0 ? "_S&M_METRO_VOL_UP" : "_S&M_METRO_VOL_DOWN");
 		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, this->model.GetProject());
+			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
 	};
 };
 
@@ -176,7 +176,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Undo_DoUndo2(this->model.GetProject());
+		Undo_DoUndo2(ReaperUtils::GetProject());
 	};
 };
 
@@ -187,7 +187,7 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
-		Undo_DoRedo2(this->model.GetProject());
+		Undo_DoRedo2(ReaperUtils::GetProject());
 	};
 };
 

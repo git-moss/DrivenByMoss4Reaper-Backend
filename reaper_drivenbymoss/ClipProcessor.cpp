@@ -3,6 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "ClipProcessor.h"
+#include "ReaperUtils.h"
 
 
 /**
@@ -22,7 +23,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
 	if (path.empty())
 		return;
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "duplicate") == 0)
@@ -42,7 +43,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
 		// SWS: Add item(s) to left of selected item(s) to selection
 		const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
 		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, this->model.GetProject());
+			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
 
 		// Item: Glue items
 		Main_OnCommandEx(41588, 0, project);
@@ -58,9 +59,12 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
 		int note = std::atoi(path.at(1).c_str());
 		const char *noteCmd = path.at(2).c_str();
 
+		// Clear all notes with a specfic pitch
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
 			// TODO Implement clear
+			// bool MIDI_DeleteNote(MediaItem_Take* take, int noteidx)
+
 			return;
 		}
 
@@ -75,7 +79,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 	if (path.empty())
 		return;
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "start") == 0)
@@ -149,6 +153,8 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
 			// TODO Implement clear
+			// bool MIDI_DeleteNote(MediaItem_Take* take, int noteidx)
+
 			return;
 		}
 
@@ -163,7 +169,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 	if (path.empty())
 		return;
 
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "color") == 0)
@@ -201,6 +207,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		if (std::strcmp(noteCmd, "toggle") == 0)
 		{
 			// TODO Implement toggle
+			// bool MIDI_DeleteNote(MediaItem_Take* take, int noteidx)
 			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
 			return;
 		}

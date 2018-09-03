@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "MarkerProcessor.h"
+#include "ReaperUtils.h"
 
 
 /**
@@ -41,7 +42,7 @@ void MarkerProcessor::Process(std::string command, std::deque<std::string> &path
 		return;
 	}
 	
-	ReaProject *project = this->model.GetProject();
+	ReaProject *project = ReaperUtils::GetProject();
 
 	if (std::strcmp(part, "add") == 0)
 	{

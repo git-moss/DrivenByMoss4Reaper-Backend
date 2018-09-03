@@ -27,9 +27,6 @@
     <ClCompile Include="..\reaper_drivenbymoss\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossExtension.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossSurface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,6 +60,9 @@
     <ClCompile Include="..\reaper_drivenbymoss\MarkerProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\reaper_drivenbymoss\Track.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h">
@@ -75,9 +75,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\DeviceProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossExtension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossSurface.h">
@@ -135,6 +132,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\StringUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\Collectors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\Track.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\ReaperUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
