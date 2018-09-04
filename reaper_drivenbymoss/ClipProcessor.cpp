@@ -91,7 +91,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 			int timesig, denomOut;
 			double startBPM;
 			TimeMap_GetTimeSigAtTime(project, itemStart, &timesig, &denomOut, &startBPM);
-			itemStart = static_cast<double>(value) * 60.0 / startBPM;
+			itemStart = value * 60.0 / startBPM;
 			SetMediaItemInfo_Value(item, "D_POSITION", itemStart);
 		}
 		return;
@@ -107,7 +107,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 			int timesig, denomOut;
 			double startBPM;
 			TimeMap_GetTimeSigAtTime(project, itemEnd, &timesig, &denomOut, &startBPM);
-			itemEnd = static_cast<double>(value) * 60.0 / startBPM;
+			itemEnd = value * 60.0 / startBPM;
 			SetMediaItemInfo_Value(item, "D_LENGTH", itemEnd - itemStart);
 		}
 		return;
@@ -120,7 +120,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		int timesig, denomOut;
 		double startBPM;
 		TimeMap_GetTimeSigAtTime(project, loopStart, &timesig, &denomOut, &startBPM);
-		loopStart = static_cast<double>(value) * 60.0 / startBPM;
+		loopStart = value * 60.0 / startBPM;
 		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
 		return;
 	}
@@ -132,14 +132,18 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		int timesig, denomOut;
 		double startBPM;
 		TimeMap_GetTimeSigAtTime(project, loopEnd, &timesig, &denomOut, &startBPM);
-		loopEnd = static_cast<double>(value) * 60.0 / startBPM;
+		loopEnd = value * 60.0 / startBPM;
 		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
 		return;
 	}
 
 	if (std::strcmp(cmd, "transpose") == 0)
 	{
-		// TODO Implement transpose
+		if (CountSelectedMediaItems(project) > 0)
+		{
+			MediaItem *item = GetSelectedMediaItem(project, 0);
+			this->TransposeClip(project, item, (int) value);
+		}
 		return;
 	}
 
@@ -209,12 +213,15 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 			// TODO Implement toggle
 			// bool MIDI_DeleteNote(MediaItem_Take* take, int noteidx)
 			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
+			UpdateItemInProject(item);
 			return;
 		}
 
+		// TODO TEST
 		if (std::strcmp(noteCmd, "set") == 0)
 		{
 			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
+			UpdateItemInProject(item);
 			return;
 		}
 
@@ -246,4 +253,32 @@ void ClipProcessor::SetColorOfClip(ReaProject *project, std::string value)
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
 	UpdateItemInProject(item);
 	Undo_EndBlock2(project, "Set clip color", 0);
+}
+
+
+void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *clip, int transpose)
+{
+	Undo_BeginBlock();
+	PreventUIRefresh(1);
+
+	int takes = CountTakes(clip);
+	int noteCount;
+	for (int i = 0; i < takes; i++)
+	{
+		MediaItem_Take *take = GetTake(clip, i);
+		if (take && TakeIsMIDI(take) && MIDI_CountEvts(take, &noteCount, nullptr, nullptr))
+		{
+			for (int n = 0; n < noteCount; n++)
+			{
+				int pitch;
+				MIDI_GetNote(take, n, nullptr, nullptr, nullptr, nullptr, nullptr, &pitch, nullptr);
+				pitch += transpose;
+				MIDI_SetNote(take, n, nullptr, nullptr, nullptr, nullptr, nullptr, &pitch, nullptr, nullptr);
+			}
+			UpdateItemInProject(clip);
+		}
+	}
+
+	PreventUIRefresh(-1);
+	Undo_EndBlock("Transpose selected midi item notes", 0);
 }

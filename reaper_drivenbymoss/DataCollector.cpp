@@ -22,27 +22,6 @@
  */
 DataCollector::DataCollector(Model &aModel) :
 	model(aModel),
-	trackExists(aModel.trackBankSize, 0),
-	trackNumber(aModel.trackBankSize, 0),
-	trackName(aModel.trackBankSize, ""),
-	trackType(aModel.trackBankSize, ""),
-	trackSelected(aModel.trackBankSize, 0),
-	trackMute(aModel.trackBankSize, 0),
-	trackSolo(aModel.trackBankSize, 0),
-	trackRecArmed(aModel.trackBankSize, 0),
-	trackActive(aModel.trackBankSize, 0),
-	trackMonitor(aModel.trackBankSize, 0),
-	trackAutoMonitor(aModel.trackBankSize, 0),
-	trackColor(aModel.trackBankSize, ""),
-	trackVolumeStr(aModel.trackBankSize, ""),
-	trackPanStr(aModel.trackBankSize, ""),
-	trackVULeft(aModel.trackBankSize, 0),
-	trackVURight(aModel.trackBankSize, 0),
-	trackAutoMode(aModel.trackBankSize, 0),
-	trackSendName(aModel.trackBankSize, std::vector<std::string>(aModel.sendBankSize, "")),
-	trackSendVolumeStr(aModel.trackBankSize, std::vector<std::string>(aModel.sendBankSize, "")),
-	trackRepeatActive(aModel.trackBankSize, 0),
-	trackRepeatNoteLength(aModel.trackBankSize, 0),
 	deviceSiblings(aModel.deviceBankSize, ""),
 	deviceParamName(aModel.parameterBankSize, ""),
 	deviceParamValue(aModel.parameterBankSize, 0),
@@ -76,7 +55,7 @@ std::string DataCollector::CollectData(const bool &dump)
 {
 	std::stringstream ss;
 	ReaProject *project = ReaperUtils::GetProject();
-
+	
 	CollectTransportData(ss, project, dump);
 	CollectProjectData(ss, project, dump);
 	CollectTrackData(ss, project, dump);
@@ -90,7 +69,7 @@ std::string DataCollector::CollectData(const bool &dump)
 	if (state != this->projectState || dump)
 	{
 		// TODO Remove when tested
-		ReaDebug() << state;
+		// ReaDebug() << state;
 
 		this->projectState = state;
 
@@ -171,7 +150,7 @@ void DataCollector::CollectTransportData(std::stringstream &ss, ReaProject *proj
  */
 void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	MediaTrack *track = GetSelectedTrack(project, 0);
 
 	const int deviceIndex = this->model.deviceBankOffset + this->model.deviceSelected;
 	int bankDeviceIndex = 1;
@@ -228,22 +207,12 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
  */
 void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	this->AdjustTrackBank(project);
-
-	int trackIndex = this->model.trackBankOffset;
 	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, CountTracks(project), dump);
-
-	int bankTrackIndex = 1;
-	for (int index = 0; index < this->model.trackBankSize; index++)
+	int count = this->model.trackCount;
+	for (int index = 0; index < count; index++)
 	{
-		Track *track = this->model.tracks.at(index);
-		track->CollectData(ss, project, trackIndex, bankTrackIndex, this->model.trackCount, dump);
-		
-		if (trackIndex < this->model.trackCount && track->trackSelected)
-			this->model.trackSelection = index;
-		
-		trackIndex += 1;
-		bankTrackIndex += 1;
+		Track *track = this->model.GetTrack(index);
+		track->CollectData(ss, project, index, count, dump);
 	}
 }
 
@@ -312,7 +281,8 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 			musicalPlayPosition = bpm * this->playPosition / 60;
 		}
 
-		int clipColor = (int)GetMediaItemInfo_Value(item, "I_CUSTOMCOLOR");
+		// TODO Test - int GetDisplayedMediaItemColor2(MediaItem* item, MediaItem_Take* take)
+		int clipColor = (int)GetDisplayedMediaItemColor(item);
 		ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
 	}
 	this->CollectClipNotes(ss, project, item, dump);
@@ -372,10 +342,10 @@ void DataCollector::CollectClipNotes(std::stringstream &ss, ReaProject *project,
 						musicalEnd = MIDI_GetProjTimeFromPPQPos(take, endppqpos);
 
 						// TODO -pos is not (fully) correct but output looks good?!
-						ReaDebug() << "Time (s): Pos: " << pos << " : Start: " << musicalStart << " - " << musicalEnd;
+						// ReaDebug() << "Time (s): Pos: " << pos << " : Start: " << musicalStart << " - " << musicalEnd;
 						musicalStart -= pos;
 						musicalEnd -= pos;
-						ReaDebug() << "Time (s) moved: " << musicalStart << " - " << musicalEnd;
+						// ReaDebug() << "Time (s) moved: " << musicalStart << " - " << musicalEnd;
 
 						TimeMap_GetTimeSigAtTime(project, startppqpos, nullptr, nullptr, &bpm);
 						musicalStart = bpm * musicalStart / 60.0;
@@ -383,7 +353,7 @@ void DataCollector::CollectClipNotes(std::stringstream &ss, ReaProject *project,
 						musicalEnd = bpm * musicalEnd / 60.0;
 						notes << musicalStart << ":" << musicalEnd << ":" << pitch << ":" << velocity << ";";
 
-						ReaDebug() << "Musical (qn): " << musicalStart;
+						// ReaDebug() << "Musical (qn): " << musicalStart;
 
 					}
 					notesStrNew = notes.str().c_str();
@@ -409,7 +379,7 @@ void DataCollector::CollectClipNotes(std::stringstream &ss, ReaProject *project,
  */
 void DataCollector::CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	MediaTrack *track = GetSelectedTrack(project, 0);
 	const int sel = this->model.deviceBankOffset + this->model.deviceSelected;
 	LoadDevicePresetFile(ss, track, sel, dump);
 
@@ -544,15 +514,4 @@ void DataCollector::LoadDevicePresetFile(std::stringstream &ss, MediaTrack *trac
 		// File does not exist
 		return;
 	}
-}
-
-
-void DataCollector::AdjustTrackBank(ReaProject *project)
-{
-	MediaTrack *track = GetSelectedTrack(project, 0);
-	if (track == nullptr)
-		return;
-	const int trackIdx = CSurf_TrackToID(track, false) - 1;
-	if (trackIdx >= 0)
-		this->model.trackBankOffset = static_cast<int>(std::floor(trackIdx / this->model.trackBankSize) * this->model.trackBankSize);
 }

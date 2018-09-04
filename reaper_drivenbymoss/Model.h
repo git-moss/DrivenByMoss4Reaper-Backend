@@ -5,6 +5,8 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
+
 #include "reaper_plugin_functions.h"
 #undef max
 #undef min
@@ -19,19 +21,14 @@
 class Model
 {
 public:
-	const int trackBankSize{ 8 };
 	const int sendBankSize{ 8 };
 	const int deviceBankSize{ 8 };
 	const int parameterBankSize{ 8 };
 	const int markerBankSize{ 8 };
 
-	std::vector<Track *> tracks;
-
 	double masterVolume{ 0 };
 	double masterPan{ 0 };
 
-	int trackBankOffset{ 0 };
-	int trackSelection{ 0 };
 	int trackCount{ 0 };
 
 	int deviceSelected{ 0 };
@@ -54,7 +51,10 @@ public:
 		functionExecutor.AddFunction(f);
 	};
 
+	Track *GetTrack(const int index);
 
 private:
 	FunctionExecutor & functionExecutor;
+	std::vector<Track *> tracks;
+	std::mutex tracklock;
 };

@@ -41,17 +41,16 @@ Track::~Track()
  * @param ss The stream where to append the formatted data
  * @param project The current Reaper project
  * @param trackIndex The index of the track
- * @param bankTrackIndex The index in the bank
  * @param trackCount The number of all tracks
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Track::CollectData(std::stringstream &ss, ReaProject *project, int trackIndex, int bankTrackIndex, int trackCount, const bool &dump)
+void Track::CollectData(std::stringstream &ss, ReaProject *project, int trackIndex, int trackCount, const bool &dump)
 {
 	const int LENGTH = 20;
 	char name[LENGTH];
 
 	std::stringstream das;
-	das << "/track/" << bankTrackIndex << "/";
+	das << "/track/" << trackIndex << "/";
 	std::string trackAddress = das.str();
 
 	// Track exists flag and number of tracks

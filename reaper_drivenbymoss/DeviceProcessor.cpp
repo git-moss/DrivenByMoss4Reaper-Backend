@@ -88,7 +88,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	ReaProject *project = ReaperUtils::GetProject();
 	const int fx = atoi(part) - 1;
 
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	MediaTrack *track = GetSelectedTrack(project, 0);
 	if (track == nullptr)
 		return;
 
@@ -115,7 +115,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	const char *part = path.at(0).c_str();
 
 	ReaProject *project = ReaperUtils::GetProject();
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	MediaTrack *track = GetSelectedTrack(project, 0);
 	if (track == nullptr)
 		return;
 
@@ -193,7 +193,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	const char *part = path.at(0).c_str();
 
 	ReaProject *project = ReaperUtils::GetProject();
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	MediaTrack *track = GetSelectedTrack(project, 0);
 	if (track == nullptr)
 		return;
 
@@ -220,7 +220,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	const char *part = path.at(0).c_str();
 
 	ReaProject *project = ReaperUtils::GetProject();
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + this->model.trackSelection);
+	MediaTrack *track = GetSelectedTrack(project, 0);
 
 	if (std::strcmp(part, "add") == 0)
 	{

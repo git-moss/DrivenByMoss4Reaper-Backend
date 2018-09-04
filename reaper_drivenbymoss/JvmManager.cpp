@@ -48,13 +48,13 @@ JvmManager::~JvmManager()
 {
 	if (this->jvm != nullptr)
 	{
-		jclass transformatorClass = env->FindClass("de/mossgrabers/transformator/Transformator");
-		if (transformatorClass != nullptr)
+		jclass clazz = this->GetControllerClass();
+		if (clazz != nullptr)
 		{
-			jmethodID mid = env->GetStaticMethodID(transformatorClass, "shutdown", "()V");
+			jmethodID mid = env->GetStaticMethodID(clazz, "shutdown", "()V");
 			if (mid != nullptr)
 			{
-				env->CallStaticVoidMethod(transformatorClass, mid);
+				env->CallStaticVoidMethod(clazz, mid);
 				this->HandleException("Could not call shutdown.");
 			}
 		}
@@ -247,18 +247,15 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
  */
 void JvmManager::StartApp()
 {
-	jclass transformatorClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
-    if (transformatorClass == nullptr)
-    {
-        ReaDebug() << "Controller.class could not be retrieved.";
-        return;
-    }
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
 	// Call main start method
-	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "startup", "(Ljava/lang/String;)V");
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "startup", "(Ljava/lang/String;)V");
 	if (methodID == nullptr)
 		return;
 	jstring iniPath = this->env->NewStringUTF(GetResourcePath());
-	this->env->CallStaticVoidMethod(transformatorClass, methodID, iniPath);
+	this->env->CallStaticVoidMethod(clazz, methodID, iniPath);
 	this->HandleException("ERROR: Could not call startup.");
 }
 
@@ -268,17 +265,14 @@ void JvmManager::StartApp()
  */
 void JvmManager::DisplayWindow() const
 {
-	jclass transformatorClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
-	if (transformatorClass == nullptr)
-	{
-		ReaDebug() << "Controller.class could not be retrieved.";
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
 		return;
-	}
 	// Call displayWindow method
-	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "displayWindow", "()V");
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayWindow", "()V");
 	if (methodID == nullptr)
 		return;
-	this->env->CallStaticVoidMethod(transformatorClass, methodID);
+	this->env->CallStaticVoidMethod(clazz, methodID);
 	this->HandleException("ERROR: Could not call displayWindow.");
 }
 
@@ -460,4 +454,16 @@ void JvmManager::HandleException(const char *message) const
 		dbg << this->env->GetStringUTFChars(s, &isCopy);
 		this->env->ExceptionClear();
 	}
+}
+
+
+jclass JvmManager::GetControllerClass() const
+{
+	jclass clazz = this->env->FindClass("de/mossgrabers/reaper/Controller");
+	if (clazz == nullptr)
+	{
+		ReaDebug() << "Controller.class could not be retrieved.";
+		return nullptr;
+	}
+	return clazz;
 }

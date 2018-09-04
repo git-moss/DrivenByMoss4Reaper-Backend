@@ -50,7 +50,7 @@ public:
 	Track(const int sendBankSize);
 	virtual ~Track();
 
-	void CollectData(std::stringstream &ss, ReaProject *project, int trackIndex, int bankTrackIndex, int trackCount, const bool &dump);
+	void CollectData(std::stringstream &ss, ReaProject *project, int trackIndex, int trackCount, const bool &dump);
 
 	int GetTrackLockState(MediaTrack *track);
 };

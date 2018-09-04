@@ -60,29 +60,6 @@ private:
 	int metronome{};
 	double tempo{};
 
-	// Track values
-	std::vector<int> trackExists;
-	std::vector<int> trackNumber;
-	std::vector<std::string> trackName;
-	std::vector<std::string> trackType;
-	std::vector<int> trackSelected;
-	std::vector<int> trackMute;
-	std::vector<int> trackSolo;
-	std::vector<int> trackRecArmed;
-	std::vector<int> trackActive;
-	std::vector<int> trackMonitor;
-	std::vector<int> trackAutoMonitor;
-	std::vector<std::string> trackColor;
-	std::vector<std::string> trackVolumeStr;
-	std::vector<std::string> trackPanStr;
-	std::vector<double> trackVULeft;
-	std::vector<double> trackVURight;
-	std::vector<int> trackAutoMode;
-	std::vector<std::vector<std::string>> trackSendName;
-	std::vector<std::vector<std::string>> trackSendVolumeStr;
-	std::vector<int> trackRepeatActive;
-	std::vector<int> trackRepeatNoteLength;
-
 	// Master track values
 	int masterSelected{};
 	int masterMute{};
@@ -134,6 +111,5 @@ private:
 	void CollectClipNotes(std::stringstream &ss, ReaProject *project, MediaItem *item, const bool &dump);
 	void CollectSessionData(std::stringstream &ss, ReaProject *project, const bool &dump);
 
-	void AdjustTrackBank(ReaProject *project);
 	void LoadDevicePresetFile(std::stringstream &ss, MediaTrack *track, int fx, const bool &dump);
 };
