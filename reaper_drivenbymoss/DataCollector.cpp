@@ -458,7 +458,7 @@ void DataCollector::CollectSessionData(std::stringstream &ss, ReaProject *projec
 			char buf[2048];
 			GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false);
 
-			// TODO
+			// TODO Implement
 
 			/// track / {1 - 8} / clip / {1 - N} / name
 			/// track / {1 - 8} / clip / {1 - N} / isSelected{ 1,0 }

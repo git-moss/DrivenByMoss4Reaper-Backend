@@ -18,7 +18,7 @@ public:
 	JvmManager(bool enableDebug);
 	~JvmManager();
 
-    void init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
+    void init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP);
     
     bool isRunning() const
     {
@@ -30,7 +30,8 @@ public:
 		return this->javaHomePath;
 	}
 
-	void DisplayWindow() const;
+	void DisplayWindow();
+	void UpdateModel(std::string data);
 
 private:
 	std::string javaHomePath;
@@ -51,11 +52,12 @@ private:
 #endif
 
 	bool debug;
-	bool isInitialised = false;
+	bool isInitialised{ false };
+	jclass controllerClass{ nullptr };
 
 
 	void Create();
-	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP);
+	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP);
 	void StartApp();
 
 	bool LoadJvmLibrary();
@@ -64,7 +66,7 @@ private:
 	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
     std::string GetLibraryPath() const;
 
-	jclass GetControllerClass() const;
+	jclass GetControllerClass();
 	void HandleException(const char *message) const;
 	bool HasEnding(std::string const &fullString, std::string const &ending) const;
 };

@@ -53,8 +53,30 @@ public:
 
 	Track *GetTrack(const int index);
 
+	void SetDump()
+	{
+		dumplock.lock();
+		this->dump = true;
+		dumplock.unlock();
+	}
+
+	bool ShouldDump()
+	{
+		bool d{ false };
+		dumplock.lock();
+		if (this->dump)
+		{
+			this->dump = false;
+			d = true;
+		}
+		dumplock.unlock();
+		return d;
+	}
+
 private:
 	FunctionExecutor & functionExecutor;
 	std::vector<Track *> tracks;
 	std::mutex tracklock;
+	std::mutex dumplock;
+	bool dump{false};
 };

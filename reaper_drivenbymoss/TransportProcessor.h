@@ -217,3 +217,16 @@ public:
 			Audio_Quit();
 	};
 };
+
+
+
+class RefreshProcessor : public OscProcessor
+{
+public:
+	RefreshProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::string command, std::deque<std::string> &path) override
+	{
+		this->model.SetDump();
+	};
+};

@@ -71,9 +71,6 @@
     <ClInclude Include="..\reaper_drivenbymoss\DataCollector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_transformator_TransformatorApplication.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\DeviceProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -141,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\ReaperUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_reaper_ui_MainFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -167,7 +167,7 @@
     <ClInclude Include="..\reaper_drivenbymoss\Collectors.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DataCollector.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DeviceProcessor.h" />
-    <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_transformator_TransformatorApplication.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_reaper_ui_MainFrame.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossSurface.h" />
     <ClInclude Include="..\reaper_drivenbymoss\FunctionExecutor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\JvmManager.h" />
