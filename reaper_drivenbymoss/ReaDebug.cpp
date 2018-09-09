@@ -7,16 +7,29 @@
 #undef max
 #undef min
 
+Model *ReaDebug::model = nullptr;
+
 
 ReaDebug::ReaDebug() noexcept
 {
 	buffer.append("drivenbymoss: ");
 }
 
+
 ReaDebug::~ReaDebug()
 {
 	buffer.append("\n");
-	ShowConsoleMsg(buffer.c_str());
+	
+	if (ReaDebug::model == nullptr)
+		ShowConsoleMsg(buffer.c_str());
+	else
+	{
+		const std::string msg = buffer;
+		ReaDebug::model->AddFunction([=]()
+		{
+			ShowConsoleMsg(msg.c_str());
+		});
+	}
 }
 
 ReaDebug &ReaDebug::operator << (const char *value)

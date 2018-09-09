@@ -24,6 +24,7 @@ public:
 
 private:
 	Model &model;
+	int projectState{ -1 };
 
 	const static int BUFFER_SIZE{ 65535 };
 	std::unique_ptr<char []> trackStateChunk;
@@ -37,10 +38,15 @@ private:
 	int projectEngine{};
 
 	// Clip values
+	std::string clipColor{};
 	double clipMusicalStart{};
 	double clipMusicalEnd{};
-	double globalMusicalLoopStart{};
-	double globalMusicalLoopEnd{};
+	double clipMusicalPlayPosition{};
+	// Note hash
+	std::string noteHash{};
+	std::string notesStr{};
+
+	// Transport values
 	int globalTimesig{};
 	int globalDenomOut{};
 	double playPosition{};
@@ -48,36 +54,11 @@ private:
 	std::string strBeatPosition{};
 	int prerollMeasures{};
 	int prerollClick{};
-
-	// Transport values
 	int play{};
 	int record{};
 	int repeat{};
 	int metronome{};
 	double tempo{};
-
-	// Track values
-	std::vector<int> trackExists;
-	std::vector<int> trackNumber;
-	std::vector<std::string> trackName;
-	std::vector<std::string> trackType;
-	std::vector<int> trackSelected;
-	std::vector<int> trackMute;
-	std::vector<int> trackSolo;
-	std::vector<int> trackRecArmed;
-	std::vector<int> trackActive;
-	std::vector<int> trackMonitor;
-	std::vector<int> trackAutoMonitor;
-	std::vector<std::string> trackColor;
-	std::vector<std::string> trackVolumeStr;
-	std::vector<std::string> trackPanStr;
-	std::vector<double> trackVULeft;
-	std::vector<double> trackVURight;
-	std::vector<int> trackAutoMode;
-	std::vector<std::vector<std::string>> trackSendName;
-	std::vector<std::vector<std::string>> trackSendVolumeStr;
-	std::vector<int> trackRepeatActive;
-	std::vector<int> trackRepeatNoteLength;
 
 	// Master track values
 	int masterSelected{};
@@ -124,22 +105,11 @@ private:
 	void CollectDeviceData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMasterTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectClipNotes(std::stringstream &ss, ReaProject *project, MediaItem *item, const bool &dump);
+	void CollectSessionData(std::stringstream &ss, ReaProject *project, const bool &dump);
 
-	void AdjustTrackBank(ReaProject *project);
-	int GetTrackLockState(MediaTrack *track);
-	std::string FormatColor(int red, int green, int blue) const;
-	std::string FormatDB(double value) const;
-	std::string FormatPan(double value) const;
 	void LoadDevicePresetFile(std::stringstream &ss, MediaTrack *track, int fx, const bool &dump);
-
-	const char *CollectStringValue(std::stringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump) const;
-	int CollectIntValue(std::stringstream &ss, const char *command, int currentValue, const int newValue, const bool &dump) const;
-	double CollectDoubleValue(std::stringstream &ss, const char *command, double currentValue, const double newValue, const bool &dump) const;
-
-	void CollectStringArrayValue(std::stringstream &ss, const char *command, int index, std::vector<std::string> &currentValues, const char *newValue, const bool &dump) const;
-	void CollectIntArrayValue(std::stringstream &ss, const char *command, int index, std::vector<int> &currentValues, int newValue, const bool &dump) const;
-	void CollectDoubleArrayValue(std::stringstream &ss, const char *command, int index, std::vector<double> &currentValues, double newValue, const bool &dump) const;
 };

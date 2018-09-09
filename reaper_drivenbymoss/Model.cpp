@@ -11,9 +11,6 @@
  * Constructor.
  */
 Model::Model(FunctionExecutor &aFunctionExecutor) :
-	trackVolume(this->trackBankSize, 0),
-	trackPan(this->trackBankSize, 0),
-	trackSendVolume(this->trackBankSize, std::vector<double>(sendBankSize, 0)),
 	functionExecutor(aFunctionExecutor)
 {
 	// Intentionally empty
@@ -21,29 +18,21 @@ Model::Model(FunctionExecutor &aFunctionExecutor) :
 
 
 /**
- * Convert continuous double value to dB.
+ * Get a track. 
  *
- * @param x The value to convert
- * @return The value converted to dB
+ * @param index The index of the track.
+ * @return The track, if none exists at the index a new instance is created automatically
  */
-double Model::ValueToDB(double x) noexcept
+Track *Model::GetTrack(const int index)
 {
-	if (x < 0.0000000298023223876953125)
-		return -150;
-	// Added extra parenthesis necessary to distinct from Windows define version 
-	return (std::max)(-150.0, std::log(x) * 8.6858896380650365530225783783321);
-}
-
-
-/**
- * Convert a dB value to a continuous double value.
- *
- * @param x The value to convert
- * @return The converted value
- */
-double Model::DBToValue(double x) noexcept
-{
-	double val = x * 0.11512925464970228420089957273422;
-	val = std::exp(val);
-	return val;
+	this->tracklock.lock();
+	const int diff = index - (int) this->tracks.size() + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->tracks.push_back(new Track(this->sendBankSize));
+	}
+	Track *track = this->tracks.at(index);
+	this->tracklock.unlock();
+	return track;
 }

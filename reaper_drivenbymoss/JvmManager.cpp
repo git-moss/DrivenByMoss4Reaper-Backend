@@ -48,13 +48,13 @@ JvmManager::~JvmManager()
 {
 	if (this->jvm != nullptr)
 	{
-		jclass transformatorClass = env->FindClass("de/mossgrabers/transformator/Transformator");
-		if (transformatorClass != nullptr)
+		jclass clazz = this->GetControllerClass();
+		if (clazz != nullptr)
 		{
-			jmethodID mid = env->GetStaticMethodID(transformatorClass, "shutdown", "()V");
+			jmethodID mid = env->GetStaticMethodID(clazz, "shutdown", "()V");
 			if (mid != nullptr)
 			{
-				env->CallStaticVoidMethod(transformatorClass, mid);
+				env->CallStaticVoidMethod(clazz, mid);
 				this->HandleException("Could not call shutdown.");
 			}
 		}
@@ -81,9 +81,8 @@ JvmManager::~JvmManager()
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
- * @param receiveModelDataCPP The callback for getting a model update
  */
-void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
+void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP)
 {
 	if (this->isInitialised)
 		return;
@@ -91,7 +90,7 @@ void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *pr
 	this->Create();
 	if (this->jvm == nullptr)
 		return;
-	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, receiveModelDataCPP);
+	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP);
 	this->StartApp();
 }
 
@@ -217,17 +216,15 @@ std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
- * @param receiveModelDataCPP The callback for getting a model update
  */
-void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *receiveModelDataCPP)
+void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP)
 {
 	const JNINativeMethod methods[]
 	{
 		{ (char*) "processNoArg", (char*) "(Ljava/lang/String;)V", processNoArgCPP },
 		{ (char*) "processStringArg", (char*) "(Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
 		{ (char*) "processIntArg", (char*) "(Ljava/lang/String;I)V", processIntArgCPP },
-		{ (char*) "processDoubleArg", (char*) "(Ljava/lang/String;D)V", processDoubleArgCPP },
-		{ (char*) "receiveModelData", (char*) "(Z)Ljava/lang/String;", receiveModelDataCPP }
+		{ (char*) "processDoubleArg", (char*) "(Ljava/lang/String;D)V", processDoubleArgCPP }
 	};
 
 	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/ui/MainFrame");
@@ -236,7 +233,7 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
         ReaDebug() << "MainFrame.class could not be retrieved.";
         return;
     }
-    const int result = this->env->RegisterNatives(mainFrameClass, methods, 5);
+    const int result = this->env->RegisterNatives(mainFrameClass, methods, 4);
 	if (result != 0)
 		this->HandleException("ERROR: Could not register native functions");
 }
@@ -247,18 +244,15 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
  */
 void JvmManager::StartApp()
 {
-	jclass transformatorClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
-    if (transformatorClass == nullptr)
-    {
-        ReaDebug() << "Controller.class could not be retrieved.";
-        return;
-    }
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
 	// Call main start method
-	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "startup", "(Ljava/lang/String;)V");
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "startup", "(Ljava/lang/String;)V");
 	if (methodID == nullptr)
 		return;
 	jstring iniPath = this->env->NewStringUTF(GetResourcePath());
-	this->env->CallStaticVoidMethod(transformatorClass, methodID, iniPath);
+	this->env->CallStaticVoidMethod(clazz, methodID, iniPath);
 	this->HandleException("ERROR: Could not call startup.");
 }
 
@@ -266,20 +260,37 @@ void JvmManager::StartApp()
 /**
  * Call the displayWindow method in the main class of the JVM.
  */
-void JvmManager::DisplayWindow() const
+void JvmManager::DisplayWindow()
 {
-	jclass transformatorClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
-	if (transformatorClass == nullptr)
-	{
-		ReaDebug() << "Controller.class could not be retrieved.";
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
 		return;
-	}
 	// Call displayWindow method
-	jmethodID methodID = this->env->GetStaticMethodID(transformatorClass, "displayWindow", "()V");
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayWindow", "()V");
 	if (methodID == nullptr)
 		return;
-	this->env->CallStaticVoidMethod(transformatorClass, methodID);
+	this->env->CallStaticVoidMethod(clazz, methodID);
 	this->HandleException("ERROR: Could not call displayWindow.");
+}
+
+
+/**
+ * Call the updateModel method in the main class of the JVM.
+ *
+ * @param data The data to send
+ */
+void JvmManager::UpdateModel(std::string data)
+{
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
+	// Call updateModel method
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "updateModel", "(Ljava/lang/String;)V");
+	if (methodID == nullptr)
+		return;
+	jstring dataUTF = this->env->NewStringUTF(data.c_str());
+	this->env->CallStaticVoidMethod(clazz, methodID, dataUTF);
+	this->HandleException("ERROR: Could not call updateModel.");
 }
 
 
@@ -460,4 +471,18 @@ void JvmManager::HandleException(const char *message) const
 		dbg << this->env->GetStringUTFChars(s, &isCopy);
 		this->env->ExceptionClear();
 	}
+}
+
+
+jclass JvmManager::GetControllerClass()
+{
+	if (this->controllerClass != nullptr)
+		return this->controllerClass;
+	this->controllerClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
+	if (this->controllerClass == nullptr)
+	{
+		ReaDebug() << "Controller.class could not be retrieved.";
+		return nullptr;
+	}
+	return this->controllerClass;
 }

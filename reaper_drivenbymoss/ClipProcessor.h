@@ -27,4 +27,5 @@ public:
 
 private:
 	void SetColorOfClip(ReaProject *project, std::string value);
+	void TransposeClip(ReaProject *project, MediaItem *clip, int transpose);
 };

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include "Model.h"
 
 
 /**
@@ -13,6 +14,11 @@
 class ReaDebug
 {
 public:
+	static void init(Model *aModel)
+	{
+		model = aModel;
+	}
+
 	ReaDebug() noexcept;
 	~ReaDebug();
 
@@ -25,5 +31,7 @@ public:
 	ReaDebug &operator << (const std::string& value);
 
 private:
+	static Model *model;
+
 	std::string buffer;
 };

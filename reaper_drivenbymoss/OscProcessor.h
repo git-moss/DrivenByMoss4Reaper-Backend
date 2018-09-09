@@ -177,10 +177,27 @@ protected:
 	Model &model;
 
 
-	void ExecuteActionEx(ReaProject *project, const char *action)
+	void ExecuteActionEx(ReaProject *project, const char *action) const
 	{
 		const int actionID = NamedCommandLookup(action);
 		if (actionID > 0)
 			Main_OnCommandEx(actionID, 0, project);
+	}
+
+
+	std::vector<std::string> SplitString(const std::string &value, char delimiter) const
+	{
+		std::vector<std::string> result{};
+		std::string str = value;
+		size_t index;
+		while ((index = str.find(delimiter)) != std::string::npos)
+		{
+			std::string part = str.substr(0, index);
+			result.push_back(part);
+			str = str.substr(index + 1, str.length() - index);
+		}
+		if (str.length() > 0)
+			result.push_back(str);
+		return result;
 	}
 };

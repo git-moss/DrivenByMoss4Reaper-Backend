@@ -56,8 +56,10 @@ private:
 	ClipProcessor 					 clipProcessor;
 	MidiProcessor 					 midiProcessor;
 	MarkerProcessor 				 markerProcessor;
+	RefreshProcessor 				 refreshProcessor;
 
 	std::map<std::string, OscProcessor *> processors;
+	Model &theModel;
 
 	std::deque<std::string> Split(const std::string &path) const;
 	void LogError(const std::string command, const std::out_of_range &oor) const;

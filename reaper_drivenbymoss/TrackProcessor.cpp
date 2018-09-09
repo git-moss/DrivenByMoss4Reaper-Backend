@@ -3,6 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "TrackProcessor.h"
+#include "ReaperUtils.h"
 
 
 /**
@@ -21,33 +22,19 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 {
 	if (path.size() < 2)
 		return;
-	const char *part = path.at(0).c_str();
 
-	if (std::strcmp(part, "bank") == 0)
-	{
-		const char *cmd = path.at(1).c_str();
-		if (std::strcmp(cmd, "+") == 0)
-		{
-			if (this->model.trackBankOffset < this->model.trackCount)
-				this->model.trackBankOffset += this->model.trackBankSize;
-		}
-		else if (std::strcmp(cmd, "-") == 0)
-		{
-			if (this->model.trackBankOffset > 0)
-				this->model.trackBankOffset -= this->model.trackBankSize;
-		}
+	ReaProject *project = ReaperUtils::GetProject();
+	const int trackIndex = atoi(path.at(0).c_str());
+	if (trackIndex < 0 || trackIndex >= CountTracks(project))
 		return;
-	}
+	MediaTrack *track = GetTrack(project, trackIndex);
+	if (!track)
+		return;
 
-	if (std::strcmp(part, "scrollto") == 0)
+	const char *cmd = path.at(1).c_str();
+
+	if (std::strcmp(cmd, "scrollto") == 0)
 	{
-		const int position = atoi(path.at(1).c_str());
-
-		ReaProject *project = this->model.GetProject();
-		if (position >= CountSelectedTracks(project))
-			return;
-
-		MediaTrack *track = GetTrack(project, position);
 		SetOnlyTrackSelected(track);
 		SetMixerScroll(track);
 		this->model.deviceSelected = 0;
@@ -55,25 +42,11 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 		return;
 	}
 
-	ReaProject *project = this->model.GetProject();
-	const int index = atoi(path.at(0).c_str()) - 1;
-	if (index < 0)
-		return;
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
-
-	const char *cmd = path.at(1).c_str();
 	if (std::strcmp(cmd, "remove") == 0)
 	{
-		if (track)
-		{
-			// UI operations must be executed on the main tread
-			this->model.AddFunction([=]()
-			{
-				Undo_BeginBlock2(project);
-				DeleteTrack(track);
-				Undo_EndBlock2(project, "Delete track", 0);
-			});
-		}
+		Undo_BeginBlock2(project);
+		DeleteTrack(track);
+		Undo_EndBlock2(project, "Delete track", 0);
 		return;
 	}
 }
@@ -85,9 +58,14 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->model.GetProject();
-	const int index = atoi(path.at(0).c_str()) - 1;
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
+	ReaProject *project = ReaperUtils::GetProject();
+	const int trackIndex = atoi(path.at(0).c_str());
+	if (trackIndex < 0 || trackIndex >= CountTracks(project))
+		return;
+	MediaTrack *track = GetTrack(project, trackIndex);
+	if (!track)
+		return;
+
 	const char *cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "select") == 0)
@@ -96,66 +74,93 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		SetMixerScroll(track);
 		this->model.deviceSelected = 0;
 		this->model.deviceParamBankSelectedTemp = 0;
+		return;
 	}
-	else if (std::strcmp(cmd, "createClip") == 0)
+	
+	if (std::strcmp(cmd, "createClip") == 0)
 	{
 		CreateMidiClip(project, track, value);
+		return;
 	}
-	else if (std::strcmp(cmd, "noterepeat") == 0)
+	
+	if (std::strcmp(cmd, "noterepeat") == 0)
 	{
 		EnableRepeatPlugin(project, track, value > 0);
+		return;
 	}
-	else if (std::strcmp(cmd, "active") == 0)
+	
+	if (std::strcmp(cmd, "active") == 0)
 	{
 		SetIsActivated(project, value > 0);
+		return;
 	}
-	else if (std::strcmp(cmd, "solo") == 0)
+	
+	if (std::strcmp(cmd, "solo") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_SOLO", value);
+		return;
 	}
-	else if (std::strcmp(cmd, "mute") == 0)
+	
+	if (std::strcmp(cmd, "mute") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "B_MUTE", value);
+		return;
 	}
-	else if (std::strcmp(cmd, "recarm") == 0)
+	
+	if (std::strcmp(cmd, "recarm") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_RECARM", value);
+		return;
 	}
-	else if (std::strcmp(cmd, "monitor") == 0)
+	
+	if (std::strcmp(cmd, "monitor") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_RECMON", value > 0 ? 1 : 0);
+		return;
 	}
-	else if (std::strcmp(cmd, "autoMonitor") == 0)
+	
+	if (std::strcmp(cmd, "autoMonitor") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_RECMON", value > 0 ? 2 : 0);
+		return;
 	}
-	else if (std::strcmp(cmd, "autotrim") == 0)
+	
+	if (std::strcmp(cmd, "autotrim") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 0);
+		return;
 	}
-	else if (std::strcmp(cmd, "autoread") == 0)
+	
+	if (std::strcmp(cmd, "autoread") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 1);
+		return;
 	}
-	else if (std::strcmp(cmd, "autotouch") == 0)
+	
+	if (std::strcmp(cmd, "autotouch") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 2);
+		return;
 	}
-	else if (std::strcmp(cmd, "autowrite") == 0)
+	
+	if (std::strcmp(cmd, "autowrite") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 3);
+		return;
 	}
-	else if (std::strcmp(cmd, "autolatch") == 0)
+	
+	if (std::strcmp(cmd, "autolatch") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 4);
+		return;
 	}
-	else
-		Process(command, path, static_cast<double>(value));
+
+	Process(command, path, static_cast<double>(value));
 }
 
 
@@ -165,9 +170,15 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->model.GetProject();
-	const int index = atoi(path.at(0).c_str()) - 1;
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
+	ReaProject *project = ReaperUtils::GetProject();
+	const int trackIndex = atoi(path.at(0).c_str());
+	if (trackIndex < 0 || trackIndex >= CountTracks(project))
+		return;
+	MediaTrack *track = GetTrack(project, trackIndex);
+	if (!track)
+		return;
+
+	Track *trackData = this->model.GetTrack(trackIndex);
 	const char *cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "volume") == 0)
@@ -175,32 +186,39 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			this->model.trackVolume.at(index) = this->model.DBToValue(SLIDER2DB(value * 1000.0));
-			SetMediaTrackInfo_Value(track, "D_VOL", this->model.trackVolume.at(index));
+			trackData->trackVolume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
+			SetMediaTrackInfo_Value(track, "D_VOL", trackData->trackVolume);
 		}
+		return;
 	}
-	else if (std::strcmp(cmd, "pan") == 0)
+
+	if (std::strcmp(cmd, "pan") == 0)
 	{
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			this->model.trackPan.at(index) = value * 2 - 1;
-			SetMediaTrackInfo_Value(track, "D_PAN", this->model.trackPan.at(index));
+			trackData->trackPan = value * 2 - 1;
+			SetMediaTrackInfo_Value(track, "D_PAN", trackData->trackPan);
 		}
+		return;
 	}
-	else if (std::strcmp(cmd, "send") == 0)
+
+	if (std::strcmp(cmd, "send") == 0)
 	{
 		const int sendIndex = atoi(path.at(2).c_str()) - 1;
 		const char *subcmd = path.at(3).c_str();
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
-			this->model.trackSendVolume.at(index).at(sendIndex) = this->model.DBToValue(SLIDER2DB(value * 1000.0));
-			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", this->model.trackSendVolume.at(index).at(sendIndex));
+			trackData->trackSendVolume.at(sendIndex) = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
+			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", trackData->trackSendVolume.at(sendIndex));
 		}
+		return;
 	}
-	else if (std::strcmp(cmd, "noterepeatlength") == 0)
+
+	if (std::strcmp(cmd, "noterepeatlength") == 0)
 	{
 		SetRepeatLength(project, track, value);
+		return;
 	}
 }
 
@@ -210,14 +228,19 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 	if (path.size() < 2)
 		return;
 
-	ReaProject *project = this->model.GetProject();
-	const int index = atoi(path.at(0).c_str()) - 1;
-	MediaTrack *track = GetTrack(project, this->model.trackBankOffset + index);
-	const char *cmd = path.at(1).c_str();
+	ReaProject *project = ReaperUtils::GetProject();
+	const int trackIndex = atoi(path.at(0).c_str());
+	if (trackIndex < 0 || trackIndex >= CountTracks(project))
+		return;
+	MediaTrack *track = GetTrack(project, trackIndex);
+	if (!track)
+		return;
 
+	const char *cmd = path.at(1).c_str();
 	if (std::strcmp(cmd, "color") == 0)
 	{
 		SetColorOfTrack(project, track, value);
+		return;
 	}
 }
 
@@ -225,22 +248,14 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 /** {@inheritDoc} */
 void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int beats)
 {
-	const int selectedTrackCount = CountSelectedTracks(project);
-	if (selectedTrackCount > 0)
-	{
-		Undo_BeginBlock2(project);
+	Undo_BeginBlock2(project);
 
-		// Stop playback to update the play cursor position
-		Main_OnCommandEx(1016, 0, project);
+	// Stop playback to update the play cursor position
+	Main_OnCommandEx(1016, 0, project);
 
-		// Disable recording on all tracks
-		const int trackCount = CountTracks(project);
-		for (int idx = 0; idx < trackCount; idx++)
-		{
-			track = GetTrack(project, idx);
-			SetMediaTrackInfo_Value(track, "I_RECARM", 0);
-		}
-	}
+	// Disable recording on all tracks
+	for (int idx = 0; idx < CountTracks(project); idx++)
+		SetMediaTrackInfo_Value(GetTrack(project, idx), "I_RECARM", 0);
 
 	// Create a new midi clip on the given track
 	const double cursorPos = GetCursorPositionEx(project);
@@ -249,6 +264,8 @@ void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int 
 	// Calculate length in seconds of n beats
 	const double length = static_cast<double>(beats) * 60.0 / bpmOut;
 	MediaItem *item = CreateNewMIDIItemInProj(track, cursorPos, cursorPos + length, 0);
+	if (item == nullptr)
+		return;
 
 	// Remove all current selections
 	SelectAllMediaItems(project, 0);
@@ -326,29 +343,26 @@ void TrackProcessor::SetColorOfTrack(ReaProject *project, MediaTrack *track, std
 
 void TrackProcessor::SetIsActivated(ReaProject *project, bool enable)
 {
-	this->model.AddFunction([=]()
+	if (enable)
 	{
-		if (enable)
-		{
-			Undo_BeginBlock2(project);
-			Main_OnCommandEx(UNLOCK_TRACK_CONTROLS, 0, project);
-			Main_OnCommandEx(SET_ALL_FX_ONLINE, 0, project);
-			ExecuteActionEx(project, UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, UNBYPASS_ALL_FX_ON_SELECTED_TRACKS);
-			Main_OnCommandEx(UNMUTE_TRACKS, 0, project);
-			Undo_EndBlock2(project, "Enable track", 0);
-		}
-		else
-		{
-			Undo_BeginBlock2(project);
-			Main_OnCommandEx(MUTE_TRACKS, 0, project);
-			ExecuteActionEx(project, BYPASS_ALL_FX_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, MUTE_ALL_SENDS_ON_SELECTED_TRACKS);
-			ExecuteActionEx(project, MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
-			Main_OnCommandEx(SET_ALL_FX_OFFLINE, 0, project);
-			Main_OnCommandEx(LOCK_TRACK_CONTROLS, 0, project);
-			Undo_EndBlock2(project, "Disable track", 0);
-		}
-	});
+		Undo_BeginBlock2(project);
+		Main_OnCommandEx(UNLOCK_TRACK_CONTROLS, 0, project);
+		Main_OnCommandEx(SET_ALL_FX_ONLINE, 0, project);
+		ExecuteActionEx(project, UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, UNBYPASS_ALL_FX_ON_SELECTED_TRACKS);
+		Main_OnCommandEx(UNMUTE_TRACKS, 0, project);
+		Undo_EndBlock2(project, "Enable track", 0);
+	}
+	else
+	{
+		Undo_BeginBlock2(project);
+		Main_OnCommandEx(MUTE_TRACKS, 0, project);
+		ExecuteActionEx(project, BYPASS_ALL_FX_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, MUTE_ALL_SENDS_ON_SELECTED_TRACKS);
+		ExecuteActionEx(project, MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
+		Main_OnCommandEx(SET_ALL_FX_OFFLINE, 0, project);
+		Main_OnCommandEx(LOCK_TRACK_CONTROLS, 0, project);
+		Undo_EndBlock2(project, "Disable track", 0);
+	}
 }

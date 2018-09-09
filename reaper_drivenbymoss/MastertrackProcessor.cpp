@@ -3,6 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "MastertrackProcessor.h"
+#include "ReaperUtils.h"
 
 
 /**
@@ -23,7 +24,7 @@ void MastertrackProcessor::Process(std::string command, std::deque<std::string> 
 		return;
 	const char *cmd = path.at(0).c_str();
 
-	MediaTrack *track = GetMasterTrack(this->model.GetProject());
+	MediaTrack *track = GetMasterTrack(ReaperUtils::GetProject());
 	if (std::strcmp(cmd, "select") == 0)
 	{
 		SetOnlyTrackSelected(track);
@@ -50,13 +51,13 @@ void MastertrackProcessor::Process(std::string command, std::deque<std::string> 
 	if (path.empty())
 		return;
 	const char *cmd = path.at(0).c_str();
-	MediaTrack *track = GetMasterTrack(this->model.GetProject());
+	MediaTrack *track = GetMasterTrack(ReaperUtils::GetProject());
 	if (std::strcmp(cmd, "volume") == 0)
 	{
 		// Touch not supported            
 		if (path.size() == 1)
 		{
-			this->model.masterVolume = this->model.DBToValue(SLIDER2DB(value * 1000.0));
+			this->model.masterVolume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			SetMediaTrackInfo_Value(track, "D_VOL", this->model.masterVolume);
 		}
 	}

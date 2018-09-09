@@ -125,30 +125,13 @@ void processDoubleArgCPP(JNIEnv *env, jobject object, jstring command, jdouble v
 	env->ReleaseStringUTFChars(command, cmd);
 }
 
-/**
- * Java callback to dump the data model.
- *
- * @param env    The JNI environment
- * @param object The JNI object
- * @param dump   Dump all data if true otherwise only the modified since the last call
- * @return The changed model data
- */
-jstring receiveModelDataCPP(JNIEnv *env, jobject object, jboolean dump)
-{
-	if (env == nullptr || gSurface == nullptr)
-		return nullptr;
-	std::string result = gSurface->CollectData(dump);
-	return env->NewStringUTF(result.c_str());
-}
-
 
 static void createJVM()
 {
-	if (jvmManager == nullptr)
-	{
-		jvmManager = new JvmManager(DEBUG_JAVA);
-		jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP, (void *)&receiveModelDataCPP);
-	}
+	if (jvmManager != nullptr)
+		return;
+	jvmManager = new JvmManager(DEBUG_JAVA);
+	jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP);
 }
 
 

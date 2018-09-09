@@ -5,11 +5,14 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
+
 #include "reaper_plugin_functions.h"
 #undef max
 #undef min
 
 #include "FunctionExecutor.h"
+#include "Track.h"
 
 
 /**
@@ -18,7 +21,6 @@
 class Model
 {
 public:
-	const int trackBankSize{ 8 };
 	const int sendBankSize{ 8 };
 	const int deviceBankSize{ 8 };
 	const int parameterBankSize{ 8 };
@@ -27,12 +29,7 @@ public:
 	double masterVolume{ 0 };
 	double masterPan{ 0 };
 
-	int trackBankOffset{ 0 };
-	int trackSelection{ 0 };
 	int trackCount{ 0 };
-	std::vector<double> trackVolume;
-	std::vector<double> trackPan;
-	std::vector<std::vector<double>> trackSendVolume;
 
 	int deviceSelected{ 0 };
 	int deviceParamBankSelected{ 0 };
@@ -54,17 +51,32 @@ public:
 		functionExecutor.AddFunction(f);
 	};
 
-	double ValueToDB(double x) noexcept;
-	double DBToValue(double x) noexcept;
+	Track *GetTrack(const int index);
 
-	ReaProject * GetProject() noexcept
+	void SetDump()
 	{
-		// Current project
-		const int projectID = -1;
-		return EnumProjects(projectID, nullptr, 0);
-	};
+		dumplock.lock();
+		this->dump = true;
+		dumplock.unlock();
+	}
 
+	bool ShouldDump()
+	{
+		bool d{ false };
+		dumplock.lock();
+		if (this->dump)
+		{
+			this->dump = false;
+			d = true;
+		}
+		dumplock.unlock();
+		return d;
+	}
 
 private:
 	FunctionExecutor & functionExecutor;
+	std::vector<Track *> tracks;
+	std::mutex tracklock;
+	std::mutex dumplock;
+	bool dump{false};
 };
