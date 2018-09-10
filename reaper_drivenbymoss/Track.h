@@ -18,6 +18,7 @@ public:
 
 	int trackExists;
 	int trackNumber;
+	int trackDepth;
 	std::string trackName;
 	std::string trackType;
 

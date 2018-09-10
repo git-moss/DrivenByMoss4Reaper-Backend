@@ -4,7 +4,6 @@
 
 #include "ReaDebug.h"
 #include "DrivenByMossSurface.h"
-#include "de_mossgrabers_transformator_TransformatorApplication.h"
 
 extern DrivenByMossSurface *gSurface;
 
@@ -42,74 +41,73 @@ void DrivenByMossSurface::Run()
 
 void DrivenByMossSurface::SetTrackListChange()
 {
-	ShowConsoleMsg("SetTrackListChange\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetSurfaceVolume(MediaTrack *trackid, double volume)
 {
-	// ShowConsoleMsg("SetSurfaceVolume\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetSurfacePan(MediaTrack *trackid, double pan)
 {
-	// ShowConsoleMsg("SetSurfacePan\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetSurfaceMute(MediaTrack *trackid, bool mute)
 {
-	// ShowConsoleMsg("SetSurfaceMute\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetSurfaceSelected(MediaTrack *trackid, bool selected)
 {
-	// ShowConsoleMsg("SetSurfaceSelected\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetSurfaceSolo(MediaTrack *trackid, bool solo)
 {
-	// trackid==master means "any solo"
-	// ShowConsoleMsg("SetSurfaceSolo\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetSurfaceRecArm(MediaTrack *trackid, bool recarm)
 {
-	// ShowConsoleMsg("SetSurfaceRecArm\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetPlayState(bool play, bool pause, bool rec)
 {
-	// ShowConsoleMsg("SetPlayState\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetRepeatState(bool rep)
 {
-	// ShowConsoleMsg("SetRepeatState\n");
+	// Not used
 }
 
 void DrivenByMossSurface::SetTrackTitle(MediaTrack *trackid, const char *title)
 {
-	// ShowConsoleMsg("SetTrackTitle\n");
+	// Not used
 }
 
 bool DrivenByMossSurface::GetTouchState(MediaTrack *trackid, int isPan)
 {
-	// ShowConsoleMsg("GetTouchState\n");
+	// Not used
 	return false;
 }
 
 void DrivenByMossSurface::SetAutoMode(int mode)
 {
-	// ShowConsoleMsg("SetAutoMode\n");
+	// Not used
 }
 
 
 void DrivenByMossSurface::ResetCachedVolPanStates()
 {
-	// ShowConsoleMsg("ResetCachedVolPanStates\n");
+	// Not used
 }
 
 
 void DrivenByMossSurface::OnTrackSelection(MediaTrack *trackid)
 {
-	// ShowConsoleMsg("OnTrackSelection\n");
+	// Not used
 }

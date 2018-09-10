@@ -63,20 +63,8 @@ std::string DataCollector::CollectData(const bool &dump)
 	CollectMasterTrackData(ss, project, dump);
 	CollectBrowserData(ss, project, dump);
 	CollectMarkerData(ss, project, dump);
-
-	// Only execute if project state changed
-	const int state = GetProjectStateChangeCount(project);
-	if (state != this->projectState || dump)
-	{
-		// TODO Remove when tested
-		// ReaDebug() << state;
-
-		this->projectState = state;
-
-		// Test if all parameters are covered by the project state (e.g. transport is not)
-		CollectClipData(ss, project, dump);
-		CollectSessionData(ss, project, dump);
-	}
+	CollectClipData(ss, project, dump);
+	CollectSessionData(ss, project, dump);
 
 	return ss.str();
 }

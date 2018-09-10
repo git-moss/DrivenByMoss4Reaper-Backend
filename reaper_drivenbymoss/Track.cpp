@@ -53,7 +53,7 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, int trackInd
 	das << "/track/" << trackIndex << "/";
 	std::string trackAddress = das.str();
 
-	// Track exists flag and number of tracks
+	// Track exists flag and number of track
 	this->trackExists = Collectors::CollectIntValue(ss, (trackAddress + "exists").c_str(), this->trackExists, trackIndex < trackCount ? 1 : 0, dump);
 	this->trackNumber = Collectors::CollectIntValue(ss, (trackAddress + "number").c_str(), this->trackNumber, trackIndex, dump);
 
@@ -61,6 +61,8 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, int trackInd
 	MediaTrack *track = GetTrack(project, trackIndex);
 	bool result = track != nullptr && GetTrackName(track, name, LENGTH);
 	this->trackName = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->trackName, result ? name : "", dump);
+
+	this->trackDepth = Collectors::CollectIntValue(ss, (trackAddress + "depth").c_str(), this->trackDepth, GetTrackDepth(track), dump);
 
 	// Track type (GROUP or HYBRID), select, mute, solo, recarm and monitor states
 	int trackState{};
@@ -82,7 +84,17 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, int trackInd
 	// Track color
 	int red = 0, green = 0, blue = 0;
 	if (track != nullptr)
-		ColorFromNative(GetTrackColor(track) & 0xFEFFFFFF, &red, &green, &blue);
+	{
+		int nativeColor = GetTrackColor(track);
+		if (nativeColor == 0)
+		{
+			red = -1;
+			green = -1;
+			blue = -1;
+		}
+		else
+			ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
+	}
 	this->trackColor = Collectors::CollectStringValue(ss, (trackAddress + "color").c_str(), this->trackColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
 
 	// Track volume and pan
