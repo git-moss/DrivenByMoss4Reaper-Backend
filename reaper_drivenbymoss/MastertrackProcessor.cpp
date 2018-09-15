@@ -30,7 +30,6 @@ void MastertrackProcessor::Process(std::string command, std::deque<std::string> 
 		SetOnlyTrackSelected(track);
 		SetMixerScroll(track);
 		this->model.deviceSelected = 0;
-		this->model.deviceParamBankSelectedTemp = 0;
 	}
 	else if (std::strcmp(cmd, "solo") == 0)
 	{

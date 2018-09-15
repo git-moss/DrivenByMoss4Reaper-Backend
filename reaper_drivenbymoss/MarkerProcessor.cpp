@@ -1,4 +1,4 @@
-// Written by Jürgen Moßgraber - mossgrabers.de
+// Written by JÃ¼rgen MoÃŸgraber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
@@ -26,22 +26,6 @@ void MarkerProcessor::Process(std::string command, std::deque<std::string> &path
 		return;
 	const char *part = path.at(0).c_str();
 
-	if (std::strcmp(part, "bank") == 0)
-	{
-		const char *cmd = path.at(1).c_str();
-		if (std::strcmp(cmd, "+") == 0)
-		{
-			if (this->model.markerBankOffset < this->model.markerCount)
-				this->model.markerBankOffset += this->model.markerBankSize;
-		}
-		else if (std::strcmp(cmd, "-") == 0)
-		{
-			if (this->model.markerBankOffset > 0)
-				this->model.markerBankOffset -= this->model.markerBankSize;
-		}
-		return;
-	}
-	
 	ReaProject *project = ReaperUtils::GetProject();
 
 	if (std::strcmp(part, "add") == 0)
@@ -56,7 +40,7 @@ void MarkerProcessor::Process(std::string command, std::deque<std::string> &path
 	if (path.size() < 2)
 		return;
 
-	const int index = this->model.markerBankOffset + atoi(part) - 1;
+	const int index = atoi(part);
 	const char *cmd = path.at(1).c_str();
 
 	const bool isLaunch = std::strcmp(cmd, "launch") == 0;

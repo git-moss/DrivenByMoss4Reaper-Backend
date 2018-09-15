@@ -16,42 +16,42 @@ class Track
 public:
 	int sendBankSize;
 
-	int trackExists;
-	int trackNumber;
-	int trackDepth;
-	std::string trackName;
-	std::string trackType;
+	int exists{ 0 };
+	int number{ 0 };
+	int depth{ 0 };
+	std::string name{ "" };
+	std::string type;
 
-	int trackSelected;
-	int trackMute;
-	int trackSolo;
-	int trackRecArmed;
-	int trackActive;
-	int trackMonitor;
-	int trackAutoMonitor;
+	int isSelected;
+	int mute;
+	int solo;
+	int recArmed;
+	int isActive;
+	int monitor;
+	int autoMonitor;
 	
-	std::string trackColor;
+	std::string color;
 
-	double trackVolume;
-	std::string trackVolumeStr;
-	double trackPan;
-	std::string trackPanStr;
-	double trackVULeft;
-	double trackVURight;
-	int trackAutoMode;
+	double volume;
+	std::string volumeStr;
+	double pan;
+	std::string panStr;
+	double vuLeft;
+	double vuRight;
+	int autoMode;
 
-	int trackRepeatActive;
-	int trackRepeatNoteLength;
+	int repeatActive;
+	int repeatNoteLength;
 
-	std::vector<std::string> trackSendName;
-	std::vector<double> trackSendVolume;
-	std::vector<std::string> trackSendVolumeStr;
+	std::vector<std::string> sendName;
+	std::vector<double> sendVolume;
+	std::vector<std::string> sendVolumeStr;
 
 
 	Track(const int sendBankSize);
 	virtual ~Track();
 
-	void CollectData(std::stringstream &ss, ReaProject *project, int trackIndex, int trackCount, const bool &dump);
+	void CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *track, int trackIndex, const bool &dump);
 
 	int GetTrackLockState(MediaTrack *track);
 };

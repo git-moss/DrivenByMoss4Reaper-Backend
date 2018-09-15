@@ -24,8 +24,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
-	const int trackIndex = atoi(path.at(0).c_str());
-	if (trackIndex < 0 || trackIndex >= CountTracks(project))
+	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	if (trackIndex < 0)
 		return;
 	MediaTrack *track = GetTrack(project, trackIndex);
 	if (!track)
@@ -38,7 +38,6 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 		SetOnlyTrackSelected(track);
 		SetMixerScroll(track);
 		this->model.deviceSelected = 0;
-		this->model.deviceParamBankSelectedTemp = 0;
 		return;
 	}
 
@@ -59,8 +58,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
-	const int trackIndex = atoi(path.at(0).c_str());
-	if (trackIndex < 0 || trackIndex >= CountTracks(project))
+	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	if (trackIndex < 0)
 		return;
 	MediaTrack *track = GetTrack(project, trackIndex);
 	if (!track)
@@ -73,7 +72,6 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		SetOnlyTrackSelected(track);
 		SetMixerScroll(track);
 		this->model.deviceSelected = 0;
-		this->model.deviceParamBankSelectedTemp = 0;
 		return;
 	}
 	
@@ -171,8 +169,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
-	const int trackIndex = atoi(path.at(0).c_str());
-	if (trackIndex < 0 || trackIndex >= CountTracks(project))
+	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	if (trackIndex < 0)
 		return;
 	MediaTrack *track = GetTrack(project, trackIndex);
 	if (!track)
@@ -186,8 +184,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			trackData->trackVolume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			SetMediaTrackInfo_Value(track, "D_VOL", trackData->trackVolume);
+			trackData->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
+			SetMediaTrackInfo_Value(track, "D_VOL", trackData->volume);
 		}
 		return;
 	}
@@ -197,8 +195,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		// Touch not supported            
 		if (path.size() == 2)
 		{
-			trackData->trackPan = value * 2 - 1;
-			SetMediaTrackInfo_Value(track, "D_PAN", trackData->trackPan);
+			trackData->pan = value * 2 - 1;
+			SetMediaTrackInfo_Value(track, "D_PAN", trackData->pan);
 		}
 		return;
 	}
@@ -209,8 +207,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		const char *subcmd = path.at(3).c_str();
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
-			trackData->trackSendVolume.at(sendIndex) = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", trackData->trackSendVolume.at(sendIndex));
+			trackData->sendVolume.at(sendIndex) = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
+			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", trackData->sendVolume.at(sendIndex));
 		}
 		return;
 	}
@@ -229,8 +227,8 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
-	const int trackIndex = atoi(path.at(0).c_str());
-	if (trackIndex < 0 || trackIndex >= CountTracks(project))
+	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	if (trackIndex < 0)
 		return;
 	MediaTrack *track = GetTrack(project, trackIndex);
 	if (!track)
@@ -365,4 +363,29 @@ void TrackProcessor::SetIsActivated(ReaProject *project, bool enable)
 		Main_OnCommandEx(LOCK_TRACK_CONTROLS, 0, project);
 		Undo_EndBlock2(project, "Disable track", 0);
 	}
+}
+
+
+int TrackProcessor::GetTrackIndex(ReaProject *project, int dawTrackIndex) const
+{
+	int count = CountTracks(project);
+	if (dawTrackIndex < 0 || dawTrackIndex >= count)
+		return -1;
+
+	int trackIndex{ 0 };
+	int trackState{};
+	for (int index = 0; index < count; index++)
+	{
+		MediaTrack *mediaTrack = GetTrack(project, index);
+		if (mediaTrack == nullptr)
+			continue;
+		// Ignore track if hidden
+		GetTrackState(mediaTrack, &trackState);
+		if ((trackState & 1024) > 0)
+			continue;
+		if (dawTrackIndex == trackIndex)
+			return index;
+		trackIndex++;
+	}
+	return -1;
 }

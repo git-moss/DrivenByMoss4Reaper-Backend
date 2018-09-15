@@ -28,4 +28,5 @@ private:
 	void SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution);
 	void SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value);
 	void SetIsActivated(ReaProject *project, bool enable);
+	int GetTrackIndex(ReaProject *project, int dawTrackIndex) const;
 };

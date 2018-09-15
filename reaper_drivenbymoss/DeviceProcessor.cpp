@@ -53,38 +53,6 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		return;
 	}
 
-	if (std::strcmp(part, "param") == 0)
-	{
-		part = path.at(1).c_str();
-
-		if (std::strcmp(part, "bank") == 0)
-		{
-			part = path.at(2).c_str();
-
-			if (std::strcmp(part, "+") == 0)
-			{
-				if ((this->model.deviceParamBankSelected + this->model.parameterBankSize) * this->model.parameterBankSize < this->model.deviceParamCount)
-					this->model.deviceParamBankSelectedTemp += this->model.parameterBankSize;
-			}
-			else if (std::strcmp(part, "-") == 0)
-			{
-				if (this->model.deviceParamBankSelected >= this->model.parameterBankSize)
-					this->model.deviceParamBankSelectedTemp -= this->model.parameterBankSize;
-			}
-		}
-		else if (std::strcmp(part, "+") == 0)
-		{
-			if ((this->model.deviceParamBankSelected + 1) * this->model.parameterBankSize < this->model.deviceParamCount)
-				this->model.deviceParamBankSelectedTemp += 1;
-		}
-		else if (std::strcmp(part, "-") == 0)
-		{
-			if (this->model.deviceParamBankSelected >= 1)
-				this->model.deviceParamBankSelectedTemp -= 1;
-		}
-		return;
-	}
-
 	ReaProject *project = ReaperUtils::GetProject();
 	const int fx = atoi(part) - 1;
 
@@ -124,14 +92,17 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	if (std::strcmp(part, "selected") == 0)
 	{
 		this->model.deviceSelected = value - 1;
-		this->model.deviceParamBankSelectedTemp = 0;
+		return;
 	}
-	else if (std::strcmp(part, "bypass") == 0)
+	
+	if (std::strcmp(part, "bypass") == 0)
 	{
 		if (selDevice >= 0)
 			TrackFX_SetEnabled(track, selDevice, value > 0 ? 0 : 1);
+		return;
 	}
-	else if (std::strcmp(part, "window") == 0)
+	
+	if (std::strcmp(part, "window") == 0)
 	{
 		if (selDevice < 0)
 			return;
@@ -139,8 +110,10 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 		if (open)
 			TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
 		TrackFX_SetOpen(track, selDevice, open);
+		return;
 	}
-	else if (std::strcmp(part, "expand") == 0)
+	
+	if (std::strcmp(part, "expand") == 0)
 	{
 		if (selDevice < 0)
 			return;
@@ -151,36 +124,29 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 			return;
 		TrackFX_SetOpen(track, selDevice, 0);
 		TrackFX_Show(track, selDevice, expandedType);
+		return;
 	}
-	else if (std::strcmp(part, "page") == 0)
+	
+	if (std::strcmp(part, "page") == 0)
 	{
 		part = path.at(1).c_str();
 		if (std::strcmp(part, "selected") == 0)
 		{
 			this->model.deviceSelected = (value - 1) * this->model.deviceBankSize;
 		}
+		return;
 	}
-	else if (std::strcmp(part, "preset") == 0)
+	
+	if (std::strcmp(part, "preset") == 0)
 	{
 		TrackFX_SetPresetByIndex(track, this->model.deviceBankOffset + this->model.deviceSelected, value);
+		return;
 	}
-	else if (std::strcmp(part, "param") == 0)
+	
+	if (std::strcmp(part, "param") == 0)
 	{
-		part = path.at(1).c_str();
-
-		if (std::strcmp(part, "bank") == 0)
-		{
-			part = path.at(2).c_str();
-
-			if (std::strcmp(part, "selected") == 0)
-			{
-				this->model.deviceParamBankSelectedTemp = value - 1;
-			}
-		}
-		else
-		{
-			Process(command, path, static_cast<double> (value));
-		}
+		Process(command, path, static_cast<double> (value));
+		return;
 	}
 }
 
@@ -201,13 +167,9 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 
 	if (std::strcmp(part, "param") == 0)
 	{
-		part = path.at(1).c_str();
-		if (std::strcmp(part, "bank") != 0)
-		{
-			const int paramNo = atoi(part) - 1;
-			if (std::strcmp(path.at(2).c_str(), "value") == 0)
-				TrackFX_SetParamNormalized(track, selDevice, (this->model.deviceParamBankOffset + this->model.deviceParamBankSelected) * this->model.parameterBankSize + paramNo, value);
-		}
+		const int paramNo = atoi(path.at(1).c_str());
+		if (std::strcmp(path.at(2).c_str(), "value") == 0)
+			TrackFX_SetParamNormalized(track, selDevice, paramNo, value);
 	}
 }
 

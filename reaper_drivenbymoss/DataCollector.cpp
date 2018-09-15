@@ -23,14 +23,7 @@
 DataCollector::DataCollector(Model &aModel) :
 	model(aModel),
 	deviceSiblings(aModel.deviceBankSize, ""),
-	deviceParamName(aModel.parameterBankSize, ""),
-	deviceParamValue(aModel.parameterBankSize, 0),
-	deviceParamValueStr(aModel.parameterBankSize, ""),
-	devicePresetsStr(128, ""),
-	markerExists(aModel.markerBankSize, 0),
-	markerNumber(aModel.markerBankSize, 0),
-	markerName(aModel.markerBankSize, ""),
-	markerColor(aModel.markerBankSize, "")
+	devicePresetsStr(128, "")
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
 }
@@ -166,23 +159,10 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 
 	const int paramCount = TrackFX_GetNumParams(track, deviceIndex);
 	this->model.deviceParamCount = Collectors::CollectIntValue(ss, "/device/param/count", this->model.deviceParamCount, paramCount, dump);
-	this->model.deviceParamBankSelected = Collectors::CollectIntValue(ss, "/device/param/bank/selected", this->model.deviceParamBankSelected, this->model.deviceParamBankSelectedTemp, dump);
-
-	int paramIndex = this->model.deviceParamBankSelected * this->model.parameterBankSize;
-	for (int index = 0; index < this->model.parameterBankSize; index++)
+	for (int index = 0; index < paramCount; index++)
 	{
-		std::stringstream das;
-		das << "/device/param/" << index + 1 << "/";
-		std::string paramAddress = das.str();
-
-		result = TrackFX_GetParamName(track, deviceIndex, paramIndex, name, LENGTH);
-		Collectors::CollectStringArrayValue(ss, (paramAddress + "name").c_str(), index, this->deviceParamName, result ? name : "", dump);
-		const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, paramIndex);
-		Collectors::CollectDoubleArrayValue(ss, (paramAddress + "value").c_str(), index, this->deviceParamValue, paramValue, dump);
-		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, paramValue, name, LENGTH);
-		Collectors::CollectStringArrayValue(ss, (paramAddress + "value/str").c_str(), index, this->deviceParamValueStr, result ? name : "", dump);
-
-		paramIndex += 1;
+		Parameter *parameter = this->model.GetParameter(index);
+		parameter->CollectData(ss, track, deviceIndex, index, paramCount, dump);
 	}
 }
 
@@ -195,13 +175,23 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
  */
 void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, CountTracks(project), dump);
-	int count = this->model.trackCount;
+	int count = CountTracks(project);
+	int trackIndex{ 0 };
+	int trackState{};
 	for (int index = 0; index < count; index++)
 	{
-		Track *track = this->model.GetTrack(index);
-		track->CollectData(ss, project, index, count, dump);
+		MediaTrack *mediaTrack = GetTrack(project, index);
+		if (mediaTrack == nullptr)
+			continue;
+		// Ignore track if hidden
+		GetTrackState(mediaTrack, &trackState);
+		if ((trackState & 1024) > 0)
+			continue;
+		Track *track = this->model.GetTrack(trackIndex);
+		track->CollectData(ss, project, mediaTrack, trackIndex, dump);
+		trackIndex++;
 	}
+	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, trackIndex, dump);
 }
 
 /**
@@ -218,9 +208,9 @@ void DataCollector::CollectMasterTrackData(std::stringstream &ss, ReaProject *pr
 	int trackState;
 	GetTrackState(master, &trackState);
 
-	Collectors::CollectIntValue(ss, "/master/select", this->masterSelected, (trackState & 2) > 0, dump);
-	Collectors::CollectIntValue(ss, "/master/mute", this->masterMute, (trackState & 8) > 0 ? 1 : 0, dump);
-	Collectors::CollectIntValue(ss, "/master/solo", this->masterSolo, (trackState & 16) > 0 ? 1 : 0, dump);
+	this->masterSelected = Collectors::CollectIntValue(ss, "/master/select", this->masterSelected, (trackState & 2) > 0, dump);
+	this->masterMute = Collectors::CollectIntValue(ss, "/master/mute", this->masterMute, (trackState & 8) > 0 ? 1 : 0, dump);
+	this->masterSolo = Collectors::CollectIntValue(ss, "/master/solo", this->masterSolo, (trackState & 16) > 0 ? 1 : 0, dump);
 
 	// Master track volume and pan
 	const double volDB = ReaperUtils::ValueToDB(GetMediaTrackInfo_Value(master, "D_VOL"));
@@ -382,56 +372,35 @@ void DataCollector::CollectBrowserData(std::stringstream &ss, ReaProject *projec
 
 
 /**
-* Collect the (changed) marker data.
-*
-* @param ss The stream where to append the formatted data
-* @param project The current Reaper project
-* @param dump If true all data is collected not only the changed one since the last call
-*/
+ * Collect the (changed) marker data.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param project The current Reaper project
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
 void DataCollector::CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	int markerIndex = this->model.markerBankOffset;
-	int bankMarkerIndex = 1;
-
-	this->model.markerCount = Collectors::CollectIntValue(ss, "/marker/count", this->model.markerCount, CountProjectMarkers(project, nullptr, nullptr), dump);
-
-	const char* name;
-	bool isRegion;
-	double markerPos;
-	double regionEnd;
-	int markerRegionIndexNumber;
-	int markerColor;
-
-	for (int index = 0; index < this->model.markerBankSize; index++)
+	int count = CountProjectMarkers(project, nullptr, nullptr);
+	this->model.markerCount = Collectors::CollectIntValue(ss, "/marker/count", this->model.markerCount, count, dump);
+	for (int index = 0; index < count; index++)
 	{
-		std::stringstream das;
-		das << "/marker/" << bankMarkerIndex << "/";
-		std::string markerAddress = das.str();
-
-		// Marker exists flag and number of markers
-		const bool exists = markerIndex < this->model.markerCount ? 1 : 0;
-		Collectors::CollectIntArrayValue(ss, (markerAddress + "exists").c_str(), index, this->markerExists, exists, dump);
-		Collectors::CollectIntArrayValue(ss, (markerAddress + "number").c_str(), index, this->markerNumber, markerIndex, dump);
-
-		int result = exists ? EnumProjectMarkers3(project, index, &isRegion, &markerPos, &regionEnd, &name, &markerRegionIndexNumber, &markerColor) : 0;
-
-		// Marker name
-		Collectors::CollectStringArrayValue(ss, (markerAddress + "name").c_str(), index, this->markerName, result ? name : "", dump);
-
-		// Marker color
-		int red = 0, green = 0, blue = 0;
-		if (exists)
-			ColorFromNative(markerColor & 0xFEFFFFFF, &red, &green, &blue);
-		Collectors::CollectStringArrayValue(ss, (markerAddress + "color").c_str(), index, this->markerColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
-
-		markerIndex += 1;
-		bankMarkerIndex += 1;
+		Marker *marker = this->model.GetMarker(index);
+		marker->CollectData(ss, project, index, count, dump);
 	}
 }
 
 
+/**
+ * Collect the (changed) clip data.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param project The current Reaper project
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
 void DataCollector::CollectSessionData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
+	// TODO Test for document state number change
+
 	for (int t = 0; t < CountTracks(project); t++)
 	{
 		MediaTrack *track = GetTrack(project, t);

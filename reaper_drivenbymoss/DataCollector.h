@@ -77,9 +77,6 @@ private:
 	std::string deviceName{};
 	int deviceBypass{};
 	std::vector<std::string> deviceSiblings;
-	std::vector<std::string> deviceParamName;
-	std::vector<double> deviceParamValue;
-	std::vector<std::string> deviceParamValueStr;
 
 	// Browser values
 	std::string devicePresetName{};
@@ -92,12 +89,6 @@ private:
 	int grooveTarget{};
 	int grooveTolerance{};
 	int quantizeStrength{};
-
-	// Marker values
-	std::vector<int> markerExists;
-	std::vector<int> markerNumber;
-	std::vector<std::string> markerName;
-	std::vector<std::string> markerColor;
 
 
 	void CollectProjectData(std::stringstream &ss, ReaProject *project, const bool &dump);

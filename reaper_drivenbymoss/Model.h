@@ -12,7 +12,9 @@
 #undef min
 
 #include "FunctionExecutor.h"
+#include "Marker.h"
 #include "Track.h"
+#include "Parameter.h"
 
 
 /**
@@ -23,25 +25,19 @@ class Model
 public:
 	const int sendBankSize{ 8 };
 	const int deviceBankSize{ 8 };
-	const int parameterBankSize{ 8 };
 	const int markerBankSize{ 8 };
 
 	double masterVolume{ 0 };
 	double masterPan{ 0 };
 
 	int trackCount{ 0 };
+	int markerCount{ 0 };
 
 	int deviceSelected{ 0 };
-	int deviceParamBankSelected{ 0 };
-	int deviceParamBankSelectedTemp{ 0 };
 	int deviceBankOffset{ 0 };
 	int deviceParamCount{ 0 };
-	int deviceParamBankOffset{ 0 };
 	int deviceExpandedType{ 3 };
 	int deviceCount{ 0 };
-
-	int markerBankOffset{ 0 };
-	int markerCount{ 0 };
 
 
 	Model(FunctionExecutor &functionExecutor);
@@ -52,6 +48,8 @@ public:
 	};
 
 	Track *GetTrack(const int index);
+	Marker *GetMarker(const int index);
+	Parameter *GetParameter(const int index);
 
 	void SetDump()
 	{
@@ -76,7 +74,11 @@ public:
 private:
 	FunctionExecutor & functionExecutor;
 	std::vector<Track *> tracks;
+	std::vector<Marker *> markers;
+	std::vector<Parameter *> parameters;
 	std::mutex tracklock;
+	std::mutex markerlock;
+	std::mutex parameterlock;
 	std::mutex dumplock;
 	bool dump{false};
 };

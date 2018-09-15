@@ -1,0 +1,27 @@
+// Written by Jürgen Moßgraber - mossgrabers.de
+// (c) 2018
+// Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
+
+#pragma once
+
+#include <string>
+#include <vector>
+
+
+/**
+ * Encapsulates Reaper C functions for markers.
+ */
+class Marker
+{
+public:
+	int exists;
+	int number;
+	std::string name;
+	std::string color;
+
+
+	Marker();
+	virtual ~Marker();
+
+	void CollectData(std::stringstream &ss, ReaProject *project, int markerIndex, int markerCount, const bool &dump);
+};

@@ -36,3 +36,45 @@ Track *Model::GetTrack(const int index)
 	this->tracklock.unlock();
 	return track;
 }
+
+
+/**
+ * Get a marker.
+ *
+ * @param index The index of the marker.
+ * @return The marker, if none exists at the index a new instance is created automatically
+ */
+Marker *Model::GetMarker(const int index)
+{
+	this->markerlock.lock();
+	const int diff = index - (int)this->markers.size() + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->markers.push_back(new Marker());
+	}
+	Marker *marker = this->markers.at(index);
+	this->markerlock.unlock();
+	return marker;
+}
+
+
+/**
+ * Get a parameter.
+ *
+ * @param index The index of the parameter.
+ * @return The parameter, if none exists at the index a new instance is created automatically
+ */
+Parameter *Model::GetParameter(const int index)
+{
+	this->parameterlock.lock();
+	const int diff = index - (int)this->parameters.size() + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->parameters.push_back(new Parameter());
+	}
+	Parameter *parameter = this->parameters.at(index);
+	this->parameterlock.unlock();
+	return parameter;
+}
