@@ -45,6 +45,7 @@ private:
 	// Note hash
 	std::string noteHash{};
 	std::string notesStr{};
+	std::string formattedClips{};
 
 	// Transport values
 	int globalTimesig{};

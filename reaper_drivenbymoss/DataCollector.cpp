@@ -259,7 +259,6 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 			musicalPlayPosition = bpm * this->playPosition / 60;
 		}
 
-		// TODO Test - int GetDisplayedMediaItemColor2(MediaItem* item, MediaItem_Take* take)
 		int clipColor = (int)GetDisplayedMediaItemColor(item);
 		ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
 	}
@@ -283,7 +282,7 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
  */
 std::string DataCollector::CollectClipNotes(ReaProject *project, MediaItem *item)
 {
-	std::string notesStrNew{" "};
+	std::string notesStrNew{ " " };
 
 	if (item == nullptr)
 		return notesStrNew;
@@ -377,30 +376,66 @@ void DataCollector::CollectMarkerData(std::stringstream &ss, ReaProject *project
  */
 void DataCollector::CollectSessionData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	// TODO Test for document state number change
+	// Only collect clip data if document has changed
+	const int state = GetProjectStateChangeCount(project);
+	if (this->projectState == state)
+		return;
+	this->projectState = state;
 
-	for (int t = 0; t < CountTracks(project); t++)
+	std::stringstream clipstr;
+
+	int count = CountTracks(project);
+	int trackIndex{ 0 };
+	int trackState{};
+	for (int index = 0; index < count; index++)
 	{
-		MediaTrack *track = GetTrack(project, t);
+		MediaTrack *mediaTrack = GetTrack(project, index);
+		if (mediaTrack == nullptr)
+			continue;
+		// Ignore track if hidden
+		GetTrackState(mediaTrack, &trackState);
+		if ((trackState & 1024) > 0)
+			continue;
 
-		for (int i = 0; i < CountTrackMediaItems(track); i++)
+		double musicalStart{ -1 };
+		double bpm{};
+		int red = 0, green = 0, blue = 0;
+		char buf[2048];
+
+		const int itemCount = CountTrackMediaItems(mediaTrack);
+
+		clipstr << trackIndex << ";" << itemCount << ";";
+
+		for (int i = 0; i < itemCount; i++)
 		{
-			MediaItem *item = GetTrackMediaItem(track, i);
+			MediaItem *item = GetTrackMediaItem(mediaTrack, i);
+			if (item == nullptr)
+				continue;
 			MediaItem_Take *take = GetActiveTake(item);
 			if (take == nullptr)
 				continue;
 
-			char buf[2048];
-			GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false);
+			// Format track index, clip index, name, selected state and color in one string
 
-			// TODO Implement
+			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
+			{
+				std::string s = buf;
+				std::replace(s.begin(), s.end(), ';', ' ');
+				clipstr << s;
+			}
 
-			/// track / {1 - 8} / clip / {1 - N} / name
-			/// track / {1 - 8} / clip / {1 - N} / isSelected{ 1,0 }
-			/// track / {1 - 8} / clip / {1 - N} / color             with rgb(r, g, b).r, g, b = 0..255
+			const bool isSelected = GetMediaItemInfo_Value(item, "B_UISEL");
+			clipstr << ";" << isSelected;
 
+			int clipColor = (int)GetDisplayedMediaItemColor(item);
+			ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
+
+			clipstr << ";" << Collectors::FormatColor(red, green, blue).c_str() << ";";
 		}
+
+		trackIndex++;
 	}
+	this->formattedClips = Collectors::CollectStringValue(ss, "/clip/all", this->formattedClips, clipstr.str().c_str(), dump);
 }
 
 

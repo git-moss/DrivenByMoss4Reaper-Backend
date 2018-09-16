@@ -43,8 +43,8 @@ void Marker::CollectData(std::stringstream &ss, ReaProject *project, int markerI
 
 	// Marker exists flag and number of markers
 	const bool exists = markerIndex < markerCount ? 1 : 0;
-	Collectors::CollectIntValue(ss, (markerAddress + "exists").c_str(), this->exists, exists, dump);
-	Collectors::CollectIntValue(ss, (markerAddress + "number").c_str(), this->number, markerIndex, dump);
+	this->exists = Collectors::CollectIntValue(ss, (markerAddress + "exists").c_str(), this->exists, exists, dump);
+	this->number = Collectors::CollectIntValue(ss, (markerAddress + "number").c_str(), this->number, markerIndex, dump);
 
 	const char* name;
 	bool isRegion;
@@ -55,11 +55,11 @@ void Marker::CollectData(std::stringstream &ss, ReaProject *project, int markerI
 	int result = exists ? EnumProjectMarkers3(project, markerIndex, &isRegion, &markerPos, &regionEnd, &name, &markerRegionIndexNumber, &markerColor) : 0;
 
 	// Marker name
-	Collectors::CollectStringValue(ss, (markerAddress + "name").c_str(), this->name, result ? name : "", dump);
+	this->name = Collectors::CollectStringValue(ss, (markerAddress + "name").c_str(), this->name, result ? name : "", dump);
 
 	// Marker color
 	int red = 0, green = 0, blue = 0;
 	if (exists)
 		ColorFromNative(markerColor & 0xFEFFFFFF, &red, &green, &blue);
-	Collectors::CollectStringValue(ss, (markerAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
+	this->color = Collectors::CollectStringValue(ss, (markerAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
 }

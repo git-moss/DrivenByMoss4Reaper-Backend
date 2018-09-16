@@ -45,9 +45,9 @@ void Parameter::CollectData(std::stringstream &ss, MediaTrack *track, int device
 	const int LENGTH = 20;
 	char name[LENGTH];
 	bool result = TrackFX_GetParamName(track, deviceIndex, parameterIndex, name, LENGTH);
-	Collectors::CollectStringValue(ss, (paramAddress + "name").c_str(), this->name, result ? name : "", dump);
+	this->name = Collectors::CollectStringValue(ss, (paramAddress + "name").c_str(), this->name, result ? name : "", dump);
 	const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, parameterIndex);
-	Collectors::CollectDoubleValue(ss, (paramAddress + "value").c_str(), this->value, paramValue, dump);
+	this->value = Collectors::CollectDoubleValue(ss, (paramAddress + "value").c_str(), this->value, paramValue, dump);
 	result = TrackFX_FormatParamValueNormalized(track, deviceIndex, parameterIndex, paramValue, name, LENGTH);
-	Collectors::CollectStringValue(ss, (paramAddress + "value/str").c_str(), this->valueStr, result ? name : "", dump);
+	this->valueStr = Collectors::CollectStringValue(ss, (paramAddress + "value/str").c_str(), this->valueStr, result ? name : "", dump);
 }
