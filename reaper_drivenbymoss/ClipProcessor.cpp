@@ -24,6 +24,12 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
+	if (CountSelectedMediaItems(project) == 0)
+		return;
+	MediaItem *item = GetSelectedMediaItem(project, 0);
+	if (item == nullptr)
+		return;
+
 	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "duplicate") == 0)
@@ -56,15 +62,13 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
 	{
 		if (path.size() < 3)
 			return;
-		int note = std::atoi(path.at(1).c_str());
+		int pitch = std::atoi(path.at(1).c_str());
 		const char *noteCmd = path.at(2).c_str();
 
-		// Clear all notes with a specfic pitch
+		// Clear all notes with a specific pitch
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			// TODO Implement clear
-			// bool MIDI_DeleteNote(MediaItem_Take* take, int noteidx)
-
+			this->ClearNotes(project, item, pitch);
 			return;
 		}
 
@@ -80,70 +84,40 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
+	if (CountSelectedMediaItems(project) == 0)
+		return;
+	MediaItem *item = GetSelectedMediaItem(project, 0);
+	if (item == nullptr)
+		return;
+
 	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "start") == 0)
 	{
-		if (CountSelectedMediaItems(project) > 0)
-		{
-			MediaItem *item = GetSelectedMediaItem(project, 0);
-			double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
-			int timesig, denomOut;
-			double startBPM;
-			TimeMap_GetTimeSigAtTime(project, itemStart, &timesig, &denomOut, &startBPM);
-			itemStart = value * 60.0 / startBPM;
-			SetMediaItemInfo_Value(item, "D_POSITION", itemStart);
-		}
+		double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
+		int timesig, denomOut;
+		double startBPM;
+		TimeMap_GetTimeSigAtTime(project, itemStart, &timesig, &denomOut, &startBPM);
+		itemStart = value * 60.0 / startBPM;
+		SetMediaItemInfo_Value(item, "D_POSITION", itemStart);
 		return;
 	}
 
 	if (std::strcmp(cmd, "end") == 0)
 	{
-		if (CountSelectedMediaItems(project) > 0)
-		{
-			MediaItem *item = GetSelectedMediaItem(project, 0);
-			const double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
-			double itemEnd = itemStart + GetMediaItemInfo_Value(item, "D_LENGTH");
-			int timesig, denomOut;
-			double startBPM;
-			TimeMap_GetTimeSigAtTime(project, itemEnd, &timesig, &denomOut, &startBPM);
-			itemEnd = value * 60.0 / startBPM;
-			SetMediaItemInfo_Value(item, "D_LENGTH", itemEnd - itemStart);
-		}
-		return;
-	}
-
-	if (std::strcmp(cmd, "loopStart") == 0)
-	{
-		double loopStart, loopEnd;
-		GetSet_LoopTimeRange2(project, 0, 0, &loopStart, &loopEnd, 0);
+		const double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
+		double itemEnd = itemStart + GetMediaItemInfo_Value(item, "D_LENGTH");
 		int timesig, denomOut;
 		double startBPM;
-		TimeMap_GetTimeSigAtTime(project, loopStart, &timesig, &denomOut, &startBPM);
-		loopStart = value * 60.0 / startBPM;
-		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
-		return;
-	}
-
-	if (std::strcmp(cmd, "loopEnd") == 0)
-	{
-		double loopStart, loopEnd;
-		GetSet_LoopTimeRange2(project, 0, 0, &loopStart, &loopEnd, 0);
-		int timesig, denomOut;
-		double startBPM;
-		TimeMap_GetTimeSigAtTime(project, loopEnd, &timesig, &denomOut, &startBPM);
-		loopEnd = value * 60.0 / startBPM;
-		GetSet_LoopTimeRange2(project, 1, 0, &loopStart, &loopEnd, 0);
+		TimeMap_GetTimeSigAtTime(project, itemEnd, &timesig, &denomOut, &startBPM);
+		itemEnd = value * 60.0 / startBPM;
+		SetMediaItemInfo_Value(item, "D_LENGTH", itemEnd - itemStart);
 		return;
 	}
 
 	if (std::strcmp(cmd, "transpose") == 0)
 	{
-		if (CountSelectedMediaItems(project) > 0)
-		{
-			MediaItem *item = GetSelectedMediaItem(project, 0);
-			this->TransposeClip(project, item, (int) value);
-		}
+		this->TransposeClip(project, item, (int)value);
 		return;
 	}
 
@@ -151,14 +125,12 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 	{
 		if (path.size() < 3)
 			return;
-		int note = std::atoi(path.at(1).c_str());
+		int pitch = std::atoi(path.at(1).c_str());
 		const char *noteCmd = path.at(2).c_str();
 
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			// TODO Implement clear
-			// bool MIDI_DeleteNote(MediaItem_Take* take, int noteidx)
-
+			this->ClearNote(project, item, pitch, value);
 			return;
 		}
 
@@ -174,11 +146,17 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
+	if (CountSelectedMediaItems(project) == 0)
+		return;
+	MediaItem *item = GetSelectedMediaItem(project, 0);
+	if (item == nullptr)
+		return;
+
 	const char *cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "color") == 0)
 	{
-		SetColorOfClip(project, value);
+		SetColorOfClip(project, item, value);
 		return;
 	}
 
@@ -187,9 +165,6 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		if (path.size() < 3)
 			return;
 
-		MediaItem *item = GetSelectedMediaItem(project, 0);
-		if (item == nullptr)
-			return;
 		MediaItem_Take *take = GetActiveTake(item);
 		if (take == nullptr)
 			return;
@@ -205,23 +180,27 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 		const double length = std::atof(parts.at(1).c_str());
 		const int velocity = std::atoi(parts.at(2).c_str());
 
-		const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, pos);
-		const double ppqPosEnd = MIDI_GetPPQPosFromProjQN(take, pos + length);
+		// Subtract the start of the clip
+		const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
+		const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, pos) - ppqPosClipStart;
+		const double ppqPosEnd = MIDI_GetPPQPosFromProjQN(take, pos + length) - ppqPosClipStart;
 
 		if (std::strcmp(noteCmd, "toggle") == 0)
 		{
-			// TODO Implement toggle
-			// bool MIDI_DeleteNote(MediaItem_Take* take, int noteidx)
-			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
-			UpdateItemInProject(item);
+			if (!ClearNote(project, item, pitch, ppqPosStart))
+			{
+				MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
+				UpdateItemInProject(item);
+				Undo_OnStateChange_Item(project, "Insert note", item);
+			}
 			return;
 		}
 
-		// TODO TEST
 		if (std::strcmp(noteCmd, "set") == 0)
 		{
 			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
 			UpdateItemInProject(item);
+			Undo_OnStateChange_Item(project, "Insert note", item);
 			return;
 		}
 
@@ -234,14 +213,11 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
  * Set the color of a clip.
  *
  * @param project The Reaper project
- * @param value   The encoded RGB value, e.g. RGB(red,green,blue)
+ * @param item The media item
+ * @param value The encoded RGB value, e.g. RGB(red,green,blue)
  */
-void ClipProcessor::SetColorOfClip(ReaProject *project, std::string value)
+void ClipProcessor::SetColorOfClip(ReaProject *project, MediaItem *item, std::string value)
 {
-	MediaItem *item = GetSelectedMediaItem(project, 0);
-	if (item == nullptr)
-		return;
-
 	std::cmatch result{};
 	if (!std::regex_search(value.c_str(), result, colorPattern))
 		return;
@@ -249,23 +225,31 @@ void ClipProcessor::SetColorOfClip(ReaProject *project, std::string value)
 	int green = std::atoi(result.str(2).c_str());
 	int blue = std::atoi(result.str(3).c_str());
 
-	Undo_BeginBlock2(project);
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
 	UpdateItemInProject(item);
-	Undo_EndBlock2(project, "Set clip color", 0);
+	Undo_OnStateChange_Item(project, "Set clip color", item);
 }
 
 
-void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *clip, int transpose)
+/**
+ * Transpose all notes in the given media item.
+ *
+ * @param project The Reaper project
+ * @param item The media item
+ * @param transpose The value to transpose up or down (negative)
+ */
+void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *item, int transpose)
 {
-	Undo_BeginBlock();
+	int takes = CountTakes(item);
+	if (takes == 0)
+		return;
+
 	PreventUIRefresh(1);
 
-	int takes = CountTakes(clip);
 	int noteCount;
 	for (int i = 0; i < takes; i++)
 	{
-		MediaItem_Take *take = GetTake(clip, i);
+		MediaItem_Take *take = GetTake(item, i);
 		if (take && TakeIsMIDI(take) && MIDI_CountEvts(take, &noteCount, nullptr, nullptr))
 		{
 			for (int n = 0; n < noteCount; n++)
@@ -275,10 +259,86 @@ void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *clip, int tran
 				pitch += transpose;
 				MIDI_SetNote(take, n, nullptr, nullptr, nullptr, nullptr, nullptr, &pitch, nullptr, nullptr);
 			}
-			UpdateItemInProject(clip);
 		}
 	}
 
+	UpdateItemInProject(item);
 	PreventUIRefresh(-1);
-	Undo_EndBlock("Transpose selected midi item notes", 0);
+	Undo_OnStateChange_Item(project, "Transpose selected midi item notes", item);
+}
+
+
+/**
+ * Delete all notes of a certain pitch.
+ *
+ * @param project The Reaper project
+ * @param item The media item
+ * @param pitch The pitch of the notes to delete
+ */
+void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int pitch)
+{
+	MediaItem_Take *take = GetActiveTake(item);
+	if (take == nullptr || !TakeIsMIDI(take))
+		return;
+
+	int noteCount;
+	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
+		return;
+
+	PreventUIRefresh(1);
+
+	int notePitch;
+	for (int id = 0; id < noteCount; id++)
+	{
+		MIDI_GetNote(take, id, nullptr, nullptr, nullptr, nullptr, nullptr, &notePitch, nullptr);
+		if (pitch == notePitch)
+			MIDI_DeleteNote(take, id);
+	}
+
+	UpdateItemInProject(item);
+	Undo_OnStateChange_Item(project, "Delete notes", item);
+
+	PreventUIRefresh(-1);
+}
+
+
+/**
+ * Delete a note of a certain pitch and position.
+ *
+ * @param project The Reaper project
+ * @param item The media item
+ * @param pitch The pitch of the note to delete
+ * @param position The position of the note to delete
+ * @return True if note was found and deleted
+ */
+bool ClipProcessor::ClearNote(ReaProject *project, MediaItem *item, int pitch, double position)
+{
+	MediaItem_Take *take = GetActiveTake(item);
+	if (take == nullptr || !TakeIsMIDI(take))
+		return false;
+
+	int noteCount;
+	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
+		return false;
+
+	bool found{ false };
+	int notePitch;
+	double startppqpos{ -1 };
+	for (int id = 0; id < noteCount; id++)
+	{
+		MIDI_GetNote(take, id, nullptr, nullptr, &startppqpos, nullptr, nullptr, &notePitch, nullptr);
+		if (pitch == notePitch && std::abs(startppqpos - position) < 0.0001)
+		{
+			MIDI_DeleteNote(take, id);
+			found = true;
+			break;
+		}
+	}
+
+	if (found)
+	{
+		UpdateItemInProject(item);
+		Undo_OnStateChange_Item(project, "Delete note", item);
+	}
+	return found;
 }

@@ -99,8 +99,8 @@ private:
 	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump);
 	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectClipNotes(std::stringstream &ss, ReaProject *project, MediaItem *item, const bool &dump);
 	void CollectSessionData(std::stringstream &ss, ReaProject *project, const bool &dump);
 
+	std::string CollectClipNotes(ReaProject *project, MediaItem *item);
 	void LoadDevicePresetFile(std::stringstream &ss, MediaTrack *track, int fx, const bool &dump);
 };

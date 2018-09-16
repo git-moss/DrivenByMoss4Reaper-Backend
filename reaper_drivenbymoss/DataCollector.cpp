@@ -48,7 +48,7 @@ std::string DataCollector::CollectData(const bool &dump)
 {
 	std::stringstream ss;
 	ReaProject *project = ReaperUtils::GetProject();
-	
+
 	CollectTransportData(ss, project, dump);
 	CollectProjectData(ss, project, dump);
 	CollectTrackData(ss, project, dump);
@@ -263,7 +263,8 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 		int clipColor = (int)GetDisplayedMediaItemColor(item);
 		ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
 	}
-	this->CollectClipNotes(ss, project, item, dump);
+	std::string newNotes = this->CollectClipNotes(project, item);
+	this->notesStr = Collectors::CollectStringValue(ss, "/clip/notes", this->notesStr, newNotes.c_str(), dump);
 
 	this->clipMusicalStart = Collectors::CollectDoubleValue(ss, "/clip/start", this->clipMusicalStart, musicalStart, dump);
 	this->clipMusicalEnd = Collectors::CollectDoubleValue(ss, "/clip/end", this->clipMusicalEnd, musicalEnd, dump);
@@ -276,75 +277,52 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 /**
  * Collect the notes data of the active clip if changed.
  *
- * @param ss The stream where to append the formatted data
  * @param project The current Reaper project
  * @param item The media item
- * @param dump If true all data is collected not only the changed one since the last call
+ * @return The formatted collected notes
  */
-void DataCollector::CollectClipNotes(std::stringstream &ss, ReaProject *project, MediaItem *item, const bool &dump)
+std::string DataCollector::CollectClipNotes(ReaProject *project, MediaItem *item)
 {
-	std::string notesStrNew{};
+	std::string notesStrNew{" "};
 
-	if (item)
+	if (item == nullptr)
+		return notesStrNew;
+	MediaItem_Take *take = GetActiveTake(item);
+	if (take == nullptr || !TakeIsMIDI(take))
+		return notesStrNew;
+
+	// Have notes changed since last call?
+	char nhash[16];
+	if (!MIDI_GetHash(take, true, nhash, 16) || this->noteHash.compare(nhash) == 0)
+		return this->notesStr;
+	this->noteHash = nhash;
+
+	int noteCount;
+	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
+		return notesStrNew;
+
+	int pitch, velocity;
+	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
+	double bpm{};
+	std::stringstream notes;
+	double pos = GetMediaItemInfo_Value(item, "D_POSITION");
+
+	for (int i = 0; i < noteCount; ++i)
 	{
-		MediaItem_Take *take = GetActiveTake(item);
-		if (take)
-		{
-			char nhash[16];
-			if (!MIDI_GetHash(take, true, nhash, 16))
-				return;
+		MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, nullptr, &pitch, &velocity);
 
-			if (this->noteHash.compare(nhash) == 0)
-				return;
+		musicalStart = MIDI_GetProjTimeFromPPQPos(take, startppqpos);
+		musicalEnd = MIDI_GetProjTimeFromPPQPos(take, endppqpos);
+		musicalStart -= pos;
+		musicalEnd -= pos;
 
-			this->noteHash = nhash;
-
-			notesStrNew = " ";
-
-			int noteCount;
-			if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr))
-			{
-				int pitch, velocity;
-				double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
-				double bpm{};
-				std::stringstream notes;
-				double pos = GetMediaItemInfo_Value(item, "D_POSITION");
-
-				if (noteCount > 0)
-				{
-					for (int i = 0; i < noteCount; ++i)
-					{
-						MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, nullptr, &pitch, &velocity);
-
-						musicalStart = MIDI_GetProjTimeFromPPQPos(take, startppqpos);
-						musicalEnd = MIDI_GetProjTimeFromPPQPos(take, endppqpos);
-
-						// TODO -pos is not (fully) correct but output looks good?!
-						// ReaDebug() << "Time (s): Pos: " << pos << " : Start: " << musicalStart << " - " << musicalEnd;
-						musicalStart -= pos;
-						musicalEnd -= pos;
-						// ReaDebug() << "Time (s) moved: " << musicalStart << " - " << musicalEnd;
-
-						TimeMap_GetTimeSigAtTime(project, startppqpos, nullptr, nullptr, &bpm);
-						musicalStart = bpm * musicalStart / 60.0;
-						TimeMap_GetTimeSigAtTime(project, endppqpos, nullptr, nullptr, &bpm);
-						musicalEnd = bpm * musicalEnd / 60.0;
-						notes << musicalStart << ":" << musicalEnd << ":" << pitch << ":" << velocity << ";";
-
-						// ReaDebug() << "Musical (qn): " << musicalStart;
-
-					}
-					notesStrNew = notes.str().c_str();
-				}
-			}
-		}
-		else
-			this->noteHash = "";
+		TimeMap_GetTimeSigAtTime(project, startppqpos, nullptr, nullptr, &bpm);
+		musicalStart = bpm * musicalStart / 60.0;
+		TimeMap_GetTimeSigAtTime(project, endppqpos, nullptr, nullptr, &bpm);
+		musicalEnd = bpm * musicalEnd / 60.0;
+		notes << musicalStart << ":" << musicalEnd << ":" << pitch << ":" << velocity << ";";
 	}
-	else
-		this->noteHash = "";
-
-	this->notesStr = Collectors::CollectStringValue(ss, "/clip/notes", this->notesStr, notesStrNew.c_str(), dump);
+	return notes.str().c_str();
 }
 
 

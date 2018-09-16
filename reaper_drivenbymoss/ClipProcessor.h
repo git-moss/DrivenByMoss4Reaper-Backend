@@ -26,6 +26,8 @@ public:
 	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override;
 
 private:
-	void SetColorOfClip(ReaProject *project, std::string value);
+	void SetColorOfClip(ReaProject *project, MediaItem *item, std::string value);
 	void TransposeClip(ReaProject *project, MediaItem *clip, int transpose);
+	void ClearNotes(ReaProject *project, MediaItem *item, int pitch);
+	bool ClearNote(ReaProject *project, MediaItem *item, int pitch, double position);
 };
