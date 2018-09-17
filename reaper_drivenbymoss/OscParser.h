@@ -19,6 +19,7 @@
 #include "ClipProcessor.h"
 #include "MidiProcessor.h"
 #include "MarkerProcessor.h"
+#include "SceneProcessor.h"
 
 
 /**
@@ -56,6 +57,7 @@ private:
 	ClipProcessor 					 clipProcessor;
 	MidiProcessor 					 midiProcessor;
 	MarkerProcessor 				 markerProcessor;
+	SceneProcessor 					 sceneProcessor;
 	RefreshProcessor 				 refreshProcessor;
 
 	std::map<std::string, OscProcessor *> processors;

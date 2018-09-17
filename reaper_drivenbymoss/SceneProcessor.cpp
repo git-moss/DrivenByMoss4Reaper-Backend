@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-#include "MarkerProcessor.h"
+#include "SceneProcessor.h"
 #include "ReaperUtils.h"
 
 
@@ -13,14 +13,14 @@
  *
  * @param aModel The model to share data
  */
-MarkerProcessor::MarkerProcessor(Model &aModel) : OscProcessor(aModel)
+SceneProcessor::SceneProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
 /** {@inheritDoc} */
-void MarkerProcessor::Process(std::string command, std::deque<std::string> &path)
+void SceneProcessor::Process(std::string command, std::deque<std::string> &path)
 {
 	if (path.empty())
 		return;
@@ -28,43 +28,35 @@ void MarkerProcessor::Process(std::string command, std::deque<std::string> &path
 
 	ReaProject *project = ReaperUtils::GetProject();
 
-	if (std::strcmp(part, "add") == 0)
-	{
-		const double position = GetPlayPosition2Ex(project);
-		std::stringstream markerName;
-		markerName << "Marker " << (this->model.markerCount + 1);
-		AddProjectMarker(project, false, position, 0, markerName.str().c_str(), 0);
-		return;
-	}
-
 	if (path.size() < 2)
 		return;
 
 	const int index = atoi(part);
 	const char *cmd = path.at(1).c_str();
 
-	const std::vector<int> markers = Marker::GetMarkers(project);
-	if (index < 0 || index >= markers.size())
+	const std::vector<int> scenes = Marker::GetRegions(project);
+	if (index < 0 || index >= scenes.size())
 		return;
-	const int markerID = markers.at(index);
+	const int sceneID = scenes.at(index);
 
 	const bool isLaunch = std::strcmp(cmd, "launch") == 0;
 	if (std::strcmp(cmd, "select") == 0 || isLaunch)
 	{
-		double position;
-		int result = EnumProjectMarkers2(project, markerID, nullptr, &position, nullptr, nullptr, nullptr);
+		double position, endPosition;
+		int result = EnumProjectMarkers2(project, sceneID, nullptr, &position, &endPosition, nullptr, nullptr);
 		if (result)
 		{
 			SetEditCurPos2(project, position, true, true);
+			GetSet_LoopTimeRange2(project, true, true, &position, &endPosition, false);
 			if (isLaunch && (GetPlayStateEx(project) & 1) == 0)
 				CSurf_OnPlay();
 		}
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "remove") == 0)
 	{
-		DeleteProjectMarkerByIndex(project, markerID);
+		DeleteProjectMarkerByIndex(project, sceneID);
 		return;
 	}
 }

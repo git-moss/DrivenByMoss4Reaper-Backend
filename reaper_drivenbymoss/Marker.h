@@ -23,5 +23,8 @@ public:
 	Marker();
 	virtual ~Marker();
 
-	void CollectData(std::stringstream &ss, ReaProject *project, int markerIndex, int markerCount, const bool &dump);
+	void CollectData(std::stringstream &ss, ReaProject *project, const char *tag, int markerIndex, int markerID, const bool &dump);
+
+	static std::vector<int> GetMarkers(ReaProject *project);
+	static std::vector<int> GetRegions(ReaProject *project);
 };

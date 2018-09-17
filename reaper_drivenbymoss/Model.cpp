@@ -60,6 +60,27 @@ Marker *Model::GetMarker(const int index)
 
 
 /**
+ * Get a region.
+ *
+ * @param index The index of the region.
+ * @return The region, if none exists at the index a new instance is created automatically
+ */
+Marker *Model::GetRegion(const int index)
+{
+	this->regionlock.lock();
+	const int diff = index - (int)this->regions.size() + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->regions.push_back(new Marker());
+	}
+	Marker *region = this->regions.at(index);
+	this->regionlock.unlock();
+	return region;
+}
+
+
+/**
  * Get a parameter.
  *
  * @param index The index of the parameter.

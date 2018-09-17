@@ -159,6 +159,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\OscParser.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Parameter.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\ReaDebug.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\SceneProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\stdafx.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Track.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\TrackProcessor.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin.h" />
     <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin_functions.h" />
     <ClInclude Include="..\reaper_drivenbymoss\resource.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\SceneProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\stdafx.h" />
     <ClInclude Include="..\reaper_drivenbymoss\StringUtils.h" />
     <ClInclude Include="..\reaper_drivenbymoss\targetver.h" />

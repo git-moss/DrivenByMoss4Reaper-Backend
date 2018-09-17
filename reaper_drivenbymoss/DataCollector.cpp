@@ -357,12 +357,13 @@ void DataCollector::CollectBrowserData(std::stringstream &ss, ReaProject *projec
  */
 void DataCollector::CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump)
 {
-	int count = CountProjectMarkers(project, nullptr, nullptr);
+	const std::vector<int> markers = Marker::GetMarkers(project);
+	const int count = (int) markers.size();
 	this->model.markerCount = Collectors::CollectIntValue(ss, "/marker/count", this->model.markerCount, count, dump);
 	for (int index = 0; index < count; index++)
 	{
-		Marker *marker = this->model.GetMarker(index);
-		marker->CollectData(ss, project, index, count, dump);
+		Marker *marker = this->model.GetMarker(markers.at(index));
+		marker->CollectData(ss, project, "marker", index, markers.at(index), dump);
 	}
 }
 
@@ -424,7 +425,7 @@ void DataCollector::CollectSessionData(std::stringstream &ss, ReaProject *projec
 				clipstr << s;
 			}
 
-			const bool isSelected = GetMediaItemInfo_Value(item, "B_UISEL");
+			const bool isSelected = IsMediaItemSelected(item);
 			clipstr << ";" << isSelected;
 
 			int clipColor = (int)GetDisplayedMediaItemColor(item);
@@ -436,6 +437,16 @@ void DataCollector::CollectSessionData(std::stringstream &ss, ReaProject *projec
 		trackIndex++;
 	}
 	this->formattedClips = Collectors::CollectStringValue(ss, "/clip/all", this->formattedClips, clipstr.str().c_str(), dump);
+
+	// Collect "scenes", use Region markers
+	const std::vector<int> regions = Marker::GetRegions(project);
+	count = (int)regions.size();
+	this->model.sceneCount = Collectors::CollectIntValue(ss, "/scene/count", this->model.sceneCount, count, dump);
+	for (int index = 0; index < count; index++)
+	{
+		Marker *scene = this->model.GetRegion(regions.at(index));
+		scene->CollectData(ss, project, "scene", index, regions.at(index), dump);
+	}
 }
 
 

@@ -33,6 +33,7 @@ OscParser::OscParser(Model &model) :
 	midiProcessor(model),
 	markerProcessor(model),
 	refreshProcessor(model),
+	sceneProcessor(model),
 	theModel(model)
 {
 	this->processors["play"] = &playProcessor;
@@ -56,6 +57,7 @@ OscParser::OscParser(Model &model) :
 	this->processors["vkb_midi"] = &midiProcessor;
 	this->processors["marker"] = &markerProcessor;
 	this->processors["refresh"] = &refreshProcessor;
+	this->processors["scene"] = &sceneProcessor;
 }
 
 

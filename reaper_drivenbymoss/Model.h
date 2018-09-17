@@ -32,6 +32,7 @@ public:
 
 	int trackCount{ 0 };
 	int markerCount{ 0 };
+	int sceneCount{ 0 };
 
 	int deviceSelected{ 0 };
 	int deviceBankOffset{ 0 };
@@ -49,6 +50,7 @@ public:
 
 	Track *GetTrack(const int index);
 	Marker *GetMarker(const int index);
+	Marker *GetRegion(const int index);
 	Parameter *GetParameter(const int index);
 
 	void SetDump()
@@ -75,9 +77,11 @@ private:
 	FunctionExecutor & functionExecutor;
 	std::vector<Track *> tracks;
 	std::vector<Marker *> markers;
+	std::vector<Marker *> regions;
 	std::vector<Parameter *> parameters;
 	std::mutex tracklock;
 	std::mutex markerlock;
+	std::mutex regionlock;
 	std::mutex parameterlock;
 	std::mutex dumplock;
 	bool dump{false};
