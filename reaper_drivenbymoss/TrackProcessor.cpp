@@ -3,6 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "TrackProcessor.h"
+#include "OscProcessor.h"
 #include "ReaperUtils.h"
 
 
@@ -48,6 +49,54 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 		Undo_EndBlock2(project, "Delete track", 0);
 		return;
 	}
+
+	if (std::strcmp(cmd, "clip") == 0)
+	{
+		if (path.size() < 4)
+			return;
+		const int clipIndex = atoi(path.at(2).c_str());
+		MediaItem *item = GetTrackMediaItem(track, clipIndex);
+		if (item == nullptr)
+			return;
+
+		const char *subcmd = path.at(3).c_str();
+
+		if (std::strcmp(subcmd, "select") == 0)
+		{
+			Main_OnCommandEx(UNSELECT_ALL_ITEMS, 0, project);
+			SetMediaItemSelected(item, true);
+			UpdateTimeline();
+			return;
+		}
+
+		if (std::strcmp(subcmd, "launch") == 0)
+		{
+			double position = GetMediaItemInfo_Value(item, "D_POSITION");
+			SetEditCurPos2(project, position, true, true);
+			if ((GetPlayStateEx(project) & 1) == 0)
+				CSurf_OnPlay();
+			return;
+		}
+
+		if (std::strcmp(subcmd, "record") == 0)
+		{
+			double position = GetMediaItemInfo_Value(item, "D_POSITION");
+			SetEditCurPos2(project, position, true, true);
+			if ((GetPlayStateEx(project) & 4) == 0)
+				CSurf_OnRecord();
+			return;
+		}
+
+		if (std::strcmp(subcmd, "remove") == 0)
+		{
+			DeleteTrackMediaItem(track, item);
+			UpdateTimeline();
+			Undo_OnStateChangeEx("Delete item", UNDO_STATE_ITEMS, -1);
+			return;
+		}
+
+		return;
+	}
 }
 
 
@@ -74,83 +123,83 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		this->model.deviceSelected = 0;
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "createClip") == 0)
 	{
 		CreateMidiClip(project, track, value);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "noterepeat") == 0)
 	{
 		EnableRepeatPlugin(project, track, value > 0);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "active") == 0)
 	{
 		SetIsActivated(project, value > 0);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "solo") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_SOLO", value);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "mute") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "B_MUTE", value);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "recarm") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_RECARM", value);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "monitor") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_RECMON", value > 0 ? 1 : 0);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "autoMonitor") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_RECMON", value > 0 ? 2 : 0);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "autotrim") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 0);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "autoread") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 1);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "autotouch") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 2);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "autowrite") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 3);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "autolatch") == 0)
 	{
 		if (value > 0)

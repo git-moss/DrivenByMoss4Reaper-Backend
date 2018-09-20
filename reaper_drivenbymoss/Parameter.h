@@ -14,7 +14,7 @@ class Parameter
 {
 public:
 	std::string name;
-	double value;
+	double value{ 0.0 };
 	std::string valueStr;
 
 

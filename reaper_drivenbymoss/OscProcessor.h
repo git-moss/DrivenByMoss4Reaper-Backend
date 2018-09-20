@@ -121,6 +121,8 @@ protected:
 
 	/** Item: Dynamic split items... */
 	const int    DYNAMIC_SPLIT = 40760;
+	/** Item: Unselect all items */
+	const int    UNSELECT_ALL_ITEMS = 40289;
 
 	/** Track : Mute Tracks. */
 	const int    MUTE_TRACKS = 40730;

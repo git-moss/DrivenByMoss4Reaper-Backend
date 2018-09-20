@@ -226,6 +226,15 @@ void ClipProcessor::SetColorOfClip(ReaProject *project, MediaItem *item, std::st
 	int blue = std::atoi(result.str(3).c_str());
 
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
+
+	int takes = CountTakes(item);
+	for (int i = 0; i < takes; i++)
+	{
+		MediaItem_Take *take = GetTake(item, i);
+		if (take)
+			SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
+	}
+
 	UpdateItemInProject(item);
 	Undo_OnStateChange_Item(project, "Set clip color", item);
 }

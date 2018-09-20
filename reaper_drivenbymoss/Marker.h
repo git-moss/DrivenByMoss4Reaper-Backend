@@ -14,8 +14,8 @@
 class Marker
 {
 public:
-	int exists;
-	int number;
+	int exists{ 0 };
+	int number{ 0 };
 	std::string name;
 	std::string color;
 

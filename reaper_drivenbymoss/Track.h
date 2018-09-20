@@ -22,26 +22,26 @@ public:
 	std::string name{ "" };
 	std::string type;
 
-	int isSelected;
-	int mute;
-	int solo;
-	int recArmed;
-	int isActive;
-	int monitor;
-	int autoMonitor;
-	
+	int isSelected{ 0 };
+	int mute{ 0 };
+	int solo{ 0 };
+	int recArmed{ 0 };
+	int isActive{ 0 };
+	int monitor{ 0 };
+	int autoMonitor{ 0 };
+
 	std::string color;
 
-	double volume;
+	double volume{ 0.0 };
 	std::string volumeStr;
-	double pan;
+	double pan{ 0.0 };
 	std::string panStr;
-	double vuLeft;
-	double vuRight;
-	int autoMode;
+	double vuLeft{ 0.0 };
+	double vuRight{ 0.0 };
+	int autoMode{ 0 };
 
-	int repeatActive;
-	int repeatNoteLength;
+	int repeatActive{ 0 };
+	int repeatNoteLength{ 0 };
 
 	std::vector<std::string> sendName;
 	std::vector<double> sendVolume;
