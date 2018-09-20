@@ -398,8 +398,6 @@ void DataCollector::CollectSessionData(std::stringstream &ss, ReaProject *projec
 		if ((trackState & 1024) > 0)
 			continue;
 
-		double musicalStart{ -1 };
-		double bpm{};
 		int red = 0, green = 0, blue = 0;
 		char buf[2048];
 
