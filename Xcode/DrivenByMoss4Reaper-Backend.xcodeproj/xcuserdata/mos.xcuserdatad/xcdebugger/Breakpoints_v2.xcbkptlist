@@ -10,13 +10,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "Yes"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "555764148.1103131"
+            timestampString = "559256298.296558"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "144"
             endingLineNumber = "144"
-            landmarkName = "JvmManager::Create()"
-            landmarkType = "7">
+            landmarkName = "unknown"
+            landmarkType = "0">
             <Actions>
                <BreakpointActionProxy
                   ActionExtensionID = "Xcode.BreakpointAction.DebuggerCommand">
@@ -34,7 +34,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "555764148.1107841"
+            timestampString = "559256298.329527"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "319"
@@ -50,12 +50,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "Yes"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "555764148.1108789"
+            timestampString = "559256298.330084"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "150"
             endingLineNumber = "150"
-            landmarkName = "JvmManager::Create()"
+            landmarkName = "JvmManager::LoadJvmLibrary()"
             landmarkType = "7">
             <Actions>
                <BreakpointActionProxy
@@ -74,12 +74,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../reaper_drivenbymoss/JvmManager.cpp"
-            timestampString = "555764148.11097"
+            timestampString = "559256298.330605"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "216"
             endingLineNumber = "216"
-            landmarkName = "JvmManager::LookupJvmLibrary(const std::string &amp;javaHomePath)"
+            landmarkName = "JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

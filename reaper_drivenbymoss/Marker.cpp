@@ -32,7 +32,6 @@ Marker::~Marker()
  * @param tag The text to use for the id string
  * @param markerIndex The index of the marker
  * @param markerID The ID of the marker
- * @param markerCount The number of all markers
  * @param dump If true all data is collected not only the changed one since the last call
  */
 void Marker::CollectData(std::stringstream &ss, ReaProject *project, const char *tag, int markerIndex, int markerID, const bool &dump)

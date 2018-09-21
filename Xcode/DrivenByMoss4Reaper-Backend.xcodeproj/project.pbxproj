@@ -12,12 +12,10 @@
 		8535241B212F470100706C88 /* swell-modstub.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8535241A212F470000706C88 /* swell-modstub.mm */; };
 		8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */; };
 		8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FC20F40E3B00F5FF39 /* stdafx.h */; };
-		8554F21E20F40E4000F5FF39 /* DrivenByMossExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */; };
 		8554F21F20F40E4000F5FF39 /* dllmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */; };
 		8554F22020F40E4000F5FF39 /* DeviceProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */; };
 		8554F22120F40E4000F5FF39 /* DataCollector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20020F40E3B00F5FF39 /* DataCollector.h */; };
 		8554F22220F40E4000F5FF39 /* ClipProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20120F40E3C00F5FF39 /* ClipProcessor.h */; };
-		8554F22320F40E4000F5FF39 /* DrivenByMossExtension.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20220F40E3C00F5FF39 /* DrivenByMossExtension.cpp */; };
 		8554F22420F40E4000F5FF39 /* DataCollector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20320F40E3C00F5FF39 /* DataCollector.cpp */; };
 		8554F22520F40E4000F5FF39 /* FunctionExecutor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */; };
 		8554F22620F40E4000F5FF39 /* TrackProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */; };
@@ -28,7 +26,6 @@
 		8554F22B20F40E4000F5FF39 /* Model.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20A20F40E3D00F5FF39 /* Model.h */; };
 		8554F22C20F40E4000F5FF39 /* reaper_plugin_functions.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20B20F40E3D00F5FF39 /* reaper_plugin_functions.h */; };
 		8554F22D20F40E4000F5FF39 /* FunctionExecutor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */; };
-		8554F22E20F40E4000F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20D20F40E3D00F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h */; };
 		8554F22F20F40E4000F5FF39 /* TrackProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */; };
 		8554F23020F40E4000F5FF39 /* DeviceProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */; };
 		8554F23120F40E4000F5FF39 /* OscProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21020F40E3E00F5FF39 /* OscProcessor.h */; };
@@ -45,6 +42,21 @@
 		8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21B20F40E4000F5FF39 /* reaper_plugin.h */; };
 		855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855CF89420F4B8EA0001F74A /* ReaDebug.cpp */; };
 		855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = 855CF89520F4B8EB0001F74A /* ReaDebug.h */; };
+		858F79F321558EA800488951 /* Track.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79E921558E9800488951 /* Track.h */; };
+		858F79F421558EA800488951 /* ReaperUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EA21558E9900488951 /* ReaperUtils.h */; };
+		858F79F521558EA800488951 /* SceneProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79EB21558E9A00488951 /* SceneProcessor.cpp */; };
+		858F79F621558EA800488951 /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EC21558E9B00488951 /* resource.h */; };
+		858F79F721558EA800488951 /* Track.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79ED21558E9C00488951 /* Track.cpp */; };
+		858F79F821558EA800488951 /* StringUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EE21558EA100488951 /* StringUtils.h */; };
+		858F79F921558EA800488951 /* Parameter.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EF21558EA200488951 /* Parameter.h */; };
+		858F79FA21558EA800488951 /* Marker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79F021558EA300488951 /* Marker.cpp */; };
+		858F79FB21558EA800488951 /* SceneProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79F121558EA400488951 /* SceneProcessor.h */; };
+		858F7A0521558EBC00488951 /* de_mossgrabers_reaper_ui_MainFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */; };
+		858F7A0621558EBC00488951 /* Collectors.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FE21558EB500488951 /* Collectors.h */; };
+		858F7A0721558EBC00488951 /* Marker.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FF21558EB600488951 /* Marker.h */; };
+		858F7A0A21558EBC00488951 /* StringUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0221558EB900488951 /* StringUtils.h */; };
+		858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0321558EBA00488951 /* SceneProcessor.h */; };
+		858F7A0C21558EBC00488951 /* Parameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F7A0421558EBB00488951 /* Parameter.cpp */; };
 		85FB5BDF212F42DB00639003 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85FB5BDE212F42DA00639003 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
@@ -54,12 +66,10 @@
 		8535241A212F470000706C88 /* swell-modstub.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "swell-modstub.mm"; path = "../libraries/WDL/swell/swell-modstub.mm"; sourceTree = "<group>"; };
 		8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OscParser.cpp; path = ../reaper_drivenbymoss/OscParser.cpp; sourceTree = "<group>"; };
 		8554F1FC20F40E3B00F5FF39 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stdafx.h; path = ../reaper_drivenbymoss/stdafx.h; sourceTree = "<group>"; };
-		8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrivenByMossExtension.h; path = ../reaper_drivenbymoss/DrivenByMossExtension.h; sourceTree = "<group>"; };
 		8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = dllmain.cpp; path = ../reaper_drivenbymoss/dllmain.cpp; sourceTree = "<group>"; };
 		8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DeviceProcessor.cpp; path = ../reaper_drivenbymoss/DeviceProcessor.cpp; sourceTree = "<group>"; };
 		8554F20020F40E3B00F5FF39 /* DataCollector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataCollector.h; path = ../reaper_drivenbymoss/DataCollector.h; sourceTree = "<group>"; };
 		8554F20120F40E3C00F5FF39 /* ClipProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClipProcessor.h; path = ../reaper_drivenbymoss/ClipProcessor.h; sourceTree = "<group>"; };
-		8554F20220F40E3C00F5FF39 /* DrivenByMossExtension.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrivenByMossExtension.cpp; path = ../reaper_drivenbymoss/DrivenByMossExtension.cpp; sourceTree = "<group>"; };
 		8554F20320F40E3C00F5FF39 /* DataCollector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataCollector.cpp; path = ../reaper_drivenbymoss/DataCollector.cpp; sourceTree = "<group>"; };
 		8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FunctionExecutor.cpp; path = ../reaper_drivenbymoss/FunctionExecutor.cpp; sourceTree = "<group>"; };
 		8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TrackProcessor.cpp; path = ../reaper_drivenbymoss/TrackProcessor.cpp; sourceTree = "<group>"; };
@@ -70,7 +80,6 @@
 		8554F20A20F40E3D00F5FF39 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = ../reaper_drivenbymoss/Model.h; sourceTree = "<group>"; };
 		8554F20B20F40E3D00F5FF39 /* reaper_plugin_functions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = reaper_plugin_functions.h; path = ../reaper_drivenbymoss/reaper_plugin_functions.h; sourceTree = "<group>"; };
 		8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FunctionExecutor.h; path = ../reaper_drivenbymoss/FunctionExecutor.h; sourceTree = "<group>"; };
-		8554F20D20F40E3D00F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = de_mossgrabers_transformator_TransformatorApplication.h; path = ../reaper_drivenbymoss/de_mossgrabers_transformator_TransformatorApplication.h; sourceTree = "<group>"; };
 		8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TrackProcessor.h; path = ../reaper_drivenbymoss/TrackProcessor.h; sourceTree = "<group>"; };
 		8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DeviceProcessor.h; path = ../reaper_drivenbymoss/DeviceProcessor.h; sourceTree = "<group>"; };
 		8554F21020F40E3E00F5FF39 /* OscProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OscProcessor.h; path = ../reaper_drivenbymoss/OscProcessor.h; sourceTree = "<group>"; };
@@ -88,6 +97,21 @@
 		855CF89420F4B8EA0001F74A /* ReaDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ReaDebug.cpp; path = ../reaper_drivenbymoss/ReaDebug.cpp; sourceTree = "<group>"; };
 		855CF89520F4B8EB0001F74A /* ReaDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaDebug.h; path = ../reaper_drivenbymoss/ReaDebug.h; sourceTree = "<group>"; };
 		85823BC220F40CD000E4CC57 /* reaper_drivenbymoss.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = reaper_drivenbymoss.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		858F79E921558E9800488951 /* Track.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Track.h; path = ../reaper_drivenbymoss/Track.h; sourceTree = "<group>"; };
+		858F79EA21558E9900488951 /* ReaperUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaperUtils.h; path = ../reaper_drivenbymoss/ReaperUtils.h; sourceTree = "<group>"; };
+		858F79EB21558E9A00488951 /* SceneProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SceneProcessor.cpp; path = ../reaper_drivenbymoss/SceneProcessor.cpp; sourceTree = "<group>"; };
+		858F79EC21558E9B00488951 /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = resource.h; path = ../reaper_drivenbymoss/resource.h; sourceTree = "<group>"; };
+		858F79ED21558E9C00488951 /* Track.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Track.cpp; path = ../reaper_drivenbymoss/Track.cpp; sourceTree = "<group>"; };
+		858F79EE21558EA100488951 /* StringUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringUtils.h; path = ../reaper_drivenbymoss/StringUtils.h; sourceTree = "<group>"; };
+		858F79EF21558EA200488951 /* Parameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Parameter.h; path = ../reaper_drivenbymoss/Parameter.h; sourceTree = "<group>"; };
+		858F79F021558EA300488951 /* Marker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Marker.cpp; path = ../reaper_drivenbymoss/Marker.cpp; sourceTree = "<group>"; };
+		858F79F121558EA400488951 /* SceneProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SceneProcessor.h; path = ../reaper_drivenbymoss/SceneProcessor.h; sourceTree = "<group>"; };
+		858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = de_mossgrabers_reaper_ui_MainFrame.h; path = ../reaper_drivenbymoss/de_mossgrabers_reaper_ui_MainFrame.h; sourceTree = "<group>"; };
+		858F79FE21558EB500488951 /* Collectors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Collectors.h; path = ../reaper_drivenbymoss/Collectors.h; sourceTree = "<group>"; };
+		858F79FF21558EB600488951 /* Marker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Marker.h; path = ../reaper_drivenbymoss/Marker.h; sourceTree = "<group>"; };
+		858F7A0221558EB900488951 /* StringUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringUtils.h; path = ../reaper_drivenbymoss/StringUtils.h; sourceTree = "<group>"; };
+		858F7A0321558EBA00488951 /* SceneProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SceneProcessor.h; path = ../reaper_drivenbymoss/SceneProcessor.h; sourceTree = "<group>"; };
+		858F7A0421558EBB00488951 /* Parameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parameter.cpp; path = ../reaper_drivenbymoss/Parameter.cpp; sourceTree = "<group>"; };
 		85E1A7A420F4FB0000D38CC1 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Library; path = ../../../../../../Library; sourceTree = "<group>"; };
 		85E1A7A920F4FD0600D38CC1 /* JavaVM */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = JavaVM; path = ../../../../../../System/Library/Frameworks/JavaVM.framework/Versions/A/JavaVM; sourceTree = "<group>"; };
 		85FB5BDE212F42DA00639003 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -108,28 +132,26 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
-				8535241A212F470000706C88 /* swell-modstub.mm */,
-				850C4C47212017370059A6B0 /* MarkerProcessor.cpp */,
-				850C4C48212017380059A6B0 /* MarkerProcessor.h */,
-				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
-				855CF89520F4B8EB0001F74A /* ReaDebug.h */,
-				85823BC320F40CD000E4CC57 /* Products */,
 				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
 				8554F20120F40E3C00F5FF39 /* ClipProcessor.h */,
+				858F79FE21558EB500488951 /* Collectors.h */,
 				8554F20320F40E3C00F5FF39 /* DataCollector.cpp */,
 				8554F20020F40E3B00F5FF39 /* DataCollector.h */,
-				8554F20D20F40E3D00F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h */,
+				858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */,
 				8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */,
 				8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */,
 				8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */,
-				8554F20220F40E3C00F5FF39 /* DrivenByMossExtension.cpp */,
-				8554F1FD20F40E3B00F5FF39 /* DrivenByMossExtension.h */,
 				8554F21820F40E3F00F5FF39 /* DrivenByMossSurface.cpp */,
 				8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */,
+				85E1A7A320F4FB0000D38CC1 /* Frameworks */,
 				8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */,
 				8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */,
 				8554F20820F40E3C00F5FF39 /* JvmManager.cpp */,
 				8554F21120F40E3E00F5FF39 /* JvmManager.h */,
+				858F79F021558EA300488951 /* Marker.cpp */,
+				858F79FF21558EB600488951 /* Marker.h */,
+				850C4C47212017370059A6B0 /* MarkerProcessor.cpp */,
+				850C4C48212017380059A6B0 /* MarkerProcessor.h */,
 				8554F21920F40E3F00F5FF39 /* MastertrackProcessor.cpp */,
 				8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */,
 				8554F21420F40E3E00F5FF39 /* MidiProcessor.cpp */,
@@ -139,15 +161,29 @@
 				8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */,
 				8554F21520F40E3E00F5FF39 /* OscParser.h */,
 				8554F21020F40E3E00F5FF39 /* OscProcessor.h */,
+				858F7A0421558EBB00488951 /* Parameter.cpp */,
+				858F79EF21558EA200488951 /* Parameter.h */,
+				85823BC320F40CD000E4CC57 /* Products */,
+				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
+				855CF89520F4B8EB0001F74A /* ReaDebug.h */,
 				8554F20B20F40E3D00F5FF39 /* reaper_plugin_functions.h */,
 				8554F21B20F40E4000F5FF39 /* reaper_plugin.h */,
+				858F79EA21558E9900488951 /* ReaperUtils.h */,
+				858F79EC21558E9B00488951 /* resource.h */,
+				858F79EB21558E9A00488951 /* SceneProcessor.cpp */,
+				858F7A0321558EBA00488951 /* SceneProcessor.h */,
 				8554F21620F40E3F00F5FF39 /* stdafx.cpp */,
 				8554F1FC20F40E3B00F5FF39 /* stdafx.h */,
+				858F7A0221558EB900488951 /* StringUtils.h */,
+				858F79F121558EA400488951 /* SceneProcessor.h */,
+				8535241A212F470000706C88 /* swell-modstub.mm */,
 				8554F21A20F40E3F00F5FF39 /* targetver.h */,
+				858F79ED21558E9C00488951 /* Track.cpp */,
+				858F79E921558E9800488951 /* Track.h */,
 				8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */,
 				8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */,
 				8554F20620F40E3C00F5FF39 /* TransportProcessor.h */,
-				85E1A7A320F4FB0000D38CC1 /* Frameworks */,
+				858F79EE21558EA100488951 /* StringUtils.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -177,25 +213,34 @@
 			buildActionMask = 2147483647;
 			files = (
 				8554F23220F40E4000F5FF39 /* JvmManager.h in Headers */,
+				858F7A0A21558EBC00488951 /* StringUtils.h in Headers */,
 				850C4C4A2120173A0059A6B0 /* MarkerProcessor.h in Headers */,
 				8554F23620F40E4000F5FF39 /* OscParser.h in Headers */,
 				8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */,
+				858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */,
+				858F7A0521558EBC00488951 /* de_mossgrabers_reaper_ui_MainFrame.h in Headers */,
+				858F7A0621558EBC00488951 /* Collectors.h in Headers */,
+				858F79F821558EA800488951 /* StringUtils.h in Headers */,
 				855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */,
 				8554F22A20F40E4000F5FF39 /* MastertrackProcessor.h in Headers */,
+				858F79F421558EA800488951 /* ReaperUtils.h in Headers */,
 				8554F22220F40E4000F5FF39 /* ClipProcessor.h in Headers */,
 				8554F22D20F40E4000F5FF39 /* FunctionExecutor.h in Headers */,
 				8554F22720F40E4000F5FF39 /* TransportProcessor.h in Headers */,
-				8554F22E20F40E4000F5FF39 /* de_mossgrabers_transformator_TransformatorApplication.h in Headers */,
 				8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */,
 				8554F23020F40E4000F5FF39 /* DeviceProcessor.h in Headers */,
+				858F79F621558EA800488951 /* resource.h in Headers */,
+				858F7A0721558EBC00488951 /* Marker.h in Headers */,
 				8554F23320F40E4000F5FF39 /* MidiProcessor.h in Headers */,
-				8554F21E20F40E4000F5FF39 /* DrivenByMossExtension.h in Headers */,
 				8554F23B20F40E4000F5FF39 /* targetver.h in Headers */,
+				858F79FB21558EA800488951 /* SceneProcessor.h in Headers */,
 				8554F22F20F40E4000F5FF39 /* TrackProcessor.h in Headers */,
 				8554F22C20F40E4000F5FF39 /* reaper_plugin_functions.h in Headers */,
+				858F79F921558EA800488951 /* Parameter.h in Headers */,
 				8554F22120F40E4000F5FF39 /* DataCollector.h in Headers */,
 				8554F22B20F40E4000F5FF39 /* Model.h in Headers */,
 				8554F22820F40E4000F5FF39 /* DrivenByMossSurface.h in Headers */,
+				858F79F321558EA800488951 /* Track.h in Headers */,
 				8554F23120F40E4000F5FF39 /* OscProcessor.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -256,12 +301,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				858F79FA21558EA800488951 /* Marker.cpp in Sources */,
 				855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */,
 				8554F23420F40E4000F5FF39 /* Model.cpp in Sources */,
 				8554F22620F40E4000F5FF39 /* TrackProcessor.cpp in Sources */,
 				8554F23A20F40E4000F5FF39 /* MastertrackProcessor.cpp in Sources */,
-				8554F22320F40E4000F5FF39 /* DrivenByMossExtension.cpp in Sources */,
 				8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */,
+				858F79F521558EA800488951 /* SceneProcessor.cpp in Sources */,
 				850C4C492120173A0059A6B0 /* MarkerProcessor.cpp in Sources */,
 				8554F22420F40E4000F5FF39 /* DataCollector.cpp in Sources */,
 				8554F22020F40E4000F5FF39 /* DeviceProcessor.cpp in Sources */,
@@ -271,8 +317,10 @@
 				8554F22920F40E4000F5FF39 /* JvmManager.cpp in Sources */,
 				8554F23820F40E4000F5FF39 /* ClipProcessor.cpp in Sources */,
 				8535241B212F470100706C88 /* swell-modstub.mm in Sources */,
+				858F79F721558EA800488951 /* Track.cpp in Sources */,
 				8554F23920F40E4000F5FF39 /* DrivenByMossSurface.cpp in Sources */,
 				8554F23520F40E4000F5FF39 /* MidiProcessor.cpp in Sources */,
+				858F7A0C21558EBC00488951 /* Parameter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

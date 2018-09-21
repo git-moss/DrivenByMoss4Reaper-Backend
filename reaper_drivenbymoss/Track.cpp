@@ -9,7 +9,7 @@
 /**
  * Constructor.
  *
- * @param sendBankSize The number of sends
+ * @param numSends The number of sends
  */
 Track::Track(const int numSends) :
 	sendBankSize(numSends),
