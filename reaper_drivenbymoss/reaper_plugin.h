@@ -26,8 +26,10 @@
 #ifndef _REAPER_PLUGIN_H_
 #define _REAPER_PLUGIN_H_
 
+#ifdef _WIN32
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4505)
+#endif
 
 #ifndef REASAMPLE_SIZE
 #define REASAMPLE_SIZE 8 // if we change this it will break everything!
@@ -70,6 +72,8 @@ typedef double ReaSample;
 ** Endian-tools and defines (currently only __ppc__ and BIG_ENDIAN is recognized, for OS X -- all other platforms are assumed to be LE)
 */
 
+#if defined(__ppc__)
+
 static int REAPER_BSWAPINT(int x)
 {
   return ((((x))&0xff)<<24)|((((x))&0xff00)<<8)|((((x))&0xff0000)>>8)|(((x)>>24)&0xff);
@@ -88,8 +92,6 @@ static void REAPER_BSWAPINTMEM8(void *buf)
   tmp=p[2]; p[2]=p[5]; p[5]=tmp;
   tmp=p[3]; p[3]=p[4]; p[4]=tmp;
 }
-
-#if defined(__ppc__)
 
 #define REAPER_BIG_ENDIAN
 #define REAPER_FOURCC(d,c,b,a) (((unsigned int)(d)&0xff)|(((unsigned int)(c)&0xff)<<8)|(((unsigned int)(b)&0xff)<<16)|(((unsigned int)(a)&0xff)<<24))

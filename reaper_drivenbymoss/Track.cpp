@@ -12,10 +12,10 @@
  * @param sendBankSize The number of sends
  */
 Track::Track(const int numSends) :
+	sendBankSize(numSends),
 	sendName(numSends, ""),
 	sendVolume(numSends, 0),
-	sendVolumeStr(numSends, ""),
-	sendBankSize(numSends)
+	sendVolumeStr(numSends, "")
 {
 	// Intentionally empty
 }

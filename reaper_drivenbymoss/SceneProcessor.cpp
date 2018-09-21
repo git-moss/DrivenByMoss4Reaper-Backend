@@ -35,7 +35,7 @@ void SceneProcessor::Process(std::string command, std::deque<std::string> &path)
 	const char *cmd = path.at(1).c_str();
 
 	const std::vector<int> scenes = Marker::GetRegions(project);
-	if (index < 0 || index >= scenes.size())
+	if (index < 0 || index >= (int)scenes.size())
 		return;
 	const int sceneID = scenes.at(index);
 

@@ -58,8 +58,8 @@ private:
 	ClipProcessor 					 clipProcessor;
 	MidiProcessor 					 midiProcessor;
 	MarkerProcessor 				 markerProcessor;
-	SceneProcessor 					 sceneProcessor;
 	RefreshProcessor 				 refreshProcessor;
+	SceneProcessor 					 sceneProcessor;
 
 	std::map<std::string, OscProcessor *> processors;
 	Model &theModel;
