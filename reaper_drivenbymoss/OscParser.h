@@ -32,10 +32,10 @@ public:
 	OscParser(Model &model);
 	virtual ~OscParser() {};
 
-	virtual void Process(const std::string &command) const;
-	virtual void Process(const std::string &command, const std::string &value) const;
-	virtual void Process(const std::string &command, const int &value) const;
-	virtual void Process(const std::string &command, const double &value) const;
+	virtual void Process(const std::string command) const;
+	virtual void Process(const std::string command, const std::string value) const;
+	virtual void Process(const std::string command, const int value) const;
+	virtual void Process(const std::string command, const double value) const;
 
 private:
 	PlayProcessor 					 playProcessor;

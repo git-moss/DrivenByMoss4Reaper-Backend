@@ -66,9 +66,9 @@ OscParser::OscParser(Model &model) :
  *
  * @param command The command
  */
-void OscParser::Process(const std::string &command) const
+void OscParser::Process(const std::string command) const
 {
-	this->theModel.AddFunction([=]()
+	this->theModel.AddFunction([this, command]()
 	{
 		std::deque<std::string> elements = this->Split(command);
 		if (elements.empty())
@@ -93,9 +93,9 @@ void OscParser::Process(const std::string &command) const
  * @param command The command
  * @param value   The value
  */
-void OscParser::Process(const std::string &command, const std::string &value) const
+void OscParser::Process(const std::string command, const std::string value) const
 {
-	this->theModel.AddFunction([=]()
+	this->theModel.AddFunction([this, command, value]()
 	{
 		std::deque<std::string> elements = this->Split(command);
 		if (elements.empty())
@@ -120,9 +120,9 @@ void OscParser::Process(const std::string &command, const std::string &value) co
  * @param command The command
  * @param value   The value
  */
-void OscParser::Process(const std::string &command, const int &value) const
+void OscParser::Process(const std::string command, const int value) const
 {
-	this->theModel.AddFunction([=]()
+	this->theModel.AddFunction([this, command, value]()
 	{
 		std::deque<std::string> elements = this->Split(command);
 		if (elements.empty())
@@ -147,9 +147,9 @@ void OscParser::Process(const std::string &command, const int &value) const
  * @param command The command
  * @param value   The value
  */
-void OscParser::Process(const std::string &command, const double &value) const
+void OscParser::Process(const std::string command, const double value) const
 {
-	this->theModel.AddFunction([=]()
+	this->theModel.AddFunction([this,command,value]()
 	{
 		std::deque<std::string> elements = this->Split(command);
 		if (elements.empty())
