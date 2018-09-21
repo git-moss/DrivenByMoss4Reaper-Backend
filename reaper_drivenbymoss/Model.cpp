@@ -1,9 +1,7 @@
-// Written by Jürgen Moßgraber - mossgrabers.de
+// Written by JÃ¼rgen MoÃŸgraber - mossgrabers.de
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#include <algorithm>
-#include <cmath>
 #include "Model.h"
 
 

@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include <cstring>
-#include <memory>
+#include <string>
 #include <jni.h>
 
 
@@ -61,6 +60,7 @@ private:
 	void StartApp();
 
 	bool LoadJvmLibrary();
+	std::string GetEnvironmentVariable(const char *name) const;
 	std::string LookupJvmLibrary(const std::string &javaHomePath) const;
 	std::string CreateClasspath() const;
 	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;

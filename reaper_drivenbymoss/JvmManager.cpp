@@ -11,19 +11,13 @@
 #include <dlfcn.h>
 #endif
 
-#include <string>
 #include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <iostream>
 #include <sstream>
 #include <fstream>
 
 #include "JvmManager.h"
 #include "ReaDebug.h"
-#include "reaper_plugin_functions.h"
-#undef max
-#undef min
+#include "ReaperUtils.h"
 
 #ifdef WIN32
 extern std::wstring stringToWs(const std::string& s);
@@ -156,13 +150,10 @@ void JvmManager::Create()
 bool JvmManager::LoadJvmLibrary()
 {
 	// Look up the JAVA_HOME variable
-	const char *variable = std::getenv("JAVA_HOME");
-	if (variable == nullptr)
-	{
-		ReaDebug() << "JAVA_HOME environment variable is not configured!";
+	this->javaHomePath = this->GetEnvironmentVariable("JAVA_HOME");
+	if (this->javaHomePath.empty())
 		return false;
-	}
-	this->javaHomePath = variable;
+
 	std::string libPath = LookupJvmLibrary(this->javaHomePath);
 	if (libPath.empty())
 	{
@@ -485,4 +476,39 @@ jclass JvmManager::GetControllerClass()
 		return nullptr;
 	}
 	return this->controllerClass;
+}
+
+
+std::string JvmManager::GetEnvironmentVariable(const char *name) const
+{
+#ifdef _WIN32
+	size_t requiredSize;
+
+	getenv_s(&requiredSize, nullptr, 0, name);
+	if (requiredSize == 0)
+	{
+		ReaDebug() << name << " environment variable is not configured!";
+		return "";
+	}
+
+	char *variable = (char*)malloc(requiredSize * sizeof(char));
+	if (!variable)
+	{
+		ReaDebug() << name << " environment variable could not be allocated!";
+		return "";
+	}
+
+	getenv_s(&requiredSize, variable, requiredSize, name);
+	std::string result = variable;
+	free(variable);
+	return result;
+#else
+	const char *variable = std::getenv(name);
+	if (variable == nullptr)
+	{
+		ReaDebug() << name << " environment variable is not configured!";
+		return "";
+	}
+	return variable;
+#endif
 }

@@ -7,10 +7,6 @@
 #include <vector>
 #include <mutex>
 
-#include "reaper_plugin_functions.h"
-#undef max
-#undef min
-
 #include "FunctionExecutor.h"
 #include "Marker.h"
 #include "Track.h"

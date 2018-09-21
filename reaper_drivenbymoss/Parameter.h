@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include "ReaperUtils.h"
+
 
 /**
  * Encapsulates Reaper C functions for parameters.

@@ -3,9 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.tvaluet
 
 #include "ReaDebug.h"
-#include "reaper_plugin_functions.h"
-#undef max
-#undef min
+#include "ReaperUtils.h"
 
 Model *ReaDebug::model = nullptr;
 

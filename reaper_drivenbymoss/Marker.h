@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "ReaperUtils.h"
+
 
 /**
  * Encapsulates Reaper C functions for markers.

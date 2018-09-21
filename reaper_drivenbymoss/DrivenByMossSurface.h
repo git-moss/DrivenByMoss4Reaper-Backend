@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include "reaper_plugin_functions.h"
-#undef max
-#undef min
 #include "FunctionExecutor.h"
 #include "OscParser.h"
 #include "JvmManager.h"

@@ -2,9 +2,7 @@
 // (c) 2018
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#include "reaper_plugin_functions.h"
 #include "Collectors.h"
-#include "ReaperUtils.h"
 #include "Parameter.h"
 
 

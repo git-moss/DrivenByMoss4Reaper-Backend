@@ -1,3 +1,7 @@
+// Written by Jürgen Moßgraber - mossgrabers.de
+// (c) 2018
+// Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
+
 #pragma once
 
 #include <iomanip>
@@ -30,7 +34,7 @@ public:
 
 	static double CollectDoubleValue(std::stringstream &ss, const char *command, double currentValue, const double newValue, const bool &dump)
 	{
-		if (fabs(currentValue - newValue) > 0.0000000001 || dump)
+		if (std::fabs(currentValue - newValue) > 0.0000000001 || dump)
 			ss << command << " " << newValue << "\n";
 		return newValue;
 	}
@@ -116,7 +120,7 @@ public:
 
 	static std::string FormatPan(double value)
 	{
-		if (abs(value) < 0.001)
+		if (std::abs(value) < 0.001)
 			return "C";
 		std::stringstream stream;
 		if (value < 0)
