@@ -280,10 +280,16 @@ std::string DataCollector::CollectClipNotes(ReaProject *project, MediaItem *item
 	std::string notesStrNew{ " " };
 
 	if (item == nullptr)
+	{
+		this->noteHash = "";
 		return notesStrNew;
+	}
 	MediaItem_Take *take = GetActiveTake(item);
 	if (take == nullptr || !TakeIsMIDI(take))
+	{
+		this->noteHash = "";
 		return notesStrNew;
+	}
 
 	// Have notes changed since last call?
 	char nhash[16];

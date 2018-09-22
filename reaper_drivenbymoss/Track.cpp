@@ -53,7 +53,7 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *
 	// Track name
 	int trackState{};
 	const char *name = GetTrackState(track, &trackState);
-	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, name != nullptr ? name : "", dump);
+	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, name == nullptr ? "Track" : name, dump);
 
 	// Track type (GROUP or HYBRID), select, mute, solo, recarm and monitor states
 	this->type = Collectors::CollectStringValue(ss, (trackAddress + "type").c_str(), this->type, (trackState & 1) > 0 ? "GROUP" : "HYBRID", dump);
