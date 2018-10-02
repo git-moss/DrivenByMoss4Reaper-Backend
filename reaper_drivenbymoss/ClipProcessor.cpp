@@ -130,7 +130,12 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			this->ClearNote(project, item, pitch, value);
+			MediaItem_Take *take = GetActiveTake(item);
+			if (take == nullptr)
+				return;
+			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
+			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
+			this->ClearNote(project, item, pitch, ppqPosStart);
 			return;
 		}
 
