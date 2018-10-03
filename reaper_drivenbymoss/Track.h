@@ -43,7 +43,7 @@ public:
 	int autoMode{ 0 };
 
 	int repeatActive{ 0 };
-	int repeatNoteLength{ 0 };
+	double repeatNoteLength{ 0 };
 
 	std::vector<std::string> sendName;
 	std::vector<double> sendVolume;
