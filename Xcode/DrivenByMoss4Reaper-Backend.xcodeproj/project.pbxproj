@@ -47,10 +47,8 @@
 		858F79F521558EA800488951 /* SceneProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79EB21558E9A00488951 /* SceneProcessor.cpp */; };
 		858F79F621558EA800488951 /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EC21558E9B00488951 /* resource.h */; };
 		858F79F721558EA800488951 /* Track.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79ED21558E9C00488951 /* Track.cpp */; };
-		858F79F821558EA800488951 /* StringUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EE21558EA100488951 /* StringUtils.h */; };
 		858F79F921558EA800488951 /* Parameter.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EF21558EA200488951 /* Parameter.h */; };
 		858F79FA21558EA800488951 /* Marker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79F021558EA300488951 /* Marker.cpp */; };
-		858F79FB21558EA800488951 /* SceneProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79F121558EA400488951 /* SceneProcessor.h */; };
 		858F7A0521558EBC00488951 /* de_mossgrabers_reaper_ui_MainFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */; };
 		858F7A0621558EBC00488951 /* Collectors.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FE21558EB500488951 /* Collectors.h */; };
 		858F7A0721558EBC00488951 /* Marker.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FF21558EB600488951 /* Marker.h */; };
@@ -220,7 +218,6 @@
 				858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */,
 				858F7A0521558EBC00488951 /* de_mossgrabers_reaper_ui_MainFrame.h in Headers */,
 				858F7A0621558EBC00488951 /* Collectors.h in Headers */,
-				858F79F821558EA800488951 /* StringUtils.h in Headers */,
 				855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */,
 				8554F22A20F40E4000F5FF39 /* MastertrackProcessor.h in Headers */,
 				858F79F421558EA800488951 /* ReaperUtils.h in Headers */,
@@ -233,7 +230,6 @@
 				858F7A0721558EBC00488951 /* Marker.h in Headers */,
 				8554F23320F40E4000F5FF39 /* MidiProcessor.h in Headers */,
 				8554F23B20F40E4000F5FF39 /* targetver.h in Headers */,
-				858F79FB21558EA800488951 /* SceneProcessor.h in Headers */,
 				8554F22F20F40E4000F5FF39 /* TrackProcessor.h in Headers */,
 				8554F22C20F40E4000F5FF39 /* reaper_plugin_functions.h in Headers */,
 				858F79F921558EA800488951 /* Parameter.h in Headers */,
@@ -271,7 +267,7 @@
 		85823BBA20F40CCF00E4CC57 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = "Jürgen Moßgraber";
 				TargetAttributes = {
 					85823BC120F40CD000E4CC57 = {
