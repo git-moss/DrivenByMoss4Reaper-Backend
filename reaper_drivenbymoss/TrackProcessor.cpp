@@ -303,35 +303,34 @@ void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int 
 	// Disable recording on all tracks
 	for (int idx = 0; idx < CountTracks(project); idx++)
 		SetMediaTrackInfo_Value(GetTrack(project, idx), "I_RECARM", 0);
-
-	// Create a new midi clip on the given track
-	const double cursorPos = GetCursorPositionEx(project);
-	double bpmOut, bpiOut;
-	GetProjectTimeSignature2(project, &bpmOut, &bpiOut);
-	// Calculate length in seconds of n beats
-	const double length = static_cast<double>(beats) * 60.0 / bpmOut;
-	MediaItem *item = CreateNewMIDIItemInProj(track, cursorPos, cursorPos + length, 0);
-	if (item == nullptr)
-		return;
-
-	// Remove all current selections
-	SelectAllMediaItems(project, 0);
-	SetMediaItemSelected(item, 1);
-
-	// Set time selection to seleted items
-	Main_OnCommandEx(40290, 0, project);
+	// Set recording mode to midi overdub
+	SetMediaTrackInfo_Value(track, "I_RECMODE", 7);
+	// Enable Recording on current track
+	SetMediaTrackInfo_Value(track, "I_RECARM", 1);
 
 	// Enable Loop
 	GetSetRepeatEx(project, 1);
 
-	// Set recording mode to midi overdub
-	SetMediaTrackInfo_Value(track, "I_RECMODE", 7);
+	// Remove all current selections
+	SelectAllMediaItems(project, false);
 
-	// Enable Recording
-	SetMediaTrackInfo_Value(track, "I_RECARM", 1);
+	// Create a new midi clip on the given track
+	double cursorPos = GetCursorPositionEx(project);
+	double bpmOut, bpiOut;
+	GetProjectTimeSignature2(project, &bpmOut, &bpiOut);
+	// Calculate length in seconds of n beats
+	const double length = static_cast<double>(beats) * 60.0 / bpmOut;
+	double end = cursorPos + length;
 
-	// Record
-	Main_OnCommandEx(1013, 0, project);
+	MediaItem *item = CreateNewMIDIItemInProj(track, cursorPos, end, nullptr);
+	if (item != nullptr)
+	{
+		// Set the loop to the item
+		GetSet_LoopTimeRange(true, true, &cursorPos, &end, false);
+		SetMediaItemSelected(item, true);
+
+		CSurf_OnPlay();
+	}
 
 	Undo_EndBlock2(project, "Create Midi Clip and Record", 0);
 }
