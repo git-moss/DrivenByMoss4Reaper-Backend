@@ -238,6 +238,7 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 	const int count = CountSelectedMediaItems(project);
 	int red = 0, green = 0, blue = 0;
 	MediaItem *item = nullptr;
+	int loopIsEnabled = 0;
 	if (count > 0)
 	{
 		item = GetSelectedMediaItem(project, 0);
@@ -256,6 +257,8 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 
 		int clipColor = (int)GetDisplayedMediaItemColor(item);
 		ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
+
+		loopIsEnabled = GetMediaItemInfo_Value(item, "B_LOOPSRC") > 0 ? 1 : 0;
 	}
 	std::string newNotes = this->CollectClipNotes(project, item);
 	this->notesStr = Collectors::CollectStringValue(ss, "/clip/notes", this->notesStr, newNotes.c_str(), dump);
@@ -263,6 +266,8 @@ void DataCollector::CollectClipData(std::stringstream &ss, ReaProject *project, 
 	this->clipMusicalStart = Collectors::CollectDoubleValue(ss, "/clip/start", this->clipMusicalStart, musicalStart, dump);
 	this->clipMusicalEnd = Collectors::CollectDoubleValue(ss, "/clip/end", this->clipMusicalEnd, musicalEnd, dump);
 	this->clipMusicalPlayPosition = Collectors::CollectDoubleValue(ss, "/clip/playposition", this->clipMusicalPlayPosition, musicalPlayPosition, dump);
+
+	this->clipLoopIsEnabled = Collectors::CollectIntValue(ss, "/clip/loop", this->clipLoopIsEnabled, loopIsEnabled, dump);
 
 	this->clipColor = Collectors::CollectStringValue(ss, "/clip/color", this->clipColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
 }

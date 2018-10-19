@@ -144,13 +144,13 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 
 	if (std::strcmp(cmd, "solo") == 0)
 	{
-		SetMediaTrackInfo_Value(track, "I_SOLO", value);
+		CSurf_OnSoloChange(track, value);
 		return;
 	}
 
 	if (std::strcmp(cmd, "mute") == 0)
 	{
-		SetMediaTrackInfo_Value(track, "B_MUTE", value);
+		CSurf_OnMuteChange(track, value);
 		return;
 	}
 
@@ -234,7 +234,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		if (path.size() == 2)
 		{
 			trackData->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			SetMediaTrackInfo_Value(track, "D_VOL", trackData->volume);
+			CSurf_OnVolumeChange(track, trackData->volume, false);
 		}
 		return;
 	}
@@ -245,7 +245,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		if (path.size() == 2)
 		{
 			trackData->pan = value * 2 - 1;
-			SetMediaTrackInfo_Value(track, "D_PAN", trackData->pan);
+			CSurf_OnPanChange(track, trackData->pan, false);
 		}
 		return;
 	}
@@ -257,7 +257,7 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
 			trackData->sendVolume.at(sendIndex) = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			SetTrackSendInfo_Value(track, 0, sendIndex, "D_VOL", trackData->sendVolume.at(sendIndex));
+			CSurf_OnSendVolumeChange(track, sendIndex, trackData->sendVolume.at(sendIndex), false);
 		}
 		return;
 	}

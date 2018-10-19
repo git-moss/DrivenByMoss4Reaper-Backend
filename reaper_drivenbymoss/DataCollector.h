@@ -43,6 +43,7 @@ private:
 	double clipMusicalStart{};
 	double clipMusicalEnd{};
 	double clipMusicalPlayPosition{};
+	int clipLoopIsEnabled{};
 	// Note hash
 	std::string noteHash{};
 	std::string notesStr{};

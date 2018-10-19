@@ -138,7 +138,12 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 			this->ClearNote(project, item, pitch, ppqPosStart);
 			return;
 		}
+		return;
+	}
 
+	if (std::strcmp(cmd, "loop") == 0)
+	{
+		SetMediaItemInfo_Value(item, "B_LOOPSRC", value > 0);
 		return;
 	}
 }
