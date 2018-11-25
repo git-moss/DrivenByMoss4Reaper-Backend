@@ -23,6 +23,6 @@ public:
 	Parameter();
 	virtual ~Parameter();
 
-	void CollectData(std::stringstream &ss, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump);
+	void CollectData(std::stringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump);
 };
 

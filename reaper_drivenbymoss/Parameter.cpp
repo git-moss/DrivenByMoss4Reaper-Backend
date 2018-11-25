@@ -28,16 +28,17 @@ Parameter::~Parameter()
  * Collect the (changed) parameter data.
  *
  * @param ss The stream where to append the formatted data
+ * @param oscPath The start of the OSC path to use
  * @param track The track to which the device belongs
  * @param deviceIndex The index of the device to which the parameters belong
  * @param parameterIndex The index of the parameter
  * @param parameterCount The number of all parameters
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Parameter::CollectData(std::stringstream &ss, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump)
+void Parameter::CollectData(std::stringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump)
 {
 	std::stringstream das;
-	das << "/device/param/" << parameterIndex << "/";
+	das << oscPath << parameterIndex << "/";
 	std::string paramAddress = das.str();
 
 	const int LENGTH = 20;

@@ -81,6 +81,12 @@ private:
 	int deviceBypass{};
 	std::vector<std::string> deviceSiblings;
 
+	// Instrument device values
+	int instrumentExists{ -1 };
+	int instrumentPosition{ -1 };
+	std::string instrumentName{};
+	Parameter instrumentParameter1{};
+
 	// Browser values
 	std::string devicePresetName{};
 	int devicePresetIndex{};

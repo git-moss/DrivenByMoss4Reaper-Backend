@@ -136,7 +136,7 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 	this->deviceWindow = Collectors::CollectIntValue(ss, "/device/window", this->deviceWindow, TrackFX_GetOpen(track, deviceIndex), dump);
 	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpandedType == 1, dump);
 
-	const int LENGTH = 20;
+	const int LENGTH = 30;
 	char name[LENGTH];
 	bool result = TrackFX_GetFXName(track, deviceIndex, name, LENGTH);
 	this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
@@ -157,8 +157,20 @@ void DataCollector::CollectDeviceData(std::stringstream &ss, ReaProject *project
 	for (int index = 0; index < paramCount; index++)
 	{
 		Parameter *parameter = this->model.GetParameter(index);
-		parameter->CollectData(ss, track, deviceIndex, index, paramCount, dump);
+		parameter->CollectData(ss, "/device/param/", track, deviceIndex, index, paramCount, dump);
 	}
+
+	// First instrument (primary) data
+
+	int instrumentIndex = TrackFX_GetInstrument(track);
+	this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentIndex >= 0, dump);
+	this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
+	result = TrackFX_GetFXName(track, instrumentIndex, name, LENGTH);
+	this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? name : "", dump);
+
+	// Currently, we only need 1 parameter for the Kontrol OSC ID
+	Collectors::CollectIntValue(ss, "/primary/param/count", 1, 1, dump);
+	this->instrumentParameter1.CollectData(ss, "/primary/param/", track, instrumentIndex, 0, 1, dump);
 }
 
 /**

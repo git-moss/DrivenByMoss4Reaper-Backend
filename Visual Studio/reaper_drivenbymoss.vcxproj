@@ -23,7 +23,7 @@
     <ProjectGuid>{66BF532D-08EE-4B58-A93F-3AD630309774}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>reaper_drivenbymoss</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
