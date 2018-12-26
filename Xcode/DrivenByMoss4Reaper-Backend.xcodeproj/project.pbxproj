@@ -448,7 +448,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
@@ -470,7 +470,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
