@@ -51,11 +51,14 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *
 	this->depth = Collectors::CollectIntValue(ss, (trackAddress + "depth").c_str(), this->depth, GetTrackDepth(track), dump);
 
 	// Track name
-	int trackState{};
-	const char *name = GetTrackState(track, &trackState);
-	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, name == nullptr ? "Track" : name, dump);
+	const int LENGTH{ 20 };
+	char name[LENGTH];
+	bool result = GetTrackName(track, name, LENGTH);
+	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, result ? name : "", dump);
 
 	// Track type (GROUP or HYBRID), select, mute, solo, recarm and monitor states
+	int trackState{};
+	GetTrackState(track, &trackState);
 	this->type = Collectors::CollectStringValue(ss, (trackAddress + "type").c_str(), this->type, (trackState & 1) > 0 ? "GROUP" : "HYBRID", dump);
 	const int selected = (trackState & 2) > 0 ? 1 : 0;
 	this->isSelected = Collectors::CollectIntValue(ss, (trackAddress + "select").c_str(), this->isSelected, selected, dump);
@@ -94,7 +97,6 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *
 
 	// Sends
 	const int numSends = GetTrackNumSends(track, 0);
-	const int LENGTH{ 20 };
 	char sendName[LENGTH];
 	for (int sendCounter = 0; sendCounter < this->sendBankSize; sendCounter++)
 	{
