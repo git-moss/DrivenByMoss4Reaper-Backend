@@ -94,10 +94,15 @@ void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *pr
  */
 void JvmManager::Create()
 {
+	std::string libDir = GetLibraryPath();
+	if (libDir.empty())
+		return;
+	this->javaHomePath = libDir + "java-runtime";
+
 	if (!LoadJvmLibrary())
 		return;
 
-	std::string classpath = this->CreateClasspath();
+	std::string classpath = this->CreateClasspath(libDir);
 	if (classpath.empty())
 		return;
 
@@ -143,14 +148,12 @@ void JvmManager::Create()
 
 
 /**
- * Looks up the Java Virtual Machine library from the JAVA_HOME environment variable and loads it.
+ * Looks up the Java Virtual Machine library inside of the library folder (it is now bundled with DrivenByMoss).
  *
  * @return True on success
  */
 bool JvmManager::LoadJvmLibrary()
 {
-	// Look up the JAVA_HOME variable
-	this->javaHomePath = this->GetEnvironmentVariable("JAVA_HOME");
 	if (this->javaHomePath.empty())
 		return false;
 
@@ -181,7 +184,7 @@ bool JvmManager::LoadJvmLibrary()
 std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
 {
 #ifdef _WIN32
-	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll", "\\jre\\bin\\server\\jvm.dll" };
+	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll" };
 #elif LINUX
 	std::vector<std::string> libSubPaths{ "/jre/lib/amd64/server/libjvm.so", "/lib/jli/libjli.so" };
 #else
@@ -314,11 +317,11 @@ std::string getDylibPath()
 /**
  * Create the classpath from all JAR files found in the drivenbymoss library folder.
  *
+ * @param libDir The location where the Reaper extension libraries are located
  * @return The full classpath including the VM parameter
  */
-std::string JvmManager::CreateClasspath() const
+std::string JvmManager::CreateClasspath(std::string libDir) const
 {
-	std::string libDir = GetLibraryPath();
 	if (libDir.empty())
 		return libDir;
 
@@ -476,39 +479,4 @@ jclass JvmManager::GetControllerClass()
 		return nullptr;
 	}
 	return this->controllerClass;
-}
-
-
-std::string JvmManager::GetEnvironmentVariable(const char *name) const
-{
-#ifdef _WIN32
-	size_t requiredSize;
-
-	getenv_s(&requiredSize, nullptr, 0, name);
-	if (requiredSize == 0)
-	{
-		ReaDebug() << name << " environment variable is not configured!";
-		return "";
-	}
-
-	char *variable = (char*)malloc(requiredSize * sizeof(char));
-	if (!variable)
-	{
-		ReaDebug() << name << " environment variable could not be allocated!";
-		return "";
-	}
-
-	getenv_s(&requiredSize, variable, requiredSize, name);
-	std::string result = variable;
-	free(variable);
-	return result;
-#else
-	const char *variable = std::getenv(name);
-	if (variable == nullptr)
-	{
-		ReaDebug() << name << " environment variable is not configured!";
-		return "";
-	}
-	return variable;
-#endif
 }
