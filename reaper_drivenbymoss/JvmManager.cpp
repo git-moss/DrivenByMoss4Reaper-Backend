@@ -186,7 +186,7 @@ std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
 #ifdef _WIN32
 	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll" };
 #elif LINUX
-	std::vector<std::string> libSubPaths{ "/lib/jli/libjli.so" };
+	std::vector<std::string> libSubPaths{ "/lib/server/libjvm.so" };
 #else
     std::vector<std::string> libSubPaths{ "/lib/jli/libjli.dylib" };
 #endif
