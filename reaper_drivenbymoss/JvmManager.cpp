@@ -116,7 +116,7 @@ void JvmManager::Create()
 
 	// Minimum required Java version
 	JavaVMInitArgs vm_args{};
-	vm_args.version = JNI_VERSION_1_8;
+	vm_args.version = JNI_VERSION_10;
 	vm_args.nOptions = this->debug ? 3 : 1;
 	vm_args.options = this->options.get();
 	// Invalid options make the JVM init fail
@@ -184,20 +184,15 @@ bool JvmManager::LoadJvmLibrary()
 std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
 {
 #ifdef _WIN32
-	std::vector<std::string> libSubPaths{ "\\bin\\server\\jvm.dll" };
+	std::string libPath = javaHomePath + "\\bin\\server\\jvm.dll";
 #elif LINUX
-	std::vector<std::string> libSubPaths{ "/lib/server/libjvm.so" };
+	std::string libPath = javaHomePath + "/lib/server/libjvm.so";
 #else
-    std::vector<std::string> libSubPaths{ "/lib/jli/libjli.dylib" };
+	std::string libPath = javaHomePath + "/lib/jli/libjli.dylib";
 #endif
-	std::string libPath{};
-	for (const std::string &p : libSubPaths)
-	{
-		libPath = javaHomePath + p;
-		std::ifstream in(libPath);
-		if (in.good())
-			return libPath;
-	}
+	std::ifstream in(libPath);
+	if (in.good())
+		return libPath;
 	ReaDebug() << "Java dynamic library not found at " << libPath;
 	return "";
 }
