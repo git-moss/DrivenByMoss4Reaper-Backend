@@ -142,15 +142,19 @@ public:
 
 	void Process(std::string command, std::deque<std::string> &path) override
 	{
+		HWND activeMidiEditor = MIDIEditor_GetActive();
+		const bool isNotOpen = activeMidiEditor == nullptr;
+
 		// MAIN section action 40153: "open selected item in MIDI editor"
 		Main_OnCommand(40153, 0);
-		HWND active_MIDI_editor = MIDIEditor_GetActive();
+		activeMidiEditor = MIDIEditor_GetActive();
 		// Select all notes
-		MIDIEditor_OnCommand(active_MIDI_editor, 40003);
+		MIDIEditor_OnCommand(activeMidiEditor, 40003);
 		// Quantize all notes
-		MIDIEditor_OnCommand(active_MIDI_editor, 40728);
-		// Close Window
-		MIDIEditor_OnCommand(active_MIDI_editor, 2);
+		MIDIEditor_OnCommand(activeMidiEditor, 40728);
+		// Close Window (only if it was not open before)
+		if (isNotOpen)
+			MIDIEditor_OnCommand(activeMidiEditor, 2);
 	};
 };
 
