@@ -185,6 +185,7 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 	int count = CountTracks(project);
 	int trackIndex{ 0 };
 	int trackState{};
+	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, trackIndex, dump);
 	for (int index = 0; index < count; index++)
 	{
 		MediaTrack *mediaTrack = GetTrack(project, index);
@@ -198,7 +199,6 @@ void DataCollector::CollectTrackData(std::stringstream &ss, ReaProject *project,
 		track->CollectData(ss, project, mediaTrack, trackIndex, dump);
 		trackIndex++;
 	}
-	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, trackIndex, dump);
 }
 
 /**
