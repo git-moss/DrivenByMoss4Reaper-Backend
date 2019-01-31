@@ -20,7 +20,7 @@ SceneProcessor::SceneProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void SceneProcessor::Process(std::string command, std::deque<std::string> &path)
+void SceneProcessor::Process(std::deque<std::string> &path)
 {
 	if (path.empty())
 		return;

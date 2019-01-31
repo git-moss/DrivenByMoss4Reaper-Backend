@@ -24,21 +24,21 @@ public:
 
 	virtual ~OscProcessor() {};
 
-	virtual void Process(std::string command, std::deque<std::string> &path) {};
+	virtual void Process(std::deque<std::string> &path) {};
 
-	virtual void Process(std::string command, std::deque<std::string> &path, const std::string &value) {};
+	virtual void Process(std::deque<std::string> &path, const std::string &value) {};
 
-	virtual void Process(std::string command, std::deque<std::string> &path, int value)
+	virtual void Process(std::deque<std::string> &path, int value)
 	{
 		if (value == 1)
-			this->Process(command, path);
+			this->Process(path);
 	};
 
-	virtual void Process(std::string command, std::deque<std::string> &path, double value) {};
+	virtual void Process(std::deque<std::string> &path, double value) {};
 
-	virtual void Process(std::string command, std::deque<std::string> &path, float value)
+	virtual void Process(std::deque<std::string> &path, float value)
 	{
-		this->Process(command, path, static_cast<double>(value));
+		this->Process(path, static_cast<double>(value));
 	};
 
 protected:

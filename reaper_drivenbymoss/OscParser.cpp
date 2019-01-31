@@ -19,7 +19,6 @@ OscParser::OscParser(Model &model) :
 	timeProcessor(model),
 	tempoProcessor(model),
 	actionProcessor(model),
-	actionExProcessor(model),
 	quantizeProcessor(model),
 	metronomeVolumeProcessor(model),
 	undoProcessor(model),
@@ -30,7 +29,6 @@ OscParser::OscParser(Model &model) :
 	trackProcessor(model),
 	deviceProcessor(model),
 	clipProcessor(model),
-	midiProcessor(model),
 	markerProcessor(model),
 	refreshProcessor(model),
 	sceneProcessor(model),
@@ -43,7 +41,6 @@ OscParser::OscParser(Model &model) :
 	this->processors["time"] = &timeProcessor;
 	this->processors["tempo"] = &tempoProcessor;
 	this->processors["action"] = &actionProcessor;
-	this->processors["action_ex"] = &actionExProcessor;
 	this->processors["quantize"] = &quantizeProcessor;
 	this->processors["metro_vol"] = &metronomeVolumeProcessor;
 	this->processors["undo"] = &undoProcessor;
@@ -54,7 +51,6 @@ OscParser::OscParser(Model &model) :
 	this->processors["track"] = &trackProcessor;
 	this->processors["device"] = &deviceProcessor;
 	this->processors["clip"] = &clipProcessor;
-	this->processors["vkb_midi"] = &midiProcessor;
 	this->processors["marker"] = &markerProcessor;
 	this->processors["refresh"] = &refreshProcessor;
 	this->processors["scene"] = &sceneProcessor;
@@ -64,20 +60,17 @@ OscParser::OscParser(Model &model) :
 /**
  * Process an OSC style command.
  *
- * @param command The command
+ * @param processor The processor
+ * @param command   The command
  */
-void OscParser::Process(const std::string command) const
+void OscParser::Process(const std::string processor, const std::string command) const
 {
-	this->theModel.AddFunction([this, command]()
+	this->theModel.AddFunction([this, processor, command]()
 	{
 		std::deque<std::string> elements = this->Split(command);
-		if (elements.empty())
-			return;
-		std::string cmd = elements.front();
-		elements.pop_front();
 		try
 		{
-			this->processors.at(cmd)->Process(cmd, elements);
+			this->processors.at(processor)->Process(elements);
 		}
 		catch (const std::out_of_range &oor)
 		{
@@ -90,21 +83,18 @@ void OscParser::Process(const std::string command) const
 /**
  * Process an OSC style command.
  *
- * @param command The command
- * @param value   The value
+ * @param processor The processor
+ * @param command   The command
+ * @param value     The value
  */
-void OscParser::Process(const std::string command, const std::string value) const
+void OscParser::Process(const std::string processor, const std::string command, const std::string value) const
 {
-	this->theModel.AddFunction([this, command, value]()
+	this->theModel.AddFunction([this, processor, command, value]()
 	{
 		std::deque<std::string> elements = this->Split(command);
-		if (elements.empty())
-			return;
-		std::string cmd = elements.front();
-		elements.pop_front();
 		try
 		{
-			this->processors.at(cmd)->Process(cmd, elements, value);
+			this->processors.at(processor)->Process(elements, value);
 		}
 		catch (const std::out_of_range &oor)
 		{
@@ -117,21 +107,18 @@ void OscParser::Process(const std::string command, const std::string value) cons
 /**
  * Process an OSC style command.
  *
- * @param command The command
- * @param value   The value
+ * @param processor The processor
+ * @param command   The command
+ * @param value     The value
  */
-void OscParser::Process(const std::string command, const int value) const
+void OscParser::Process(const std::string processor, const std::string command, const int value) const
 {
-	this->theModel.AddFunction([this, command, value]()
+	this->theModel.AddFunction([this, processor, command, value]()
 	{
 		std::deque<std::string> elements = this->Split(command);
-		if (elements.empty())
-			return;
-		std::string cmd = elements.front();
-		elements.pop_front();
 		try
 		{
-			this->processors.at(cmd)->Process(cmd, elements, value);
+			this->processors.at(processor)->Process(elements, value);
 		}
 		catch (const std::out_of_range &oor)
 		{
@@ -144,21 +131,18 @@ void OscParser::Process(const std::string command, const int value) const
 /**
  * Process an OSC style command.
  *
- * @param command The command
- * @param value   The value
+ * @param processor The processor
+ * @param command   The command
+ * @param value     The value
  */
-void OscParser::Process(const std::string command, const double value) const
+void OscParser::Process(const std::string processor, const std::string command, const double value) const
 {
-	this->theModel.AddFunction([this,command,value]()
+	this->theModel.AddFunction([this, processor, command, value]()
 	{
 		std::deque<std::string> elements = this->Split(command);
-		if (elements.empty())
-			return;
-		std::string cmd = elements.front();
-		elements.pop_front();
 		try
 		{
-			this->processors.at(cmd)->Process(cmd, elements, value);
+			this->processors.at(processor)->Process(elements, value);
 		}
 		catch (const std::out_of_range &oor)
 		{
@@ -195,12 +179,5 @@ std::deque<std::string> OscParser::Split(const std::string &path) const
 	std::back_insert_iterator<std::deque<std::string>> result = back_inserter(elems);
 	while (getline(ss, item, '/'))
 		*(result++) = item;
-
-	// No command at all?
-	if (elems.size() < 2)
-		elems.clear();
-	else
-		// First entry is empty
-		elems.pop_front();
 	return elems;
 }

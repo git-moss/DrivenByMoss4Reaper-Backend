@@ -18,7 +18,7 @@ DeviceProcessor::DeviceProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::string command, std::deque<std::string> &path)
+void DeviceProcessor::Process(std::deque<std::string> &path)
 {
 	if (path.empty())
 		return;
@@ -73,7 +73,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::string command, std::deque<std::string> &path, int value)
+void DeviceProcessor::Process(std::deque<std::string> &path, int value)
 {
 	if (path.empty())
 		return;
@@ -142,14 +142,14 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 	
 	if (std::strcmp(part, "param") == 0)
 	{
-		Process(command, path, static_cast<double> (value));
+		Process(path, static_cast<double> (value));
 		return;
 	}
 }
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::string command, std::deque<std::string> &path, double value)
+void DeviceProcessor::Process(std::deque<std::string> &path, double value)
 {
 	if (path.empty())
 		return;
@@ -172,7 +172,7 @@ void DeviceProcessor::Process(std::string command, std::deque<std::string> &path
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::string command, std::deque<std::string> &path, const std::string &value)
+void DeviceProcessor::Process(std::deque<std::string> &path, const std::string &value)
 {
 	if (path.empty())
 		return;

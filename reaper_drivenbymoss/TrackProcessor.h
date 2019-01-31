@@ -17,10 +17,10 @@ class TrackProcessor : public OscProcessor
 public:
 	TrackProcessor(Model &model);
 
-	void Process(std::string command, std::deque<std::string> &path) override;
-	void Process(std::string command, std::deque<std::string> &path, int value) override;
-	void Process(std::string command, std::deque<std::string> &path, double value) override;
-	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override;
+	void Process(std::deque<std::string> &path) override;
+	void Process(std::deque<std::string> &path, int value) override;
+	void Process(std::deque<std::string> &path, double value) override;
+	void Process(std::deque<std::string> &path, const std::string &value) override;
 
 private:
 	void CreateMidiClip(ReaProject *project, MediaTrack *track, int beats);

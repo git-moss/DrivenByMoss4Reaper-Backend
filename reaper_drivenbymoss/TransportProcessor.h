@@ -15,7 +15,7 @@ class PlayProcessor : public OscProcessor
 public:
 	PlayProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		const int playState = GetPlayStateEx(ReaperUtils::GetProject());
 		if (playState & 1)
@@ -34,7 +34,7 @@ class StopProcessor : public OscProcessor
 public:
 	StopProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		CSurf_OnStop();
 	};
@@ -45,7 +45,7 @@ class RecordProcessor : public OscProcessor
 public:
 	RecordProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		CSurf_OnRecord();
 	};
@@ -56,7 +56,7 @@ class RepeatProcessor : public OscProcessor
 public:
 	RepeatProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		Main_OnCommandEx(1068, 0, ReaperUtils::GetProject());
 	};
@@ -67,12 +67,12 @@ class TimeProcessor : public OscProcessor
 public:
 	TimeProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string> &path, int value) override
 	{
-		this->Process(command, path, static_cast<double> (value));
+		this->Process(path, static_cast<double> (value));
 	};
 
-	void Process(std::string command, std::deque<std::string> &path, double value) override
+	void Process(std::deque<std::string> &path, double value) override
 	{
 		ReaProject * const project = ReaperUtils::GetProject();
 		const double end = GetProjectLength(project);
@@ -85,7 +85,7 @@ class TempoProcessor : public OscProcessor
 public:
 	TempoProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		ReaProject *project = ReaperUtils::GetProject();
 		const char *direction = path.at(0).c_str();
@@ -99,12 +99,12 @@ public:
 			Main_OnCommandEx(41130, 0, project);
 	};
 
-	void Process(std::string command, std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string> &path, int value) override
 	{
 		CSurf_OnTempoChange(value);
 	}
 
-	void Process(std::string command, std::deque<std::string> &path, double value) override
+	void Process(std::deque<std::string> &path, double value) override
 	{
 		CSurf_OnTempoChange(value);
 	}
@@ -115,23 +115,9 @@ class ActionProcessor : public OscProcessor
 public:
 	ActionProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string> &path, int value) override
 	{
 		Main_OnCommandEx(value, 0, ReaperUtils::GetProject());
-	};
-};
-
-class ActionExProcessor : public OscProcessor
-{
-public:
-	ActionExProcessor(Model &aModel) : OscProcessor(aModel) {};
-
-	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override
-	{
-		const int actionID = NamedCommandLookup(value.c_str());
-		if (actionID <= 0)
-			return;
-		Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
 	};
 };
 
@@ -140,7 +126,7 @@ class QuantizeProcessor : public OscProcessor
 public:
 	QuantizeProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		HWND activeMidiEditor = MIDIEditor_GetActive();
 		const bool isNotOpen = activeMidiEditor == nullptr;
@@ -163,7 +149,7 @@ class MetronomeVolumeProcessor : public OscProcessor
 public:
 	MetronomeVolumeProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		if (path.empty())
 			return;
@@ -179,7 +165,7 @@ class UndoProcessor : public OscProcessor
 public:
 	UndoProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		Undo_DoUndo2(ReaperUtils::GetProject());
 	};
@@ -190,7 +176,7 @@ class RedoProcessor : public OscProcessor
 public:
 	RedoProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		Undo_DoRedo2(ReaperUtils::GetProject());
 	};
@@ -201,7 +187,7 @@ class CursorProcessor : public OscProcessor
 public:
 	CursorProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string> &path, int value) override
 	{
 		CSurf_OnArrow(value, 0);
 	};
@@ -212,7 +198,7 @@ class ProjectProcessor : public OscProcessor
 public:
 	ProjectProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string> &path, int value) override
 	{
 		if (path.empty() || std::strcmp(path.at(0).c_str(), "engine") != 0)
 			return;
@@ -223,14 +209,12 @@ public:
 	};
 };
 
-
-
 class RefreshProcessor : public OscProcessor
 {
 public:
 	RefreshProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::string command, std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path) override
 	{
 		this->model.SetDump();
 	};

@@ -18,7 +18,6 @@
 #include "TrackProcessor.h"
 #include "DeviceProcessor.h"
 #include "ClipProcessor.h"
-#include "MidiProcessor.h"
 #include "MarkerProcessor.h"
 #include "SceneProcessor.h"
 
@@ -32,10 +31,10 @@ public:
 	OscParser(Model &model);
 	virtual ~OscParser() {};
 
-	virtual void Process(const std::string command) const;
-	virtual void Process(const std::string command, const std::string value) const;
-	virtual void Process(const std::string command, const int value) const;
-	virtual void Process(const std::string command, const double value) const;
+	virtual void Process(const std::string processor, const std::string path) const;
+	virtual void Process(const std::string processor, const std::string path, const std::string value) const;
+	virtual void Process(const std::string processor, const std::string path, const int value) const;
+	virtual void Process(const std::string processor, const std::string path, const double value) const;
 
 private:
 	PlayProcessor 					 playProcessor;
@@ -45,7 +44,6 @@ private:
 	TimeProcessor 					 timeProcessor;
 	TempoProcessor 					 tempoProcessor;
 	ActionProcessor 				 actionProcessor;
-	ActionExProcessor 				 actionExProcessor;
 	QuantizeProcessor 				 quantizeProcessor;
 	MetronomeVolumeProcessor 		 metronomeVolumeProcessor;
 	UndoProcessor 					 undoProcessor;
@@ -56,7 +54,6 @@ private:
 	TrackProcessor 					 trackProcessor;
 	DeviceProcessor 				 deviceProcessor;
 	ClipProcessor 					 clipProcessor;
-	MidiProcessor 					 midiProcessor;
 	MarkerProcessor 				 markerProcessor;
 	RefreshProcessor 				 refreshProcessor;
 	SceneProcessor 					 sceneProcessor;

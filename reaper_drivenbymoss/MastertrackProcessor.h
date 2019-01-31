@@ -18,6 +18,6 @@ class MastertrackProcessor : public OscProcessor
 public:
 	MastertrackProcessor(Model &model);
 
-	void Process(std::string command, std::deque<std::string> &path, int value) override;
-	void Process(std::string command, std::deque<std::string> &path, double value) override;
+	void Process(std::deque<std::string> &path, int value) override;
+	void Process(std::deque<std::string> &path, double value) override;
 };

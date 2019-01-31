@@ -75,8 +75,9 @@ JvmManager::~JvmManager()
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
+ * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP)
+void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *processMidiArgCPP)
 {
 	if (this->isInitialised)
 		return;
@@ -84,7 +85,7 @@ void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *pr
 	this->Create();
 	if (this->jvm == nullptr)
 		return;
-	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP);
+	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, processMidiArgCPP);
 	this->StartApp();
 }
 
@@ -202,15 +203,17 @@ std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
+ * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP)
+void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *processMidiArgCPP)
 {
 	const JNINativeMethod methods[]
 	{
-		{ (char*) "processNoArg", (char*) "(Ljava/lang/String;)V", processNoArgCPP },
-		{ (char*) "processStringArg", (char*) "(Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
-		{ (char*) "processIntArg", (char*) "(Ljava/lang/String;I)V", processIntArgCPP },
-		{ (char*) "processDoubleArg", (char*) "(Ljava/lang/String;D)V", processDoubleArgCPP }
+		{ (char*) "processNoArg", (char*) "(Ljava/lang/String;Ljava/lang/String;)V", processNoArgCPP },
+		{ (char*) "processStringArg", (char*) "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
+		{ (char*) "processIntArg", (char*) "(Ljava/lang/String;Ljava/lang/String;I)V", processIntArgCPP },
+		{ (char*) "processDoubleArg", (char*) "(Ljava/lang/String;Ljava/lang/String;D)V", processDoubleArgCPP },
+		{ (char*) "processMidiArg", (char*) "(III)V", processMidiArgCPP }
 	};
 
 	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/ui/MainFrame");
@@ -219,7 +222,7 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
         ReaDebug() << "MainFrame.class could not be retrieved.";
         return;
     }
-    const int result = this->env->RegisterNatives(mainFrameClass, methods, 4);
+    const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
 	if (result != 0)
 		this->HandleException("ERROR: Could not register native functions");
 }

@@ -15,15 +15,15 @@ class ClipProcessor : public OscProcessor
 public:
 	ClipProcessor(Model &model);
 
-	void Process(std::string command, std::deque<std::string> &path) override;
+	void Process(std::deque<std::string> &path) override;
 
-	void Process(std::string command, std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string> &path, int value) override
 	{
-		Process(command, path, static_cast<double> (value));
+		Process(path, static_cast<double> (value));
 	};
 
-	void Process(std::string command, std::deque<std::string> &path, double value) override;
-	void Process(std::string command, std::deque<std::string> &path, const std::string &value) override;
+	void Process(std::deque<std::string> &path, double value) override;
+	void Process(std::deque<std::string> &path, const std::string &value) override;
 
 private:
 	void SetColorOfClip(ReaProject *project, MediaItem *item, std::string value);

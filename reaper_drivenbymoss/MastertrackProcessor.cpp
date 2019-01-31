@@ -18,7 +18,7 @@ MastertrackProcessor::MastertrackProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void MastertrackProcessor::Process(std::string command, std::deque<std::string> &path, int value)
+void MastertrackProcessor::Process(std::deque<std::string> &path, int value)
 {
 	if (path.empty())
 		return;
@@ -40,12 +40,12 @@ void MastertrackProcessor::Process(std::string command, std::deque<std::string> 
 		SetMediaTrackInfo_Value(track, "B_MUTE", value);
 	}
 	else
-		Process(command, path, static_cast<double>(value));
+		Process(path, static_cast<double>(value));
 }
 
 
 /** {@inheritDoc} */
-void MastertrackProcessor::Process(std::string command, std::deque<std::string> &path, double value)
+void MastertrackProcessor::Process(std::deque<std::string> &path, double value)
 {
 	if (path.empty())
 		return;

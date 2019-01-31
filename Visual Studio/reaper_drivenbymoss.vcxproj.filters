@@ -39,9 +39,6 @@
     <ClCompile Include="..\reaper_drivenbymoss\MastertrackProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\reaper_drivenbymoss\MidiProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\reaper_drivenbymoss\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -93,9 +90,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\MastertrackProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\reaper_drivenbymoss\MidiProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\Model.h">

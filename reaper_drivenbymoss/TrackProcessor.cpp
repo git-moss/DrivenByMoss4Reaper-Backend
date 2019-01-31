@@ -19,9 +19,9 @@ TrackProcessor::TrackProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
+void TrackProcessor::Process(std::deque<std::string> &path)
 {
-	if (path.size() < 2)
+	if (path.empty())
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
@@ -101,9 +101,9 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path)
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::string command, std::deque<std::string> &path, int value)
+void TrackProcessor::Process(std::deque<std::string> &path, int value)
 {
-	if (path.size() < 2)
+	if (path.empty())
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
@@ -207,14 +207,14 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 		return;
 	}
 
-	Process(command, path, static_cast<double>(value));
+	Process(path, static_cast<double>(value));
 }
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::string command, std::deque<std::string> &path, double value)
+void TrackProcessor::Process(std::deque<std::string> &path, double value)
 {
-	if (path.size() < 2)
+	if (path.empty())
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();
@@ -270,9 +270,9 @@ void TrackProcessor::Process(std::string command, std::deque<std::string> &path,
 }
 
 
-void TrackProcessor::Process(std::string command, std::deque<std::string> &path, const std::string &value)
+void TrackProcessor::Process(std::deque<std::string> &path, const std::string &value)
 {
-	if (path.size() < 2)
+	if (path.empty ())
 		return;
 
 	ReaProject *project = ReaperUtils::GetProject();

@@ -75,8 +75,6 @@ extern "C" {
 #define de_mossgrabers_reaper_ui_MainFrame_MAXIMIZED_BOTH 6L
 #undef de_mossgrabers_reaper_ui_MainFrame_serialVersionUID
 #define de_mossgrabers_reaper_ui_MainFrame_serialVersionUID 2673458971256075116i64
-#undef de_mossgrabers_reaper_ui_MainFrame_EXIT_ON_CLOSE
-#define de_mossgrabers_reaper_ui_MainFrame_EXIT_ON_CLOSE 3L
 #undef de_mossgrabers_reaper_ui_MainFrame_serialVersionUID
 #define de_mossgrabers_reaper_ui_MainFrame_serialVersionUID 4251131641194938848i64
 #undef de_mossgrabers_reaper_ui_MainFrame_GAP
@@ -84,34 +82,42 @@ extern "C" {
 /*
  * Class:     de_mossgrabers_reaper_ui_MainFrame
  * Method:    processNoArg
- * Signature: (Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_processNoArg
-  (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     de_mossgrabers_reaper_ui_MainFrame
- * Method:    processStringArg
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_processStringArg
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_processNoArg
   (JNIEnv *, jobject, jstring, jstring);
 
 /*
  * Class:     de_mossgrabers_reaper_ui_MainFrame
+ * Method:    processStringArg
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_processStringArg
+  (JNIEnv *, jobject, jstring, jstring, jstring);
+
+/*
+ * Class:     de_mossgrabers_reaper_ui_MainFrame
  * Method:    processIntArg
- * Signature: (Ljava/lang/String;I)V
+ * Signature: (Ljava/lang/String;Ljava/lang/String;I)V
  */
 JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_processIntArg
-  (JNIEnv *, jobject, jstring, jint);
+  (JNIEnv *, jobject, jstring, jstring, jint);
 
 /*
  * Class:     de_mossgrabers_reaper_ui_MainFrame
  * Method:    processDoubleArg
- * Signature: (Ljava/lang/String;D)V
+ * Signature: (Ljava/lang/String;Ljava/lang/String;D)V
  */
 JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_processDoubleArg
-  (JNIEnv *, jobject, jstring, jdouble);
+  (JNIEnv *, jobject, jstring, jstring, jdouble);
+
+/*
+ * Class:     de_mossgrabers_reaper_ui_MainFrame
+ * Method:    processMidiArg
+ * Signature: (III)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_processMidiArg
+  (JNIEnv *, jobject, jint, jint, jint);
 
 #ifdef __cplusplus
 }

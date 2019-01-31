@@ -18,7 +18,7 @@ ClipProcessor::ClipProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
+void ClipProcessor::Process(std::deque<std::string> &path)
 {
 	if (path.empty())
 		return;
@@ -78,7 +78,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path)
 
 
 /** {@inheritDoc} */
-void ClipProcessor::Process(std::string command, std::deque<std::string> &path, double value)
+void ClipProcessor::Process(std::deque<std::string> &path, double value)
 {
 	if (path.empty())
 		return;
@@ -150,7 +150,7 @@ void ClipProcessor::Process(std::string command, std::deque<std::string> &path, 
 
 
 /** {@inheritDoc} */
-void ClipProcessor::Process(std::string command, std::deque<std::string> &path, const std::string &value)
+void ClipProcessor::Process(std::deque<std::string> &path, const std::string &value)
 {
 	if (path.empty())
 		return;

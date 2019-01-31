@@ -28,7 +28,6 @@ const bool DEBUG_JAVA{ false };
 #endif
 
 
-
 REAPER_PLUGIN_HINSTANCE g_hInst;
 
 // The global extension variables required to bridge from C to C++
@@ -38,48 +37,58 @@ JvmManager *jvmManager = nullptr;
 /**
  * Java callback for an OSC style command to be executed in Reaper without a parameter.
  *
- * @param env     The JNI environment
- * @param object  The JNI object
- * @param command The command to execute
+ * @param env       The JNI environment
+ * @param object    The JNI object
+ * @param processor The processor to execute the command
+ * @param command   The command to execute
  */
-void processNoArgCPP(JNIEnv *env, jobject object, jstring command)
+void processNoArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command)
 {
 	if (env == nullptr || gSurface == nullptr)
 		return;
-	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-	if (cmd == nullptr)
+	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	if (proc == nullptr)
 		return;
-	std::string path(cmd);
-	gSurface->GetOscParser().Process(path);
-	env->ReleaseStringUTFChars(command, cmd);
+	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	std::string procstr(proc);
+	std::string path(cmd == nullptr ? "" : cmd);
+	gSurface->GetOscParser().Process(procstr, path);
+	env->ReleaseStringUTFChars(processor, proc);
+	if (cmd != nullptr)
+		env->ReleaseStringUTFChars(command, cmd);
 }
 
 
 /**
  * Java callback for an OSC style command to be executed in Reaper with a string parameter.
  *
- * @param env     The JNI environment
- * @param object  The JNI object
- * @param command The command to execute
- * @param value   The string value
+ * @param env       The JNI environment
+ * @param object    The JNI object
+ * @param processor The processor to execute the command
+ * @param command   The command to execute
+ * @param value     The string value
  */
-void processStringArgCPP(JNIEnv *env, jobject object, jstring command, jstring value)
+void processStringArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command, jstring value)
 {
 	if (env == nullptr || gSurface == nullptr)
 		return;
-	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-	if (cmd == nullptr)
+	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	if (proc == nullptr)
 		return;
 	const char *val = env->GetStringUTFChars(value, JNI_FALSE);
 	if (val == nullptr)
 	{
-		env->ReleaseStringUTFChars(command, cmd);
+		env->ReleaseStringUTFChars(command, proc);
 		return;
 	}
-	std::string path(cmd);
+	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	std::string procstr(proc);
+	std::string path(cmd == nullptr ? "" : cmd);
 	std::string valueString(val);
-	gSurface->GetOscParser().Process(path, valueString);
-	env->ReleaseStringUTFChars(command, cmd);
+	gSurface->GetOscParser().Process(procstr, path, valueString);
+	env->ReleaseStringUTFChars(processor, proc);
+	if (cmd != nullptr)
+		env->ReleaseStringUTFChars(command, cmd);
 	env->ReleaseStringUTFChars(value, val);
 }
 
@@ -87,21 +96,52 @@ void processStringArgCPP(JNIEnv *env, jobject object, jstring command, jstring v
 /**
  * Java callback for an OSC style command to be executed in Reaper with an integer parameter.
  *
- * @param env     The JNI environment
- * @param object  The JNI object
- * @param command The command to execute
- * @param value   The integer value
+ * @param env       The JNI environment
+ * @param object    The JNI object
+ * @param processor The processor to execute the command
+ * @param command   The command to execute
+ * @param value     The integer value
  */
-void processIntArgCPP(JNIEnv *env, jobject object, jstring command, jint value)
+void processIntArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command, jint value)
 {
 	if (env == nullptr || gSurface == nullptr)
 		return;
-	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-	if (cmd == nullptr)
+	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	if (proc == nullptr)
 		return;
-	std::string path(cmd);
-	gSurface->GetOscParser().Process(path, value);
-	env->ReleaseStringUTFChars(command, cmd);
+	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	std::string procstr(proc);
+	std::string path(cmd == nullptr ? "" : cmd);
+	gSurface->GetOscParser().Process(procstr, path, value);
+	env->ReleaseStringUTFChars(processor, proc);
+	if (cmd != nullptr)
+		env->ReleaseStringUTFChars(command, cmd);
+}
+
+
+/**
+ * Java callback for an OSC style command to be executed in Reaper with a double parameter.
+ *
+ * @param env       The JNI environment
+ * @param object    The JNI object
+ * @param processor The processor to execute the command
+ * @param command   The command to execute
+ * @param value     The double value
+ */
+void processDoubleArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command, jdouble value)
+{
+	if (env == nullptr || gSurface == nullptr)
+		return;
+	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	if (proc == nullptr)
+		return;
+	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	std::string procstr(proc);
+	std::string path(cmd == nullptr ? "" : cmd);
+	gSurface->GetOscParser().Process(procstr, path, value);
+	env->ReleaseStringUTFChars(processor, proc);
+	if (cmd != nullptr)
+		env->ReleaseStringUTFChars(command, cmd);
 }
 
 
@@ -110,19 +150,14 @@ void processIntArgCPP(JNIEnv *env, jobject object, jstring command, jint value)
  *
  * @param env     The JNI environment
  * @param object  The JNI object
- * @param command The command to execute
- * @param value   The double value
+ * @param status  MIDI status byte
+ * @param data1   MIDI data byte 1
+ * @param data2   MIDI data byte 2
  */
-void processDoubleArgCPP(JNIEnv *env, jobject object, jstring command, jdouble value)
+void processMidiArgCPP(JNIEnv *env, jobject object, jint status, jint data1, jint data2)
 {
-	if (env == nullptr || gSurface == nullptr)
-		return;
-	const char *cmd = env->GetStringUTFChars(command, JNI_FALSE);
-	if (cmd == nullptr)
-		return;
-	std::string path(cmd);
-	gSurface->GetOscParser().Process(path, value);
-	env->ReleaseStringUTFChars(command, cmd);
+	if (env != nullptr && gSurface != nullptr)
+		StuffMIDIMessage(0, status, data1, data2);
 }
 
 
@@ -131,7 +166,7 @@ static void createJVM()
 	if (jvmManager != nullptr)
 		return;
 	jvmManager = new JvmManager(DEBUG_JAVA);
-	jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP);
+	jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP, (void *)&processMidiArgCPP);
 }
 
 
