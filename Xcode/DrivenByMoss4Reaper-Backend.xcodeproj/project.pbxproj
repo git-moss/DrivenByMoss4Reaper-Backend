@@ -30,9 +30,7 @@
 		8554F23020F40E4000F5FF39 /* DeviceProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */; };
 		8554F23120F40E4000F5FF39 /* OscProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21020F40E3E00F5FF39 /* OscProcessor.h */; };
 		8554F23220F40E4000F5FF39 /* JvmManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21120F40E3E00F5FF39 /* JvmManager.h */; };
-		8554F23320F40E4000F5FF39 /* MidiProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21220F40E3E00F5FF39 /* MidiProcessor.h */; };
 		8554F23420F40E4000F5FF39 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21320F40E3E00F5FF39 /* Model.cpp */; };
-		8554F23520F40E4000F5FF39 /* MidiProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21420F40E3E00F5FF39 /* MidiProcessor.cpp */; };
 		8554F23620F40E4000F5FF39 /* OscParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21520F40E3E00F5FF39 /* OscParser.h */; };
 		8554F23720F40E4000F5FF39 /* stdafx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21620F40E3F00F5FF39 /* stdafx.cpp */; };
 		8554F23820F40E4000F5FF39 /* ClipProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */; };
@@ -82,9 +80,7 @@
 		8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DeviceProcessor.h; path = ../reaper_drivenbymoss/DeviceProcessor.h; sourceTree = "<group>"; };
 		8554F21020F40E3E00F5FF39 /* OscProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OscProcessor.h; path = ../reaper_drivenbymoss/OscProcessor.h; sourceTree = "<group>"; };
 		8554F21120F40E3E00F5FF39 /* JvmManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JvmManager.h; path = ../reaper_drivenbymoss/JvmManager.h; sourceTree = "<group>"; };
-		8554F21220F40E3E00F5FF39 /* MidiProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MidiProcessor.h; path = ../reaper_drivenbymoss/MidiProcessor.h; sourceTree = "<group>"; };
 		8554F21320F40E3E00F5FF39 /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = ../reaper_drivenbymoss/Model.cpp; sourceTree = "<group>"; };
-		8554F21420F40E3E00F5FF39 /* MidiProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MidiProcessor.cpp; path = ../reaper_drivenbymoss/MidiProcessor.cpp; sourceTree = "<group>"; };
 		8554F21520F40E3E00F5FF39 /* OscParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OscParser.h; path = ../reaper_drivenbymoss/OscParser.h; sourceTree = "<group>"; };
 		8554F21620F40E3F00F5FF39 /* stdafx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = stdafx.cpp; path = ../reaper_drivenbymoss/stdafx.cpp; sourceTree = "<group>"; };
 		8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ClipProcessor.cpp; path = ../reaper_drivenbymoss/ClipProcessor.cpp; sourceTree = "<group>"; };
@@ -131,56 +127,54 @@
 			isa = PBXGroup;
 			children = (
 				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
-				8554F20120F40E3C00F5FF39 /* ClipProcessor.h */,
-				858F79FE21558EB500488951 /* Collectors.h */,
 				8554F20320F40E3C00F5FF39 /* DataCollector.cpp */,
-				8554F20020F40E3B00F5FF39 /* DataCollector.h */,
-				858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */,
 				8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */,
-				8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */,
 				8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */,
 				8554F21820F40E3F00F5FF39 /* DrivenByMossSurface.cpp */,
-				8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */,
-				85E1A7A320F4FB0000D38CC1 /* Frameworks */,
 				8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */,
-				8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */,
 				8554F20820F40E3C00F5FF39 /* JvmManager.cpp */,
-				8554F21120F40E3E00F5FF39 /* JvmManager.h */,
 				858F79F021558EA300488951 /* Marker.cpp */,
-				858F79FF21558EB600488951 /* Marker.h */,
 				850C4C47212017370059A6B0 /* MarkerProcessor.cpp */,
-				850C4C48212017380059A6B0 /* MarkerProcessor.h */,
 				8554F21920F40E3F00F5FF39 /* MastertrackProcessor.cpp */,
-				8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */,
-				8554F21420F40E3E00F5FF39 /* MidiProcessor.cpp */,
-				8554F21220F40E3E00F5FF39 /* MidiProcessor.h */,
 				8554F21320F40E3E00F5FF39 /* Model.cpp */,
-				8554F20A20F40E3D00F5FF39 /* Model.h */,
 				8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */,
+				858F7A0421558EBB00488951 /* Parameter.cpp */,
+				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
+				858F79EB21558E9A00488951 /* SceneProcessor.cpp */,
+				8554F21620F40E3F00F5FF39 /* stdafx.cpp */,
+				858F79ED21558E9C00488951 /* Track.cpp */,
+				8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */,
+				8554F20120F40E3C00F5FF39 /* ClipProcessor.h */,
+				858F79FE21558EB500488951 /* Collectors.h */,
+				8554F20020F40E3B00F5FF39 /* DataCollector.h */,
+				858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */,
+				8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */,
+				8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */,
+				8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */,
+				8554F21120F40E3E00F5FF39 /* JvmManager.h */,
+				858F79FF21558EB600488951 /* Marker.h */,
+				850C4C48212017380059A6B0 /* MarkerProcessor.h */,
+				8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */,
+				8554F20A20F40E3D00F5FF39 /* Model.h */,
 				8554F21520F40E3E00F5FF39 /* OscParser.h */,
 				8554F21020F40E3E00F5FF39 /* OscProcessor.h */,
-				858F7A0421558EBB00488951 /* Parameter.cpp */,
 				858F79EF21558EA200488951 /* Parameter.h */,
-				85823BC320F40CD000E4CC57 /* Products */,
-				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
 				855CF89520F4B8EB0001F74A /* ReaDebug.h */,
 				8554F20B20F40E3D00F5FF39 /* reaper_plugin_functions.h */,
 				8554F21B20F40E4000F5FF39 /* reaper_plugin.h */,
 				858F79EA21558E9900488951 /* ReaperUtils.h */,
 				858F79EC21558E9B00488951 /* resource.h */,
-				858F79EB21558E9A00488951 /* SceneProcessor.cpp */,
 				858F7A0321558EBA00488951 /* SceneProcessor.h */,
-				8554F21620F40E3F00F5FF39 /* stdafx.cpp */,
 				8554F1FC20F40E3B00F5FF39 /* stdafx.h */,
 				858F7A0221558EB900488951 /* StringUtils.h */,
-				858F79F121558EA400488951 /* SceneProcessor.h */,
-				8535241A212F470000706C88 /* swell-modstub.mm */,
 				8554F21A20F40E3F00F5FF39 /* targetver.h */,
-				858F79ED21558E9C00488951 /* Track.cpp */,
 				858F79E921558E9800488951 /* Track.h */,
-				8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */,
 				8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */,
 				8554F20620F40E3C00F5FF39 /* TransportProcessor.h */,
+				8535241A212F470000706C88 /* swell-modstub.mm */,
+				85E1A7A320F4FB0000D38CC1 /* Frameworks */,
+				85823BC320F40CD000E4CC57 /* Products */,
+				858F79F121558EA400488951 /* SceneProcessor.h */,
 				858F79EE21558EA100488951 /* StringUtils.h */,
 			);
 			sourceTree = "<group>";
@@ -228,7 +222,6 @@
 				8554F23020F40E4000F5FF39 /* DeviceProcessor.h in Headers */,
 				858F79F621558EA800488951 /* resource.h in Headers */,
 				858F7A0721558EBC00488951 /* Marker.h in Headers */,
-				8554F23320F40E4000F5FF39 /* MidiProcessor.h in Headers */,
 				8554F23B20F40E4000F5FF39 /* targetver.h in Headers */,
 				8554F22F20F40E4000F5FF39 /* TrackProcessor.h in Headers */,
 				8554F22C20F40E4000F5FF39 /* reaper_plugin_functions.h in Headers */,
@@ -315,7 +308,6 @@
 				8535241B212F470100706C88 /* swell-modstub.mm in Sources */,
 				858F79F721558EA800488951 /* Track.cpp in Sources */,
 				8554F23920F40E4000F5FF39 /* DrivenByMossSurface.cpp in Sources */,
-				8554F23520F40E4000F5FF39 /* MidiProcessor.cpp in Sources */,
 				858F7A0C21558EBC00488951 /* Parameter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -448,7 +440,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/jdk-11.0.1+13/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/jdk-11.0.2+9/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
@@ -471,7 +463,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/jdk-11.0.1+13/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/jdk-11.0.2+9/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
