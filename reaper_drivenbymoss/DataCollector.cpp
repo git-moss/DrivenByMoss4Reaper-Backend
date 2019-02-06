@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018
+// (c) 2018-2019
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <fstream>
@@ -436,17 +436,21 @@ void DataCollector::CollectSessionData(std::stringstream &ss, ReaProject *projec
 
 			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
 			{
-				std::string s = buf;
+				std::string s{ buf };
 				std::replace(s.begin(), s.end(), ';', ' ');
 				clipstr << s;
+			}
+			else
+			{
+				ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
+				clipstr << "Unknown";
 			}
 
 			const bool isSelected = IsMediaItemSelected(item);
 			clipstr << ";" << isSelected;
 
-			int clipColor = (int)GetDisplayedMediaItemColor(item);
+			const int clipColor = (int)GetDisplayedMediaItemColor(item);
 			ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
-
 			clipstr << ";" << Collectors::FormatColor(red, green, blue).c_str() << ";";
 		}
 

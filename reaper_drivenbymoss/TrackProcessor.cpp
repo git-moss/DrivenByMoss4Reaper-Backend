@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018
+// (c) 2018-2019
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "TrackProcessor.h"
@@ -47,6 +47,13 @@ void TrackProcessor::Process(std::deque<std::string> &path)
 		Undo_BeginBlock2(project);
 		DeleteTrack(track);
 		Undo_EndBlock2(project, "Delete track", 0);
+		return;
+	}
+
+	// Note: Currently not used and not tested...
+	if (std::strcmp(cmd, "clearAutomation") == 0)
+	{
+		this->DeleteAllAutomationEnvelopes(project, track);
 		return;
 	}
 
@@ -436,4 +443,23 @@ int TrackProcessor::GetTrackIndex(ReaProject *project, int dawTrackIndex) const
 		trackIndex++;
 	}
 	return -1;
+}
+
+
+void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject *project, MediaTrack *track)
+{
+	PreventUIRefresh(1);
+	Undo_BeginBlock2(project);
+
+	const double end = GetProjectLength(project);
+
+	int count = CountTrackEnvelopes(track);
+	for (int i = 0; i < count; i++)
+	{
+		TrackEnvelope *envelope = GetTrackEnvelope(track, i);
+		DeleteEnvelopePointRange(envelope, 0, end);
+	}
+
+	Undo_EndBlock2(project, "Delete all automation envelopes of track.", 0);
+	PreventUIRefresh(-1);
 }

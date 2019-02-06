@@ -1,11 +1,10 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018
+// (c) 2018-2019
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #pragma once
 
 #include <string>
-
 #include "OscProcessor.h"
 
 
@@ -28,5 +27,6 @@ private:
 	void SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution);
 	void SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value);
 	void SetIsActivated(ReaProject *project, bool enable);
+	void DeleteAllAutomationEnvelopes(ReaProject *project, MediaTrack *track);
 	int GetTrackIndex(ReaProject *project, int dawTrackIndex) const;
 };
