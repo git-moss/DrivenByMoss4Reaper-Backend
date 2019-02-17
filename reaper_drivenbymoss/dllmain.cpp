@@ -30,6 +30,8 @@ const bool DEBUG_JAVA{ false };
 
 REAPER_PLUGIN_HINSTANCE g_hInst;
 
+gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
+
 // The global extension variables required to bridge from C to C++
 DrivenByMossSurface *gSurface = nullptr;
 JvmManager *jvmManager = nullptr;
@@ -178,37 +180,48 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 	return gSurface == nullptr && jvmManager->isRunning() ? new DrivenByMossSurface() : nullptr;
 }
 
+// Callback for custom actions
+bool hookCommandProc(int command, int flag)
+{
+	if (openDBMConfigureWindowAccel.accel.cmd != 0 && openDBMConfigureWindowAccel.accel.cmd == command)
+	{
+		if (jvmManager != nullptr)
+			jvmManager->DisplayWindow();
+		return true;
+	}
+	return false;
+}
 
 // Processing function for the configuration dialog
 static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-		case WM_INITDIALOG:
+	case WM_INITDIALOG:
+	{
+		if (jvmManager != nullptr)
 		{
-			if (jvmManager != nullptr)
-			{
 #ifdef _WIN32
-				SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(jvmManager->GetJavaHomePath()).c_str());
+			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(jvmManager->GetJavaHomePath()).c_str());
 #else
-				SetDlgItemText(hwndDlg, IDC_JAVA_HOME, jvmManager->GetJavaHomePath().c_str());
+			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, jvmManager->GetJavaHomePath().c_str());
 #endif
-			}
 		}
-		break;
+	}
+	break;
 
-		case WM_COMMAND:
+	case WM_COMMAND:
+	{
+		WORD value = LOWORD(wParam);
+		switch (value)
 		{
-			WORD value = LOWORD(wParam);
-			switch (value)
-			{
-				case IDC_BUTTON_CONFIGURE:
-					if (jvmManager != nullptr)
-						jvmManager->DisplayWindow();
-					break;
-			}
+		case IDC_BUTTON_CONFIGURE:
+			if (jvmManager != nullptr)
+				jvmManager->DisplayWindow();
 			break;
 		}
+		break;
+	}
 	}
 	return 0;
 }
@@ -246,9 +259,31 @@ extern "C"
 
 			REAPERAPI_LoadAPI(rec->GetFunc);
 
+			// Register extension
 			int result = rec->Register("csurf", &drivenbymoss_reg);
 			if (!result)
+			{
 				ReaDebug() << "Could not instantiate DrivenByMoss surface extension.";
+				return 0;
+			}
+
+			// Register Open Window action
+			openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void *) "DBM_OPEN_WINDOW_ACTION");
+			if (!openDBMConfigureWindowAccel.accel.cmd)
+			{
+				ReaDebug() << "Could not register ID for DrivenByMoss open window action.";
+				return 0;
+			}
+			if (!rec->Register("gaccel", &openDBMConfigureWindowAccel))
+			{
+				ReaDebug() << "Could not register DrivenByMoss open window action.";
+				return 0;
+			}
+			if (!rec->Register("hookcommand", (void*)hookCommandProc))
+			{
+				ReaDebug() << "Could not register DrivenByMoss open window action callback.";
+				return 0;
+			}
 
 			return 1;
 		}
