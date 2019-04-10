@@ -131,9 +131,6 @@
     <ClInclude Include="..\reaper_drivenbymoss\afxres.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\reaper_drivenbymoss\StringUtils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\Collectors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -153,6 +150,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\SceneProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\StringUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

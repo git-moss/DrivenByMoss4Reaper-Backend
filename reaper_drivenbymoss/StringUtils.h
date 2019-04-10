@@ -4,18 +4,35 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <codecvt>
+#include "ReaDebug.h"
 
+#ifdef _WIN32
+
+#else
+#include <codecvt>
+#endif
 
 /**
  * Convert a string to a wide string.
  */
-std::wstring stringToWs(const std::string& s)
+std::string wstringToDefaultPlatformEncoding(const std::wstring &src)
 {
-	typedef std::codecvt_utf8<wchar_t> convert_type;
-	std::wstring_convert<convert_type, wchar_t> converter;
-	return converter.from_bytes(s);
-}
-
+#ifdef _WIN32
+	int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, src.c_str(), -1, NULL, 0, NULL, NULL);
+	std::string dest(sizeNeeded, 0);
+	WideCharToMultiByte(CP_ACP, 0, src.c_str(), -1, &dest[0], sizeNeeded, NULL, NULL);
+	return dest;
+#else
+	try
+	{
+		std::wstring_convert<std::codecvt<wchar_t, char, mbstate_t>, wchar_t> converter;
+		return converter.to_bytes(s);
+	}
+	catch (const std::range_error & exception)
+	{
+		// Thrown for bad conversions
+		ReaDebug() << "Could not convert wstring to platform wide characters: " << exception.what() << " String: " << s;
+		return "";
+	}
 #endif
+}

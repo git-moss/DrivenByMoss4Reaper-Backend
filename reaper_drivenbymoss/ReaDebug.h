@@ -29,6 +29,7 @@ public:
 	ReaDebug &operator << (double value);
 	ReaDebug &operator << (void *value);
 	ReaDebug &operator << (const std::string& value);
+	ReaDebug &operator << (const std::wstring& value);
 
 private:
 	static Model *model;

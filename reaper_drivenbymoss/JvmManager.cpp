@@ -14,14 +14,12 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <codecvt>
 
 #include "JvmManager.h"
 #include "ReaDebug.h"
 #include "ReaperUtils.h"
-
-#ifdef WIN32
-extern std::wstring stringToWs(const std::string& s);
-#endif
+#include "StringUtils.h"
 
 /**
  * Constructor.
@@ -95,23 +93,24 @@ void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *pr
  */
 void JvmManager::Create()
 {
-	std::string libDir = GetLibraryPath();
+	std::wstring libDir = GetLibraryPath();
 	if (libDir.empty())
 		return;
-	this->javaHomePath = libDir + "java-runtime";
+	this->javaHomePath = libDir + L"java-runtime";
 
 	if (!LoadJvmLibrary())
 		return;
 
-	std::string classpath = this->CreateClasspath(libDir);
+	std::wstring classpath = this->CreateClasspath(libDir);
 	if (classpath.empty())
 		return;
 
-	JavaVMOption * const  opts = this->options.get();
-	opts[0].optionString = (char *)classpath.c_str();
+	JavaVMOption *const  opts = this->options.get();
+	std::string optString = wstringToDefaultPlatformEncoding(classpath);
+	opts[0].optionString = (char *) optString.c_str();
 	if (this->debug)
 		opts[1].optionString = (char *) "-agentlib:jdwp=transport=dt_socket,address=8989,server=y,suspend=y";
-    
+
 	// Minimum required Java version
 	JavaVMInitArgs vm_args{};
 	vm_args.version = JNI_VERSION_10;
@@ -123,8 +122,8 @@ void JvmManager::Create()
 	// Load and initialize Java VM and JNI interface
 	// NOTE: SEGV (or exception 0xC0000005) is generated intentionally on JVM startup 
 	// to verify certain CPU/OS features! Advice debugger to skip it.
-    // In Xcode: Create a breakpoint, edit it, add action, enter the line: pro hand -p true -s false SIGSEGV
-    // Check option: Automatically continue...
+	// In Xcode: Create a breakpoint, edit it, add action, enter the line: pro hand -p true -s false SIGSEGV
+	// Check option: Automatically continue...
 	jint(*JNI_CreateJavaVM)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *))
 #ifdef _WIN32
 		GetProcAddress(this->jvmLibHandle, "JNI_CreateJavaVM");
@@ -155,7 +154,7 @@ bool JvmManager::LoadJvmLibrary()
 	if (this->javaHomePath.empty())
 		return false;
 
-	std::string libPath = LookupJvmLibrary(this->javaHomePath);
+	std::wstring libPath = LookupJvmLibrary(this->javaHomePath);
 	if (libPath.empty())
 	{
 		ReaDebug() << "Could not find Java dynamic library.";
@@ -163,7 +162,7 @@ bool JvmManager::LoadJvmLibrary()
 	}
 
 #ifdef _WIN32
-	this->jvmLibHandle = LoadLibrary(stringToWs(libPath).c_str());
+	this->jvmLibHandle = LoadLibrary(libPath.c_str());
 #else
 	this->jvmLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
 #endif
@@ -179,20 +178,20 @@ bool JvmManager::LoadJvmLibrary()
 /**
  * Tests several options to find the JVBM library in the JAVA_HOME folder.
  */
-std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
+std::wstring JvmManager::LookupJvmLibrary(const std::wstring &javaHomePath) const
 {
 #ifdef _WIN32
-	std::string libPath = javaHomePath + "\\bin\\server\\jvm.dll";
+	std::wstring libPath = javaHomePath + L"\\bin\\server\\jvm.dll";
 #elif LINUX
-	std::string libPath = javaHomePath + "/lib/server/libjvm.so";
+	std::wstring libPath = javaHomePath + "/lib/server/libjvm.so";
 #else
-	std::string libPath = javaHomePath + "/lib/jli/libjli.dylib";
+	std::wstring libPath = javaHomePath + "/lib/jli/libjli.dylib";
 #endif
 	std::ifstream in(libPath);
 	if (in.good())
 		return libPath;
 	ReaDebug() << "Java dynamic library not found at " << libPath;
-	return "";
+	return L"";
 }
 
 
@@ -218,11 +217,11 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 
 	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/ui/MainFrame");
 	if (mainFrameClass == nullptr)
-    {
-        ReaDebug() << "MainFrame.class could not be retrieved.";
-        return;
-    }
-    const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
+	{
+		ReaDebug() << "MainFrame.class could not be retrieved.";
+		return;
+	}
+	const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
 	if (result != 0)
 		this->HandleException("ERROR: Could not register native functions");
 }
@@ -290,21 +289,21 @@ void JvmManager::UpdateModel(std::string data)
  *
  * @return The full path or empty if error
  */
-std::string getDylibPath()
+std::wstring getDylibPath()
 {
 #ifdef _WIN32
 	// Long paths might be 65K on Window 10 but the path we are after should never be longer than 260
-	char path[MAX_PATH];
+	wchar_t path[MAX_PATH];
 	HMODULE hm = NULL;
 	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&getDylibPath, &hm))
-		return std::string{};
-	GetModuleFileNameA(hm, path, sizeof(path));
-	return std::string{ path };
+		return std::wstring{};
+	GetModuleFileName(hm, path, sizeof(path));
+	return std::wstring{ path };
 #else
 	Dl_info info;
 	if (dladdr((void *)getDylibPath, &info) == 0)
-		return std::string{};
-	return std::string{ info.dli_fname };
+		return std::wstring{};
+	return std::wstring{ info.dli_fname };
 #endif
 }
 
@@ -315,45 +314,43 @@ std::string getDylibPath()
  * @param libDir The location where the Reaper extension libraries are located
  * @return The full classpath including the VM parameter
  */
-std::string JvmManager::CreateClasspath(std::string libDir) const
+std::wstring JvmManager::CreateClasspath(std::wstring libDir) const
 {
 	if (libDir.empty())
 		return libDir;
 
 #ifdef _WIN32
-	const int status = _chdir(libDir.c_str());
+	const int status = _wchdir(libDir.c_str());
 #else
 	const int status = chdir(libDir.c_str());
 #endif
 	if (status < 0)
 	{
 		ReaDebug() << "ERROR: Could not change current directory to " << libDir;
-		return "";
+		return L"";
 	}
 
-	const std::string subdir = "drivenbymoss-libs";
-	const std::string path = libDir + subdir;
-
-	std::stringstream stream;
-	for (const std::string &file : this->GetDirectoryFiles(path))
+	const std::wstring path = libDir + L"drivenbymoss-libs";
+	std::wstringstream stream;
+	for (const std::wstring &file : this->GetDirectoryFiles(path))
 	{
-		if (this->HasEnding(file, ".jar"))
-        {
-            stream << path << "/" << file;
+		if (this->HasEnding(file, L".jar"))
+		{
+			stream << path << L"/" << file;
 #ifdef _WIN32
-            stream<< ";";
+			stream << L";";
 #else
-            stream<< ":";
+			stream << ":";
 #endif
-        }
-    }
-	std::string result = stream.str();
+		}
+	}
+	std::wstring result = stream.str();
 	if (result.empty())
 	{
 		ReaDebug() << "No JAR files found in library path: " << path;
 		return result;
 	}
-	return "-Djava.class.path=" + result.substr(0, result.length() - 1);
+	return L"-Djava.class.path=" + result.substr(0, result.length() - 1);
 }
 
 
@@ -362,26 +359,26 @@ std::string JvmManager::CreateClasspath(std::string libDir) const
  *
  * @return The path or error if empty
  */
-std::string JvmManager::GetLibraryPath() const
+std::wstring JvmManager::GetLibraryPath() const
 {
 #ifdef DEBUG
 	// Used on Mac if running in the debugger since the dylib location is temporary
 	// return "/Users/mos/Library/Application Support/REAPER/UserPlugins/";
 #endif
 
-	const std::string fullLibPath = getDylibPath();
+	const std::wstring fullLibPath = getDylibPath();
 	if (fullLibPath.empty())
 	{
 		ReaDebug() << "Could not retrieve library path.";
-		return "";
+		return L"";
 	}
 
 #ifdef _WIN32
-	const std::string dylibName{ "reaper_drivenbymoss.dll" };
+	const std::wstring dylibName{ L"reaper_drivenbymoss.dll" };
 #elif LINUX
-	const std::string dylibName{ "reaper_drivenbymoss.so" };
+	const std::wstring dylibName{ L"reaper_drivenbymoss.so" };
 #else
-	const std::string dylibName{ "reaper_drivenbymoss.dylib" };
+	const std::wstring dylibName{ L"reaper_drivenbymoss.dylib" };
 #endif
 	return fullLibPath.substr(0, fullLibPath.size() - dylibName.size());
 }
@@ -393,14 +390,14 @@ std::string JvmManager::GetLibraryPath() const
  * @param dir The directory
  * @return All found files (includes "." and "..")
  */
-std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) const
+std::vector<std::wstring> JvmManager::GetDirectoryFiles(const std::wstring &dir) const
 {
-	std::vector<std::string> files{};
+	std::vector<std::wstring> files{};
 #ifdef _WIN32
-	std::string pattern(dir);
-	pattern.append("\\*");
+	std::wstring pattern(dir);
+	pattern.append(L"\\*");
 	WIN32_FIND_DATA data;
-	HANDLE hFind = hFind = FindFirstFile(stringToWs(pattern).c_str(), &data);
+	HANDLE hFind = hFind = FindFirstFile(pattern.c_str(), &data);
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		ReaDebug() << "Error looking up JAR files in: " << pattern;
@@ -408,8 +405,7 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
 	}
 	do
 	{
-		std::wstring ws(data.cFileName);
-		std::string file(ws.begin(), ws.end());
+		std::wstring file{ data.cFileName };
 		files.push_back(file);
 	} while (FindNextFile(hFind, &data) != 0);
 	FindClose(hFind);
@@ -422,7 +418,7 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
 		return files;
 	}
 	while ((dirent_ptr = readdir(directory_ptr.get())) != nullptr)
-		files.push_back(std::string(dirent_ptr->d_name));
+		files.push_back(std::wstring(dirent_ptr->d_name));
 #endif
 	return files;
 }
@@ -434,7 +430,7 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
  * @param end The string to test if str ends with it
  * @return True if str ends with end
  */
-bool JvmManager::HasEnding(std::string const &str, std::string const &end) const
+bool JvmManager::HasEnding(std::wstring const &str, std::wstring const &end) const
 {
 	return str.length() < end.length() ? false : str.compare(str.length() - end.length(), end.length(), end) == 0;
 }
