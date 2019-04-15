@@ -160,6 +160,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\ReaDebug.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\SceneProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\stdafx.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\StringUtils.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Track.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\TrackProcessor.cpp" />
   </ItemGroup>

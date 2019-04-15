@@ -25,7 +25,7 @@ public:
         return this->isInitialised && this->jvm != nullptr;
     }
 
-	const std::wstring &GetJavaHomePath() const
+	const std::string &GetJavaHomePath() const
 	{
 		return this->javaHomePath;
 	}
@@ -34,7 +34,7 @@ public:
 	void UpdateModel(std::string data);
 
 private:
-	std::wstring javaHomePath;
+	std::string javaHomePath;
 
 	// Pointer to the JVM (Java Virtual Machine)
 	JavaVM *jvm;
@@ -61,12 +61,12 @@ private:
 	void StartApp();
 
 	bool LoadJvmLibrary();
-	std::wstring LookupJvmLibrary(const std::wstring &javaHomePath) const;
-	std::wstring CreateClasspath(std::wstring libDir) const;
-	std::vector<std::wstring> GetDirectoryFiles(const std::wstring &dir) const;
-    std::wstring GetLibraryPath() const;
+	std::string LookupJvmLibrary(const std::string &javaHomePath) const;
+	std::string CreateClasspath(std::string libDir) const;
+	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
+    std::string GetLibraryPath() const;
 
 	jclass GetControllerClass();
 	void HandleException(const char *message) const;
-	bool HasEnding(std::wstring const &fullString, std::wstring const &ending) const;
+	bool HasEnding(std::string const &fullString, std::string const &ending) const;
 };
