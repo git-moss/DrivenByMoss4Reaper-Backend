@@ -2,9 +2,9 @@
 // (c) 2018-2019
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.tvaluet
 
+#include "Model.h"
 #include "ReaDebug.h"
 #include "ReaperUtils.h"
-#include <codecvt>
 
 Model *ReaDebug::model = nullptr;
 
@@ -80,19 +80,5 @@ ReaDebug &ReaDebug::operator << (void *value)
 ReaDebug &ReaDebug::operator << (const std::string &value)
 {
 	buffer.append(value);
-	return *this;
-}
-
-ReaDebug &ReaDebug::operator << (const std::wstring &value)
-{
-	try
-	{
-		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-		buffer.append(converter.to_bytes(value));
-	}
-	catch (const std::range_error & exception)
-	{
-		buffer.append("Could not convert wide string message to console ASCII: ").append(exception.what());
-	}
 	return *this;
 }

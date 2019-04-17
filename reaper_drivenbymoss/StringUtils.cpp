@@ -2,13 +2,12 @@
 // (c) 2018-2019
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
-
 #include "StringUtils.h"
 
 #ifndef _WIN32
 #include <locale>
 #include <codecvt>
+#include "ModdedCodecvt.h"
 #endif
 
 std::wstring stringToWs(const std::string &src)
@@ -19,9 +18,8 @@ std::wstring stringToWs(const std::string &src)
 	MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, &dest[0], sizeNeeded);
 	return dest;
 #else
-	typedef std::codecvt_utf8<wchar_t> convert_type;
-	std::wstring_convert<convert_type, wchar_t> converter;
-	return converter.from_bytes(s);
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	return converter.from_bytes(src);
 #endif
 }
 
@@ -39,13 +37,13 @@ std::string wstringToDefaultPlatformEncoding(const std::wstring &src)
 #else
 	try
 	{
-		std::wstring_convert<std::codecvt<wchar_t, char, mbstate_t>, wchar_t> converter;
-		return converter.to_bytes(s);
+		std::wstring_convert<codecvt<wchar_t, char, mbstate_t>, wchar_t> converter;
+		return converter.to_bytes(src);
 	}
 	catch (const std::range_error & exception)
 	{
 		// Thrown for bad conversions
-		ReaDebug() << "Could not convert wstring to platform wide characters: " << exception.what() << " String: " << s;
+		ReaDebug() << "Could not convert wstring to platform wide characters: " << exception.what();
 		return "";
 	}
 #endif
