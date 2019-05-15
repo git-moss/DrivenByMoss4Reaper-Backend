@@ -254,9 +254,12 @@ public:
 
 		std::stringstream valStream;
 		valStream << value;
+#ifdef _WIN32
 		const std::wstring v = stringToWs(valStream.str());
-		const wchar_t *vStr = v.c_str();
-		if (!WritePrivateProfileString(category.c_str(), key.c_str(), vStr, iniPath.c_str()))
+#else
+        const std::string v = valStream.str();
+#endif
+		if (!WritePrivateProfileString(category.c_str(), key.c_str(), v.c_str(), iniPath.c_str()))
 			ReaDebug() << "ERROR: Could not store parameter in REAPER.ini";
 	};
 
