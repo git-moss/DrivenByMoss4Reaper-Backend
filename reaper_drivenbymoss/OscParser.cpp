@@ -32,6 +32,7 @@ OscParser::OscParser(Model &model) :
 	markerProcessor(model),
 	refreshProcessor(model),
 	sceneProcessor(model),
+	iniFileProcessor(model),
 	theModel(model)
 {
 	this->processors["play"] = &playProcessor;
@@ -54,6 +55,7 @@ OscParser::OscParser(Model &model) :
 	this->processors["marker"] = &markerProcessor;
 	this->processors["refresh"] = &refreshProcessor;
 	this->processors["scene"] = &sceneProcessor;
+	this->processors["inifile"] = &iniFileProcessor;
 }
 
 

@@ -57,6 +57,7 @@ private:
 	MarkerProcessor 				 markerProcessor;
 	RefreshProcessor 				 refreshProcessor;
 	SceneProcessor 					 sceneProcessor;
+	IniFileProcessor                 iniFileProcessor;
 
 	std::map<std::string, OscProcessor *> processors;
 	Model &theModel;

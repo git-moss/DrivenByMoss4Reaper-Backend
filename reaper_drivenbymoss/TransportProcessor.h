@@ -8,6 +8,7 @@
 
 #include "OscProcessor.h"
 #include "ReaperUtils.h"
+#include "StringUtils.h"
 
 
 class PlayProcessor : public OscProcessor
@@ -87,6 +88,8 @@ public:
 
 	void Process(std::deque<std::string> &path) override
 	{
+		if (path.empty())
+			return;
 		ReaProject *project = ReaperUtils::GetProject();
 		const char *direction = path.at(0).c_str();
 		if (strcmp(direction, "+") == 0)
@@ -126,8 +129,13 @@ class QuantizeProcessor : public OscProcessor
 public:
 	QuantizeProcessor(Model &aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string> &path, double value) override
 	{
+		if (!path.empty())
+			return;
+
+		// TODO use the amount value
+
 		HWND activeMidiEditor = MIDIEditor_GetActive();
 		const bool isNotOpen = activeMidiEditor == nullptr;
 
@@ -217,5 +225,45 @@ public:
 	void Process(std::deque<std::string> &path) override
 	{
 		this->model.SetDump();
+	};
+};
+
+class IniFileProcessor : public OscProcessor
+{
+public:
+	IniFileProcessor(Model &aModel) : OscProcessor(aModel) {};
+
+	void Process(std::deque<std::string> &path, int value) override
+	{
+		if (path.size() != 2)
+			return;
+
+		const std::wstring category = stringToWs (path.at(0));
+		const std::wstring key = stringToWs(path.at(1));
+		const std::wstring iniPath = GetIniName();
+		const wchar_t *p = iniPath.c_str();
+		int currValue = GetPrivateProfileInt(category.c_str(), key.c_str(), -1, p);
+		if (currValue == value)
+			return;
+
+		std::stringstream valStream;
+		valStream << value;
+		const std::wstring v = stringToWs(valStream.str());
+		const wchar_t *vStr = v.c_str();
+		if (!WritePrivateProfileString(category.c_str(), key.c_str(), vStr, p))
+			ReaDebug() << "ERROR: Could not store parameter in REAPER.ini";
+	};
+
+	const std::wstring GetIniName ()
+	{
+		std::stringstream ss;
+		ss << GetResourcePath();
+		#ifdef _WIN32
+		ss << "\\";
+		#else
+		ss << "/";
+		#endif			
+		ss << "REAPER.ini";
+		return stringToWs(ss.str());
 	};
 };
