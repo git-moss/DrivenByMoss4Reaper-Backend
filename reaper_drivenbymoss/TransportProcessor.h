@@ -238,11 +238,17 @@ public:
 		if (path.size() != 2)
 			return;
 
+#ifdef _WIN32
 		const std::wstring category = stringToWs (path.at(0));
 		const std::wstring key = stringToWs(path.at(1));
-		const std::wstring iniPath = GetIniName();
-		const wchar_t *p = iniPath.c_str();
-		int currValue = GetPrivateProfileInt(category.c_str(), key.c_str(), -1, p);
+		const std::wstring iniPath = stringToWs(GetIniName());
+#else
+		const std::string category = path.at(0);
+		const std::string key = path.at(1);
+		const std::string iniPath = GetIniName();
+#endif			
+
+		int currValue = GetPrivateProfileInt(category.c_str(), key.c_str(), -1, iniPath.c_str());
 		if (currValue == value)
 			return;
 
@@ -250,11 +256,11 @@ public:
 		valStream << value;
 		const std::wstring v = stringToWs(valStream.str());
 		const wchar_t *vStr = v.c_str();
-		if (!WritePrivateProfileString(category.c_str(), key.c_str(), vStr, p))
+		if (!WritePrivateProfileString(category.c_str(), key.c_str(), vStr, iniPath.c_str()))
 			ReaDebug() << "ERROR: Could not store parameter in REAPER.ini";
 	};
 
-	const std::wstring GetIniName ()
+	const std::string GetIniName ()
 	{
 		std::stringstream ss;
 		ss << GetResourcePath();
@@ -264,6 +270,6 @@ public:
 		ss << "/";
 		#endif			
 		ss << "REAPER.ini";
-		return stringToWs(ss.str());
+		return ss.str();
 	};
 };
