@@ -40,3 +40,4 @@ Debug
 .DS_Store
 .settings
 /Visual Studio/x64/Release
+.vs
