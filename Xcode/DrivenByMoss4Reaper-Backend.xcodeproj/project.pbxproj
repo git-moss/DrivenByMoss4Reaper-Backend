@@ -274,6 +274,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 85823BB920F40CCF00E4CC57;
 			productRefGroup = 85823BC320F40CD000E4CC57 /* Products */;
@@ -439,8 +440,8 @@
 					SWELL_PROVIDED_BY_APP,
 				);
 				HEADER_SEARCH_PATHS = (
-					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/jdk-11.0.2+9/Contents/Home/include/**",
+					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
+					"/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
@@ -462,8 +463,8 @@
 				EXECUTABLE_PREFIX = "";
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
-					"/Users/mos/Documents/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/jdk-11.0.2+9/Contents/Home/include/**",
+					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
+					"/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
