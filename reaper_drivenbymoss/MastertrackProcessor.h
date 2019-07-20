@@ -20,4 +20,8 @@ public:
 
 	void Process(std::deque<std::string> &path, int value) override;
 	void Process(std::deque<std::string> &path, double value) override;
+	void Process(std::deque<std::string>& path, const std::string& value) override;
+
+private:
+	void SetColorOfTrack(ReaProject* project, MediaTrack* track, std::string value);
 };

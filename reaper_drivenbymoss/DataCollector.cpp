@@ -230,6 +230,18 @@ void DataCollector::CollectMasterTrackData(std::stringstream &ss, ReaProject *pr
 
 	this->masterVULeft = Collectors::CollectDoubleValue(ss, "/master/vuleft", this->masterVULeft, DB2SLIDER(ReaperUtils::ValueToDB(Track_GetPeakInfo(master, 0))) / 1000.0, dump);
 	this->masterVURight = Collectors::CollectDoubleValue(ss, "/master/vuright", this->masterVURight, DB2SLIDER(ReaperUtils::ValueToDB(Track_GetPeakInfo(master, 1))) / 1000.0, dump);
+
+	// Track color
+	int red = -1, green = -1, blue = -1;
+	// Note: GetTrackColor is not working for the master track
+	int nativeColor = GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR");
+	if (nativeColor != 0)
+		ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
+	this->masterColor = Collectors::CollectStringValue(ss, "/master/color", this->masterColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
+
+	// Automation mode
+	const double automode = GetMediaTrackInfo_Value(master, "I_AUTOMODE");
+	this->masterAutoMode = Collectors::CollectIntValue(ss, "/master/automode", this->masterAutoMode, static_cast<int>(automode), dump);
 }
 
 

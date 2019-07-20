@@ -71,6 +71,8 @@ private:
 	std::string masterPanStr{};
 	double masterVULeft{};
 	double masterVURight{};
+	std::string masterColor;
+	int masterAutoMode{ 0 };
 
 	// Device values
 	int deviceExists{ -1 };
