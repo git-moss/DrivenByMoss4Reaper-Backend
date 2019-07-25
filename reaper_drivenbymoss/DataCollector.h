@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <chrono>
+#include <map>
+#include <mutex>
 #include <regex>
 #include <string>
 #include <sstream>
@@ -22,8 +25,13 @@ public:
 	virtual ~DataCollector();
 
 	std::string CollectData(const bool &dump);
+	void DelayUpdate(std::string processor);
+	bool CheckDelay(std::string processor);
 
 private:
+	std::map<std::string, long long> delayUpdateMap;
+	std::mutex delayMutex;
+
 	Model &model;
 	int projectState{ -1 };
 

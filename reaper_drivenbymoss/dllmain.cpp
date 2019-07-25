@@ -33,8 +33,8 @@ REAPER_PLUGIN_HINSTANCE g_hInst;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
 
 // The global extension variables required to bridge from C to C++
-DrivenByMossSurface *gSurface = nullptr;
-JvmManager *jvmManager = nullptr;
+DrivenByMossSurface* gSurface = nullptr;
+JvmManager* jvmManager = nullptr;
 
 /**
  * Java callback for an OSC style command to be executed in Reaper without a parameter.
@@ -44,14 +44,14 @@ JvmManager *jvmManager = nullptr;
  * @param processor The processor to execute the command
  * @param command   The command to execute
  */
-void processNoArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command)
+void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command)
 {
 	if (env == nullptr || gSurface == nullptr)
 		return;
-	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
 	if (proc == nullptr)
 		return;
-	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
 	gSurface->GetOscParser().Process(procstr, path);
@@ -70,20 +70,20 @@ void processNoArgCPP(JNIEnv *env, jobject object, jstring processor, jstring com
  * @param command   The command to execute
  * @param value     The string value
  */
-void processStringArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command, jstring value)
+void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jstring value)
 {
 	if (env == nullptr || gSurface == nullptr)
 		return;
-	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
 	if (proc == nullptr)
 		return;
-	const char *val = env->GetStringUTFChars(value, JNI_FALSE);
+	const char* val = env->GetStringUTFChars(value, JNI_FALSE);
 	if (val == nullptr)
 	{
 		env->ReleaseStringUTFChars(command, proc);
 		return;
 	}
-	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
 	std::string valueString(val);
@@ -104,14 +104,14 @@ void processStringArgCPP(JNIEnv *env, jobject object, jstring processor, jstring
  * @param command   The command to execute
  * @param value     The integer value
  */
-void processIntArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command, jint value)
+void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jint value)
 {
 	if (env == nullptr || gSurface == nullptr)
 		return;
-	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
 	if (proc == nullptr)
 		return;
-	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
 	gSurface->GetOscParser().Process(procstr, path, value);
@@ -130,20 +130,41 @@ void processIntArgCPP(JNIEnv *env, jobject object, jstring processor, jstring co
  * @param command   The command to execute
  * @param value     The double value
  */
-void processDoubleArgCPP(JNIEnv *env, jobject object, jstring processor, jstring command, jdouble value)
+void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jdouble value)
 {
 	if (env == nullptr || gSurface == nullptr)
 		return;
-	const char *proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
 	if (proc == nullptr)
 		return;
-	const char *cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
 	gSurface->GetOscParser().Process(procstr, path, value);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
+}
+
+
+/**
+ * Java callback to delay updates for a specific processor. Use to prevent that Reaper sends old
+ * values before the latest ones are applied.
+ *
+ * @param processor The processor to delay.
+ */
+void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
+{
+	if (env == nullptr || gSurface == nullptr)
+		return;
+	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	if (proc == nullptr)
+		return;
+	std::string procstr(proc);
+	
+	gSurface->GetDataCollector().DelayUpdate(procstr);
+
+	env->ReleaseStringUTFChars(processor, proc);
 }
 
 
@@ -156,7 +177,7 @@ void processDoubleArgCPP(JNIEnv *env, jobject object, jstring processor, jstring
  * @param data1   MIDI data byte 1
  * @param data2   MIDI data byte 2
  */
-void processMidiArgCPP(JNIEnv *env, jobject object, jint status, jint data1, jint data2)
+void processMidiArgCPP(JNIEnv* env, jobject object, jint status, jint data1, jint data2)
 {
 	if (env != nullptr && gSurface != nullptr)
 		StuffMIDIMessage(0, status, data1, data2);
@@ -168,12 +189,12 @@ static void createJVM()
 	if (jvmManager != nullptr)
 		return;
 	jvmManager = new JvmManager(DEBUG_JAVA);
-	jvmManager->init((void *)&processNoArgCPP, (void *)&processStringArgCPP, (void *)&processIntArgCPP, (void *)&processDoubleArgCPP, (void *)&processMidiArgCPP);
+	jvmManager->init((void*)& processNoArgCPP, (void*)& processStringArgCPP, (void*)& processIntArgCPP, (void*)& processDoubleArgCPP, (void*)& delayUpdatesCPP, (void*)& processMidiArgCPP);
 }
 
 
 // Callback function for Reaper to create an instance of the extension
-static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
+static IReaperControlSurface* createFunc(const char* type_string, const char* configString, int* errStats)
 {
 	createJVM();
 	// Prevent a second instance and ensure that JVM has successfully started...
@@ -226,7 +247,7 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
+static HWND configFunc(const char* type_string, HWND parent, const char* initConfigString)
 {
 	createJVM();
 	return CreateDialogParam(g_hInst, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, (LPARAM)initConfigString);
@@ -247,7 +268,7 @@ static reaper_csurf_reg_t drivenbymoss_reg =
 extern "C"
 {
 	// Defines the entry point for the DLL application.
-	REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance, const reaper_plugin_info_t *rec)
+	REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance, const reaper_plugin_info_t* rec)
 	{
 		if (rec)
 		{
@@ -268,7 +289,7 @@ extern "C"
 			}
 
 			// Register Open Window action
-			openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void *) "DBM_OPEN_WINDOW_ACTION");
+			openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*) "DBM_OPEN_WINDOW_ACTION");
 			if (!openDBMConfigureWindowAccel.accel.cmd)
 			{
 				ReaDebug() << "Could not register ID for DrivenByMoss open window action.";
@@ -301,6 +322,7 @@ extern "C"
 #ifndef _WIN32 // MAC resources
 #include "swell-dlggen.h"
 #include "res.rc_mac_dlg"
+#include "dllmain.h"
 #undef BEGIN
 #undef END
 #endif

@@ -18,14 +18,14 @@ public:
 	JvmManager(bool enableDebug);
 	~JvmManager();
 
-    void init (void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *processMidiArgCPP);
-    
-    bool isRunning() const
-    {
-        return this->isInitialised && this->jvm != nullptr;
-    }
+	void init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
 
-	const std::string &GetJavaHomePath() const
+	bool isRunning() const
+	{
+		return this->isInitialised && this->jvm != nullptr;
+	}
+
+	const std::string& GetJavaHomePath() const
 	{
 		return this->javaHomePath;
 	}
@@ -37,10 +37,10 @@ private:
 	std::string javaHomePath;
 
 	// Pointer to the JVM (Java Virtual Machine)
-	JavaVM *jvm;
+	JavaVM* jvm;
 
 	// Pointer to native interface
-	JNIEnv *env;
+	JNIEnv* env;
 
 	// JVM invocation options
 	std::unique_ptr<JavaVMOption[]> options;
@@ -48,7 +48,7 @@ private:
 #ifdef _WIN32
 	HMODULE jvmLibHandle;
 #else
-	void *jvmLibHandle;
+	void* jvmLibHandle;
 #endif
 
 	bool debug;
@@ -57,16 +57,16 @@ private:
 
 
 	void Create();
-	void RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *processMidiArgCPP);
+	void RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
 	void StartApp();
 
 	bool LoadJvmLibrary();
-	std::string LookupJvmLibrary(const std::string &javaHomePath) const;
+	std::string LookupJvmLibrary(const std::string& javaHomePath) const;
 	std::string CreateClasspath(std::string libDir) const;
-	std::vector<std::string> GetDirectoryFiles(const std::string &dir) const;
-    std::string GetLibraryPath() const;
+	std::vector<std::string> GetDirectoryFiles(const std::string& dir) const;
+	std::string GetLibraryPath() const;
 
 	jclass GetControllerClass();
-	void HandleException(const char *message) const;
-	bool HasEnding(std::string const &fullString, std::string const &ending) const;
+	void HandleException(const char* message) const;
+	bool HasEnding(std::string const& fullString, std::string const& ending) const;
 };

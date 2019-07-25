@@ -73,9 +73,10 @@ JvmManager::~JvmManager()
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
+ * @param delayUpdatesCPP The processing method to delay processor updates
  * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *processMidiArgCPP)
+void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
 {
 	if (this->isInitialised)
 		return;
@@ -83,7 +84,7 @@ void JvmManager::init(void *processNoArgCPP, void *processStringArgCPP, void *pr
 	this->Create();
 	if (this->jvm == nullptr)
 		return;
-	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, processMidiArgCPP);
+	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, delayUpdatesCPP, processMidiArgCPP);
 	this->StartApp();
 }
 
@@ -105,10 +106,10 @@ void JvmManager::Create()
 	if (classpath.empty())
 		return;
 
-	JavaVMOption *const  opts = this->options.get();
-	opts[0].optionString = (char *) classpath.c_str();
+	JavaVMOption* const  opts = this->options.get();
+	opts[0].optionString = (char*)classpath.c_str();
 	if (this->debug)
-		opts[1].optionString = (char *) "-agentlib:jdwp=transport=dt_socket,address=8989,server=y,suspend=y";
+		opts[1].optionString = (char*) "-agentlib:jdwp=transport=dt_socket,address=8989,server=y,suspend=y";
 
 	// Minimum required Java version
 	JavaVMInitArgs vm_args{};
@@ -123,7 +124,7 @@ void JvmManager::Create()
 	// to verify certain CPU/OS features! Advice debugger to skip it.
 	// In Xcode: Create a breakpoint, edit it, add action, enter the line: pro hand -p true -s false SIGSEGV
 	// Check option: Automatically continue...
-	jint(*JNI_CreateJavaVM)(JavaVM **, void **, void *) = (jint(*)(JavaVM **, void **, void *))
+	jint(*JNI_CreateJavaVM)(JavaVM * *, void**, void*) = (jint(*)(JavaVM * *, void**, void*))
 #ifdef _WIN32
 		GetProcAddress(this->jvmLibHandle, "JNI_CreateJavaVM");
 #else
@@ -161,7 +162,7 @@ bool JvmManager::LoadJvmLibrary()
 	}
 
 #ifdef _WIN32
-	this->jvmLibHandle = LoadLibrary(stringToWs (libPath).c_str());
+	this->jvmLibHandle = LoadLibrary(stringToWs(libPath).c_str());
 #else
 	this->jvmLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
 #endif
@@ -177,7 +178,7 @@ bool JvmManager::LoadJvmLibrary()
 /**
  * Tests several options to find the JVBM library in the JAVA_HOME folder.
  */
-std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
+std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePath) const
 {
 #ifdef _WIN32
 	std::string libPath = javaHomePath + "\\bin\\server\\jvm.dll";
@@ -201,9 +202,10 @@ std::string JvmManager::LookupJvmLibrary(const std::string &javaHomePath) const
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
+ * @param delayUpdatesCPP The processing method to delay processor updates
  * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCPP, void *processIntArgCPP, void *processDoubleArgCPP, void *processMidiArgCPP)
+void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void *delayUpdatesCPP, void* processMidiArgCPP)
 {
 	const JNINativeMethod methods[]
 	{
@@ -211,6 +213,7 @@ void JvmManager::RegisterMethods(void *processNoArgCPP, void *processStringArgCP
 		{ (char*) "processStringArg", (char*) "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
 		{ (char*) "processIntArg", (char*) "(Ljava/lang/String;Ljava/lang/String;I)V", processIntArgCPP },
 		{ (char*) "processDoubleArg", (char*) "(Ljava/lang/String;Ljava/lang/String;D)V", processDoubleArgCPP },
+		{ (char*) "delayUpdates", (char*) "(Ljava/lang/String;)V", delayUpdatesCPP },
 		{ (char*) "processMidiArg", (char*) "(III)V", processMidiArgCPP }
 	};
 
@@ -294,13 +297,13 @@ std::string getDylibPath()
 	// Long paths might be 65K on Window 10 but the path we are after should never be longer than 260
 	wchar_t path[MAX_PATH];
 	HMODULE hm = NULL;
-	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&getDylibPath, &hm))
+	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)& getDylibPath, &hm))
 		return std::string{};
 	GetModuleFileName(hm, path, sizeof(path));
-	return wstringToDefaultPlatformEncoding (path);
+	return wstringToDefaultPlatformEncoding(path);
 #else
 	Dl_info info;
-	if (dladdr((void *)getDylibPath, &info) == 0)
+	if (dladdr((void*)getDylibPath, &info) == 0)
 		return std::string{};
 	return std::string{ info.dli_fname };
 #endif
@@ -331,7 +334,7 @@ std::string JvmManager::CreateClasspath(std::string libDir) const
 
 	const std::string path = libDir + "drivenbymoss-libs";
 	std::stringstream stream;
-	for (const std::string &file : this->GetDirectoryFiles(path))
+	for (const std::string& file : this->GetDirectoryFiles(path))
 	{
 		if (this->HasEnding(file, ".jar"))
 		{
@@ -391,14 +394,14 @@ std::string JvmManager::GetLibraryPath() const
  * @param dir The directory
  * @return All found files (includes "." and "..")
  */
-std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) const
+std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string& dir) const
 {
 	std::vector<std::string> files{};
 #ifdef _WIN32
 	std::string pattern(dir);
 	pattern.append("\\*");
 	WIN32_FIND_DATA data;
-	HANDLE hFind = hFind = FindFirstFile(stringToWs (pattern).c_str(), &data);
+	HANDLE hFind = hFind = FindFirstFile(stringToWs(pattern).c_str(), &data);
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		ReaDebug() << "Error looking up JAR files in: " << pattern;
@@ -406,13 +409,13 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
 	}
 	do
 	{
-		std::string file{ wstringToDefaultPlatformEncoding (data.cFileName) };
+		std::string file{ wstringToDefaultPlatformEncoding(data.cFileName) };
 		files.push_back(file);
 	} while (FindNextFile(hFind, &data) != 0);
 	FindClose(hFind);
 #else
-	std::shared_ptr<DIR> directory_ptr(opendir(dir.c_str()), [](DIR* dir) { dir && closedir(dir); });
-	struct dirent *dirent_ptr;
+	std::shared_ptr<DIR> directory_ptr(opendir(dir.c_str()), [](DIR* dir) { dir&& closedir(dir); });
+	struct dirent* dirent_ptr;
 	if (!directory_ptr)
 	{
 		ReaDebug() << "Error looking up JAR files in: " << dir;
@@ -431,7 +434,7 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string &dir) c
  * @param end The string to test if str ends with it
  * @return True if str ends with end
  */
-bool JvmManager::HasEnding(std::string const &str, std::string const &end) const
+bool JvmManager::HasEnding(std::string const& str, std::string const& end) const
 {
 	return str.length() < end.length() ? false : str.compare(str.length() - end.length(), end.length(), end) == 0;
 }
@@ -442,7 +445,7 @@ bool JvmManager::HasEnding(std::string const &str, std::string const &end) const
  *
  * @param message The error message to display
  */
-void JvmManager::HandleException(const char *message) const
+void JvmManager::HandleException(const char* message) const
 {
 	if (!this->env->ExceptionCheck())
 		return;

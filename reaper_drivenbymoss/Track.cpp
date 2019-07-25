@@ -39,11 +39,13 @@ Track::~Track()
  * @param trackIndex The index of the track
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *track, int trackIndex, const bool &dump)
+void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& dump)
 {
 	std::stringstream das;
 	das << "/track/" << trackIndex << "/";
 	std::string trackAddress = das.str();
+
+	double cursorPos = ReaperUtils::GetCursorPosition(project);
 
 	// Track exists flag and number of track
 	this->exists = Collectors::CollectIntValue(ss, (trackAddress + "exists").c_str(), this->exists, 1, dump);
@@ -62,7 +64,7 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *
 	this->type = Collectors::CollectStringValue(ss, (trackAddress + "type").c_str(), this->type, (trackState & 1) > 0 ? "GROUP" : "HYBRID", dump);
 	const int selected = (trackState & 2) > 0 ? 1 : 0;
 	this->isSelected = Collectors::CollectIntValue(ss, (trackAddress + "select").c_str(), this->isSelected, selected, dump);
-	this->mute = Collectors::CollectIntValue(ss, (trackAddress + "mute").c_str(), this->mute, (trackState & 8) > 0 ? 1 : 0, dump);
+	this->mute = Collectors::CollectIntValue(ss, (trackAddress + "mute").c_str(), this->mute, this->GetMute(track, cursorPos, trackState), dump);
 	this->solo = Collectors::CollectIntValue(ss, (trackAddress + "solo").c_str(), this->solo, (trackState & 16) > 0 ? 1 : 0, dump);
 	this->recArmed = Collectors::CollectIntValue(ss, (trackAddress + "recarm").c_str(), this->recArmed, (trackState & 64) > 0 ? 1 : 0, dump);
 	// Uses "lock track" as active indication
@@ -80,10 +82,10 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *
 	this->color = Collectors::CollectStringValue(ss, (trackAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
 
 	// Track volume and pan
-	double volDB = ReaperUtils::ValueToDB(GetMediaTrackInfo_Value(track, "D_VOL"));
+	double volDB = this->GetVolume(track, cursorPos);
 	this->volume = Collectors::CollectDoubleValue(ss, (trackAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->volumeStr = Collectors::CollectStringValue(ss, (trackAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
-	const double panVal = GetMediaTrackInfo_Value(track, "D_PAN");
+	const double panVal = this->GetPan(track, cursorPos);
 	this->pan = Collectors::CollectDoubleValue(ss, (trackAddress + "pan").c_str(), this->pan, (panVal + 1) / 2, dump);
 	this->panStr = Collectors::CollectStringValue(ss, (trackAddress + "pan/str").c_str(), this->panStr, Collectors::FormatPan(panVal).c_str(), dump);
 
@@ -107,7 +109,7 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *
 		{
 			bool result = GetTrackSendName(track, sendCounter, sendName, LENGTH);
 			Collectors::CollectStringArrayValue(ss, (sendAddress + "name").c_str(), sendCounter, this->sendName, result ? sendName : "", dump);
-			volDB = ReaperUtils::ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
+			volDB = GetSendVolume(track, sendCounter, cursorPos);
 			Collectors::CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), sendCounter, this->sendVolume, DB2SLIDER(volDB) / 1000.0, dump);
 			Collectors::CollectStringArrayValue(ss, (sendAddress + "volume/str").c_str(), sendCounter, this->sendVolumeStr, Collectors::FormatDB(volDB).c_str(), dump);
 		}
@@ -129,7 +131,42 @@ void Track::CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *
 }
 
 
-int Track::GetTrackLockState(MediaTrack *track)
+double Track::GetVolume(MediaTrack* track, double position) const
+{
+	return ReaperUtils::ValueToDB(GetValue(track, position, "Volume", "D_VOL"));
+}
+
+double Track::GetPan(MediaTrack* track, double position) const
+{
+	return GetValue(track, position, "Pan", "D_PAN");
+}
+
+int Track::GetMute(MediaTrack* track, double position, int trackState) const
+{
+	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Mute");
+	if (envelope != nullptr)
+		return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+	return (trackState & 8) > 0 ? 1 : 0;
+}
+
+double Track::GetSendVolume(MediaTrack* track, int sendCounter, double position) const
+{
+	const char* sendType = "<VOLENV";
+	TrackEnvelope* envelope = (TrackEnvelope*)GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType);
+	if (envelope != nullptr)
+		return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+	return ReaperUtils::ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
+}
+
+double Track::GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const
+{
+	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, envelopeName);
+	if (envelope != nullptr)
+		return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+	return GetMediaTrackInfo_Value(track, infoName);
+}
+
+int Track::GetTrackLockState(MediaTrack* track) const
 {
 	// Critical error detected c0000374 - GetTrackStateChunk currently not usable
 	//if (!GetTrackStateChunk(track, this->trackStateChunk.get(), BUFFER_SIZE, false))

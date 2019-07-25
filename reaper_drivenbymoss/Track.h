@@ -53,7 +53,15 @@ public:
 	Track(const int sendBankSize);
 	virtual ~Track();
 
-	void CollectData(std::stringstream &ss, ReaProject *project, MediaTrack *track, int trackIndex, const bool &dump);
+	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& dump);
 
-	int GetTrackLockState(MediaTrack *track);
+	double GetVolume(MediaTrack* track, double position) const;
+	double GetPan(MediaTrack* track, double position) const;
+	int GetMute(MediaTrack* track, double position, int trackState) const;
+	double GetSendVolume(MediaTrack* track, int sendCounter, double position) const;
+
+	int GetTrackLockState(MediaTrack* track) const;
+
+private:
+	double GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const;
 };
