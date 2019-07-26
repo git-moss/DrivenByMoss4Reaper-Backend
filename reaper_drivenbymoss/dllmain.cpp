@@ -322,7 +322,6 @@ extern "C"
 #ifndef _WIN32 // MAC resources
 #include "swell-dlggen.h"
 #include "res.rc_mac_dlg"
-#include "dllmain.h"
 #undef BEGIN
 #undef END
 #endif
