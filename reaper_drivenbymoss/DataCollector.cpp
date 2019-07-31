@@ -48,7 +48,7 @@ void DataCollector::DelayUpdate(std::string processor)
 
 
 /**
- * Tests if the given processor is currently delayed and therefore no updated data 
+ * Tests if the given processor is currently delayed and therefore no updated data
  * should be sent.
  *
  * @param processor The processor to check if it is delayed
@@ -62,7 +62,7 @@ bool DataCollector::CheckDelay(std::string processor)
 	{
 		const long long oldValue = it->second;
 		const long long millis = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
-		if (millis - oldValue < 500)
+		if (millis - oldValue < DELAY)
 			result = false;
 		else
 			this->delayUpdateMap.erase(processor);
@@ -83,7 +83,7 @@ std::string DataCollector::CollectData(const bool& dump)
 	std::stringstream ss;
 	ReaProject* project = ReaperUtils::GetProject();
 
-	if (CheckDelay ("transport"))
+	if (CheckDelay("transport"))
 		CollectTransportData(ss, project, dump);
 	if (CheckDelay("project"))
 		CollectProjectData(ss, project, dump);
@@ -220,6 +220,7 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, ReaProject* project
 	this->instrumentParameter1.CollectData(ss, "/primary/param/", track, instrumentIndex, 0, 1, dump);
 }
 
+
 /**
  * Collect the (changed) track data.
  *
@@ -232,6 +233,7 @@ void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project,
 	int count = CountTracks(project);
 	int trackIndex{ 0 };
 	int trackState{};
+	std::string playingNotes{""};
 	for (int index = 0; index < count; index++)
 	{
 		MediaTrack* mediaTrack = GetTrack(project, index);
@@ -243,9 +245,47 @@ void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project,
 			continue;
 		Track* track = this->model.GetTrack(trackIndex);
 		track->CollectData(ss, project, mediaTrack, trackIndex, dump);
+		if (track->isSelected > 0)
+		{
+			std::stringstream das;
+			das << "/track/" << trackIndex << "/playingnotes";
+			playingNotes = this->CollectPlayingNotes(project, mediaTrack);
+			this->playingNotesStr = Collectors::CollectStringValue(ss, das.str().c_str(), this->playingNotesStr, playingNotes.c_str(), dump);
+		}
 		trackIndex++;
 	}
 	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, trackIndex, dump);
+}
+
+
+std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* track)
+{
+	std::string notesStrNew{ " " };
+
+	MediaItem_Take* take = this->GetMidiTakeAtPlayPosition(project, track);
+	if (take == nullptr)
+		return notesStrNew;
+
+	int noteCount;
+	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
+		return notesStrNew;
+
+	int pitch, velocity;
+	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
+
+	std::stringstream notes;
+
+	for (int i = 0; i < noteCount; ++i)
+	{
+		MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, nullptr, &pitch, &velocity);
+
+		musicalStart = MIDI_GetProjTimeFromPPQPos(take, startppqpos);
+		musicalEnd = MIDI_GetProjTimeFromPPQPos(take, endppqpos);
+
+		if (this->playPosition >= musicalStart && this->playPosition <= musicalEnd)
+			notes << musicalStart << ":" << musicalEnd << ":" << pitch << ":" << velocity << ";";
+	}
+	return notes.str().c_str();
 }
 
 /**
@@ -281,7 +321,7 @@ void DataCollector::CollectMasterTrackData(std::stringstream& ss, ReaProject* pr
 	// Track color
 	int red = -1, green = -1, blue = -1;
 	// Note: GetTrackColor is not working for the master track
-	int nativeColor = (int) GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR");
+	int nativeColor = (int)GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR");
 	if (nativeColor != 0)
 		ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
 	this->masterColor = Collectors::CollectStringValue(ss, "/master/color", this->masterColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
@@ -526,6 +566,31 @@ void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* projec
 		Marker* scene = this->model.GetRegion(regions.at(index));
 		scene->CollectData(ss, project, "scene", index, regions.at(index), dump);
 	}
+}
+
+
+/**
+ * Find the first MIDI item on the track which is under the cursor position (if any).
+ *
+ * @param project The current Reaper project
+ * @param track The track on which to find the take
+ * @return The active take of the media item at the play position
+ */
+MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const
+{
+	for (int i = 0; i < CountTrackMediaItems(track); i++)
+	{
+		MediaItem* item = GetTrackMediaItem(track, i);
+		MediaItem_Take* take = GetActiveTake(item);
+		if (take == nullptr || !TakeIsMIDI(take))
+			continue;
+
+		const double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
+		const double itemEnd = itemStart + GetMediaItemInfo_Value(item, "D_LENGTH");
+		if (this->playPosition >= itemStart && this->playPosition <= itemEnd)
+			return take;
+	}
+	return nullptr;
 }
 
 

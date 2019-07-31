@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "ReaperUtils.h"
+#include "Send.h"
 
 
 /**
@@ -16,8 +17,6 @@
 class Track
 {
 public:
-	int sendBankSize;
-
 	int exists{ 0 };
 	int number{ 0 };
 	int depth{ 0 };
@@ -45,23 +44,24 @@ public:
 	int repeatActive{ 0 };
 	double repeatNoteLength{ 0 };
 
-	std::vector<std::string> sendName;
-	std::vector<double> sendVolume;
-	std::vector<std::string> sendVolumeStr;
 
-
-	Track(const int sendBankSize);
+	Track();
 	virtual ~Track();
 
 	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& dump);
 
+	Send* GetSend(const int index);
+
 	double GetVolume(MediaTrack* track, double position) const;
 	double GetPan(MediaTrack* track, double position) const;
 	int GetMute(MediaTrack* track, double position, int trackState) const;
-	double GetSendVolume(MediaTrack* track, int sendCounter, double position) const;
 
 	int GetTrackLockState(MediaTrack* track) const;
 
 private:
+	int sendCount{ 0 };
+	std::vector<Send*> sends;
+	std::mutex sendlock;
+
 	double GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const;
 };

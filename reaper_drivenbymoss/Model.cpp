@@ -28,7 +28,7 @@ Track *Model::GetTrack(const int index)
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->tracks.push_back(new Track(this->sendBankSize));
+			this->tracks.push_back(new Track());
 	}
 	Track *track = this->tracks.at(index);
 	this->tracklock.unlock();

@@ -72,6 +72,9 @@
     <ClCompile Include="..\reaper_drivenbymoss\StringUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\reaper_drivenbymoss\Send.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h">
@@ -159,6 +162,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\dllmain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\Send.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

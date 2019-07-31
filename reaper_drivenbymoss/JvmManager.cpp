@@ -295,11 +295,11 @@ std::string getDylibPath()
 {
 #ifdef _WIN32
 	// Long paths might be 65K on Window 10 but the path we are after should never be longer than 260
-	wchar_t path[MAX_PATH];
+	wchar_t path[MAX_PATH + 1];
 	HMODULE hm = NULL;
 	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)& getDylibPath, &hm))
 		return std::string{};
-	GetModuleFileName(hm, path, sizeof(path));
+	GetModuleFileName(hm, path, MAX_PATH);
 	return wstringToDefaultPlatformEncoding(path);
 #else
 	Dl_info info;

@@ -8,14 +8,8 @@
 
 /**
  * Constructor.
- *
- * @param numSends The number of sends
  */
-Track::Track(const int numSends) :
-	sendBankSize(numSends),
-	sendName(numSends, ""),
-	sendVolume(numSends, 0),
-	sendVolumeStr(numSends, "")
+Track::Track()
 {
 	// Intentionally empty
 }
@@ -99,27 +93,9 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 
 	// Sends
 	const int numSends = GetTrackNumSends(track, 0);
-	char sendName[LENGTH];
-	for (int sendCounter = 0; sendCounter < this->sendBankSize; sendCounter++)
-	{
-		std::stringstream stream;
-		stream << trackAddress << "send/" << sendCounter + 1 << "/";
-		std::string sendAddress = stream.str();
-		if (sendCounter < numSends)
-		{
-			bool result = GetTrackSendName(track, sendCounter, sendName, LENGTH);
-			Collectors::CollectStringArrayValue(ss, (sendAddress + "name").c_str(), sendCounter, this->sendName, result ? sendName : "", dump);
-			volDB = GetSendVolume(track, sendCounter, cursorPos);
-			Collectors::CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), sendCounter, this->sendVolume, DB2SLIDER(volDB) / 1000.0, dump);
-			Collectors::CollectStringArrayValue(ss, (sendAddress + "volume/str").c_str(), sendCounter, this->sendVolumeStr, Collectors::FormatDB(volDB).c_str(), dump);
-		}
-		else
-		{
-			Collectors::CollectStringArrayValue(ss, (sendAddress + "name").c_str(), sendCounter, this->sendName, "", dump);
-			Collectors::CollectDoubleArrayValue(ss, (sendAddress + "volume").c_str(), sendCounter, this->sendVolume, 0, dump);
-			Collectors::CollectStringArrayValue(ss, (sendAddress + "volume/str").c_str(), sendCounter, this->sendVolumeStr, "", dump);
-		}
-	}
+	for (int sendCounter = 0; sendCounter < numSends; sendCounter++)
+		this->GetSend(sendCounter)->CollectData(ss, project, track, sendCounter, trackAddress, dump);
+	this->sendCount = Collectors::CollectIntValue(ss, (trackAddress + "send/count").c_str(), this->sendCount, numSends, dump);
 
 	// Midi note repeat plugin is on track?
 	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 0);
@@ -131,32 +107,47 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 }
 
 
+/**
+ * Get a send.
+ *
+ * @param index The index of the send.
+ * @return The send, if none exists at the index a new instance is created automatically
+ */
+Send* Track::GetSend(const int index)
+{
+	this->sendlock.lock();
+	const int diff = index - (int)this->sends.size() + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->sends.push_back(new Send());
+	}
+	Send* send = this->sends.at(index);
+	this->sendlock.unlock();
+	return send;
+}
+
+
 double Track::GetVolume(MediaTrack* track, double position) const
 {
 	return ReaperUtils::ValueToDB(GetValue(track, position, "Volume", "D_VOL"));
 }
+
 
 double Track::GetPan(MediaTrack* track, double position) const
 {
 	return GetValue(track, position, "Pan", "D_PAN");
 }
 
+
 int Track::GetMute(MediaTrack* track, double position, int trackState) const
 {
 	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Mute");
 	if (envelope != nullptr)
-		return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+		return (int) ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
 	return (trackState & 8) > 0 ? 1 : 0;
 }
 
-double Track::GetSendVolume(MediaTrack* track, int sendCounter, double position) const
-{
-	const char* sendType = "<VOLENV";
-	TrackEnvelope* envelope = (TrackEnvelope*)GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType);
-	if (envelope != nullptr)
-		return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
-	return ReaperUtils::ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
-}
 
 double Track::GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const
 {
@@ -165,6 +156,7 @@ double Track::GetValue(MediaTrack* track, double position, const char* envelopeN
 		return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
 	return GetMediaTrackInfo_Value(track, infoName);
 }
+
 
 int Track::GetTrackLockState(MediaTrack* track) const
 {

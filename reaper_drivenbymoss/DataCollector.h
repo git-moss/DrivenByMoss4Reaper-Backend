@@ -21,22 +21,24 @@
 class DataCollector
 {
 public:
-	DataCollector(Model &model);
+	DataCollector(Model& model);
 	virtual ~DataCollector();
 
-	std::string CollectData(const bool &dump);
+	std::string CollectData(const bool& dump);
 	void DelayUpdate(std::string processor);
 	bool CheckDelay(std::string processor);
 
 private:
+	const static int DELAY = 300;
+
 	std::map<std::string, long long> delayUpdateMap;
 	std::mutex delayMutex;
 
-	Model &model;
+	Model& model;
 	int projectState{ -1 };
 
 	const static int BUFFER_SIZE{ 65535 };
-	std::unique_ptr<char []> trackStateChunk;
+	std::unique_ptr<char[]> trackStateChunk;
 
 
 	const std::regex trackLockPattern{ "LOCK (\\d+)" };
@@ -52,6 +54,7 @@ private:
 	double clipMusicalEnd{};
 	double clipMusicalPlayPosition{};
 	int clipLoopIsEnabled{};
+	std::string playingNotesStr{};
 	// Note hash
 	std::string noteHash{};
 	std::string notesStr{};
@@ -110,16 +113,18 @@ private:
 	int quantizeStrength{};
 
 
-	void CollectProjectData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectTransportData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectDeviceData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectMasterTrackData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectBrowserData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectMarkerData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectClipData(std::stringstream &ss, ReaProject *project, const bool &dump);
-	void CollectSessionData(std::stringstream &ss, ReaProject *project, const bool &dump);
+	void CollectProjectData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectTransportData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectDeviceData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectTrackData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectMasterTrackData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectBrowserData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectMarkerData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectClipData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectSessionData(std::stringstream& ss, ReaProject* project, const bool& dump);
 
-	std::string CollectClipNotes(ReaProject *project, MediaItem *item);
-	void LoadDevicePresetFile(std::stringstream &ss, MediaTrack *track, int fx, const bool &dump);
+	std::string CollectClipNotes(ReaProject* project, MediaItem* item);
+	std::string CollectPlayingNotes(ReaProject* project, MediaTrack* track);
+	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const;
+	void LoadDevicePresetFile(std::stringstream& ss, MediaTrack* track, int fx, const bool& dump);
 };

@@ -19,7 +19,6 @@
 class Model
 {
 public:
-	const int sendBankSize{ 8 };
 	const int deviceBankSize{ 8 };
 	const int markerBankSize{ 8 };
 

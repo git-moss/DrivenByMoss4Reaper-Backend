@@ -12,27 +12,27 @@
  *
  * @param aModel The model to share data
  */
-TrackProcessor::TrackProcessor(Model &aModel) : OscProcessor(aModel)
+TrackProcessor::TrackProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string> &path)
+void TrackProcessor::Process(std::deque<std::string>& path)
 {
 	if (path.empty())
 		return;
 
-	ReaProject *project = ReaperUtils::GetProject();
+	ReaProject* project = ReaperUtils::GetProject();
 	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
 	if (trackIndex < 0)
 		return;
-	MediaTrack *track = GetTrack(project, trackIndex);
+	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char *cmd = path.at(1).c_str();
+	const char* cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "scrollto") == 0)
 	{
@@ -62,11 +62,11 @@ void TrackProcessor::Process(std::deque<std::string> &path)
 		if (path.size() < 4)
 			return;
 		const int clipIndex = atoi(path.at(2).c_str());
-		MediaItem *item = GetTrackMediaItem(track, clipIndex);
+		MediaItem* item = GetTrackMediaItem(track, clipIndex);
 		if (item == nullptr)
 			return;
 
-		const char *subcmd = path.at(3).c_str();
+		const char* subcmd = path.at(3).c_str();
 
 		if (std::strcmp(subcmd, "select") == 0)
 		{
@@ -108,20 +108,20 @@ void TrackProcessor::Process(std::deque<std::string> &path)
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string> &path, int value)
+void TrackProcessor::Process(std::deque<std::string>& path, int value)
 {
 	if (path.empty())
 		return;
 
-	ReaProject *project = ReaperUtils::GetProject();
+	ReaProject* project = ReaperUtils::GetProject();
 	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
 	if (trackIndex < 0)
 		return;
-	MediaTrack *track = GetTrack(project, trackIndex);
+	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char *cmd = path.at(1).c_str();
+	const char* cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "select") == 0)
 	{
@@ -219,21 +219,21 @@ void TrackProcessor::Process(std::deque<std::string> &path, int value)
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string> &path, double value)
+void TrackProcessor::Process(std::deque<std::string>& path, double value)
 {
 	if (path.empty())
 		return;
 
-	ReaProject *project = ReaperUtils::GetProject();
+	ReaProject* project = ReaperUtils::GetProject();
 	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
 	if (trackIndex < 0)
 		return;
-	MediaTrack *track = GetTrack(project, trackIndex);
+	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	Track *trackData = this->model.GetTrack(trackIndex);
-	const char *cmd = path.at(1).c_str();
+	Track* trackData = this->model.GetTrack(trackIndex);
+	const char* cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
@@ -259,12 +259,13 @@ void TrackProcessor::Process(std::deque<std::string> &path, double value)
 
 	if (std::strcmp(cmd, "send") == 0)
 	{
-		const int sendIndex = atoi(path.at(2).c_str()) - 1;
-		const char *subcmd = path.at(3).c_str();
+		const int sendIndex = atoi(path.at(2).c_str());
+		const char* subcmd = path.at(3).c_str();
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
-			trackData->sendVolume.at(sendIndex) = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			CSurf_OnSendVolumeChange(track, sendIndex, trackData->sendVolume.at(sendIndex), false);
+			Send* send = trackData->GetSend(sendIndex);
+			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
+			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
 		}
 		return;
 	}
@@ -277,20 +278,20 @@ void TrackProcessor::Process(std::deque<std::string> &path, double value)
 }
 
 
-void TrackProcessor::Process(std::deque<std::string> &path, const std::string &value)
+void TrackProcessor::Process(std::deque<std::string>& path, const std::string& value)
 {
-	if (path.empty ())
+	if (path.empty())
 		return;
 
-	ReaProject *project = ReaperUtils::GetProject();
+	ReaProject* project = ReaperUtils::GetProject();
 	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
 	if (trackIndex < 0)
 		return;
-	MediaTrack *track = GetTrack(project, trackIndex);
+	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char *cmd = path.at(1).c_str();
+	const char* cmd = path.at(1).c_str();
 	if (std::strcmp(cmd, "color") == 0)
 	{
 		SetColorOfTrack(project, track, value);
@@ -300,7 +301,7 @@ void TrackProcessor::Process(std::deque<std::string> &path, const std::string &v
 
 
 /** {@inheritDoc} */
-void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int beats)
+void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int beats)
 {
 	Undo_BeginBlock2(project);
 
@@ -329,7 +330,7 @@ void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int 
 	const double length = static_cast<double>(beats) * 60.0 / bpmOut;
 	double end = cursorPos + length;
 
-	MediaItem *item = CreateNewMIDIItemInProj(track, cursorPos, end, nullptr);
+	MediaItem* item = CreateNewMIDIItemInProj(track, cursorPos, end, nullptr);
 	if (item != nullptr)
 	{
 		// Set the loop to the item
@@ -343,7 +344,7 @@ void TrackProcessor::CreateMidiClip(ReaProject *project, MediaTrack *track, int 
 }
 
 
-void TrackProcessor::EnableRepeatPlugin(ReaProject *project, MediaTrack *track, bool enable)
+void TrackProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable)
 {
 	if (track == nullptr)
 		return;
@@ -360,7 +361,7 @@ void TrackProcessor::EnableRepeatPlugin(ReaProject *project, MediaTrack *track, 
 }
 
 
-void TrackProcessor::SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution)
+void TrackProcessor::SetRepeatLength(ReaProject* project, MediaTrack* track, double resolution)
 {
 	if (track == nullptr)
 		return;
@@ -376,7 +377,7 @@ void TrackProcessor::SetRepeatLength(ReaProject *project, MediaTrack *track, dou
 }
 
 
-void TrackProcessor::SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value)
+void TrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, std::string value)
 {
 	if (track == nullptr)
 		return;
@@ -394,7 +395,7 @@ void TrackProcessor::SetColorOfTrack(ReaProject *project, MediaTrack *track, std
 }
 
 
-void TrackProcessor::SetIsActivated(ReaProject *project, bool enable)
+void TrackProcessor::SetIsActivated(ReaProject* project, bool enable)
 {
 	if (enable)
 	{
@@ -421,7 +422,7 @@ void TrackProcessor::SetIsActivated(ReaProject *project, bool enable)
 }
 
 
-int TrackProcessor::GetTrackIndex(ReaProject *project, int dawTrackIndex) const
+int TrackProcessor::GetTrackIndex(ReaProject* project, int dawTrackIndex) const
 {
 	int count = CountTracks(project);
 	if (dawTrackIndex < 0 || dawTrackIndex >= count)
@@ -431,7 +432,7 @@ int TrackProcessor::GetTrackIndex(ReaProject *project, int dawTrackIndex) const
 	int trackState{};
 	for (int index = 0; index < count; index++)
 	{
-		MediaTrack *mediaTrack = GetTrack(project, index);
+		MediaTrack* mediaTrack = GetTrack(project, index);
 		if (mediaTrack == nullptr)
 			continue;
 		// Ignore track if hidden
@@ -446,7 +447,7 @@ int TrackProcessor::GetTrackIndex(ReaProject *project, int dawTrackIndex) const
 }
 
 
-void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject *project, MediaTrack *track)
+void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject* project, MediaTrack* track)
 {
 	PreventUIRefresh(1);
 	Undo_BeginBlock2(project);
@@ -456,7 +457,7 @@ void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject *project, MediaTrac
 	int count = CountTrackEnvelopes(track);
 	for (int i = 0; i < count; i++)
 	{
-		TrackEnvelope *envelope = GetTrackEnvelope(track, i);
+		TrackEnvelope* envelope = GetTrackEnvelope(track, i);
 		DeleteEnvelopePointRange(envelope, 0, end);
 	}
 
