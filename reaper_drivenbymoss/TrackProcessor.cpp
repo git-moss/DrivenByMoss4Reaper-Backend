@@ -2,6 +2,9 @@
 // (c) 2018-2019
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
+#include <cstring>
+#include <sstream>
+
 #include "TrackProcessor.h"
 #include "OscProcessor.h"
 #include "ReaperUtils.h"
@@ -273,6 +276,33 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 	if (std::strcmp(cmd, "noterepeatlength") == 0)
 	{
 		SetRepeatLength(project, track, value);
+		return;
+	}
+
+	if (std::strcmp(cmd, "inQuantResolution") == 0)
+	{
+		if (value < 0 || value > 1)
+			return;
+		char chunk[Track::CHUNK_LENGTH];
+		if (!GetTrackStateChunk(track, chunk, Track::CHUNK_LENGTH, false))
+			return;
+
+		if (value == 0)
+		{
+			Main_OnCommandEx(DISABLE_MIDI_INPUT_QUANTIZE, 0, project);
+		}
+		else
+		{
+			Main_OnCommandEx(ENABLE_MIDI_INPUT_QUANTIZE, 0, project);
+			if (value == 1)
+				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_4, 0, project);
+			else if (value == 0.5)
+				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_8, 0, project);
+			else if (value == 0.25)
+				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_16, 0, project);
+			else if (value == 0.125)
+				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_32, 0, project);
+		}
 		return;
 	}
 }

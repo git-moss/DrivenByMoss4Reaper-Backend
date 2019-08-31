@@ -5,6 +5,9 @@
 #include "Collectors.h"
 #include "Track.h"
 
+const std::regex Track::LOCK_PATTERN{ "LOCK\\s+(\\d+)" };
+const std::regex Track::INPUT_QUANTIZE_PATTERN{ "INQ\\s+([0-9]+(\\.[0-9]+)?)\\s+(-?[0-9]+(\\.[0-9]+)?)\\s+([0-9]+(\\.[0-9]+)?)\\s+([0-9]+(\\.[0-9]+)?)\\s+" };
+
 
 /**
  * Constructor.
@@ -47,9 +50,8 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 	this->depth = Collectors::CollectIntValue(ss, (trackAddress + "depth").c_str(), this->depth, GetTrackDepth(track), dump);
 
 	// Track name
-	const int LENGTH{ 20 };
-	char name[LENGTH];
-	bool result = GetTrackName(track, name, LENGTH);
+	char name[NAME_LENGTH];
+	bool result = GetTrackName(track, name, NAME_LENGTH);
 	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, result ? name : "", dump);
 
 	// Track type (GROUP or HYBRID), select, mute, solo, recarm and monitor states
@@ -61,8 +63,16 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 	this->mute = Collectors::CollectIntValue(ss, (trackAddress + "mute").c_str(), this->mute, this->GetMute(track, cursorPos, trackState), dump);
 	this->solo = Collectors::CollectIntValue(ss, (trackAddress + "solo").c_str(), this->solo, (trackState & 16) > 0 ? 1 : 0, dump);
 	this->recArmed = Collectors::CollectIntValue(ss, (trackAddress + "recarm").c_str(), this->recArmed, (trackState & 64) > 0 ? 1 : 0, dump);
-	// Uses "lock track" as active indication
-	this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(track) ? 0 : 1, dump);
+
+	// Attributes which need to be read from the track chunk...
+	char chunk[CHUNK_LENGTH];
+	if (GetTrackStateChunk(track, chunk, CHUNK_LENGTH, false))
+	{
+		// Uses "lock track" as active indication
+		this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(chunk) ? 0 : 1, dump);
+
+		this->ParseInputQuantize(ss, trackAddress, dump, chunk);
+	}
 
 	const double monitor = GetMediaTrackInfo_Value(track, "I_RECMON");
 	this->monitor = Collectors::CollectIntValue(ss, (trackAddress + "monitor").c_str(), this->monitor, monitor == 1 ? 1 : 0, dump);
@@ -158,15 +168,26 @@ double Track::GetValue(MediaTrack* track, double position, const char* envelopeN
 }
 
 
-int Track::GetTrackLockState(MediaTrack* track) const
+int Track::GetTrackLockState(char* chunk) const
 {
-	// Critical error detected c0000374 - GetTrackStateChunk currently not usable
-	//if (!GetTrackStateChunk(track, this->trackStateChunk.get(), BUFFER_SIZE, false))
-	//	return 0;
-	//std::cmatch result;
-	//if (!std::regex_search(this->trackStateChunk.get(), result, this->trackLockPattern))
-	//	return 0;
-	//std::string value = result.str(1);
-	//return std::atoi(value.c_str());
-	return 0;
+	std::cmatch result{};
+	if (!std::regex_search(chunk, result, INPUT_QUANTIZE_PATTERN))
+		return 0;
+	return std::atoi(result.str(1).c_str());
+}
+
+
+void Track::ParseInputQuantize(std::stringstream& ss, std::string &trackAddress, const bool& dump, char* chunk)
+{
+	std::cmatch result{};
+	if (!std::regex_search(chunk, result, INPUT_QUANTIZE_PATTERN))
+		return;
+
+	// "INQ 0 0 0 0.5 100 0 0 100" (Quantize Track Midi Recording (0/1), Positioning (-1/0/1), Quantize Note Offs (0/1), Period (double), ?, ?, ?, ?)
+	int isEnabled = std::atoi(result.str(1).c_str());
+	int isLengthEnabled = std::atoi(result.str(5).c_str());
+	double resolution = isEnabled == 0 ? 0 : std::atof(result.str(7).c_str());
+
+	this->inQuantLengthEnabled = Collectors::CollectIntValue(ss, (trackAddress + "inQuantLengthEnabled").c_str(), this->inQuantLengthEnabled, isLengthEnabled, dump);
+	this->inQuantResolution = Collectors::CollectDoubleValue(ss, (trackAddress + "inQuantResolution").c_str(), this->inQuantResolution, resolution, dump);
 }

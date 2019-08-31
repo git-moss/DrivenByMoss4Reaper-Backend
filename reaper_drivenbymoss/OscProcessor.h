@@ -17,26 +17,26 @@
 class OscProcessor
 {
 public:
-	OscProcessor(Model &aModel) : model(aModel)
+	OscProcessor(Model& aModel) : model(aModel)
 	{
 		// Intentionally empty
 	}
 
 	virtual ~OscProcessor() {};
 
-	virtual void Process(std::deque<std::string> &path) {};
+	virtual void Process(std::deque<std::string>& path) {};
 
-	virtual void Process(std::deque<std::string> &path, const std::string &value) {};
+	virtual void Process(std::deque<std::string>& path, const std::string& value) {};
 
-	virtual void Process(std::deque<std::string> &path, int value)
+	virtual void Process(std::deque<std::string>& path, int value)
 	{
 		if (value == 1)
 			this->Process(path);
 	};
 
-	virtual void Process(std::deque<std::string> &path, double value) {};
+	virtual void Process(std::deque<std::string>& path, double value) {};
 
-	virtual void Process(std::deque<std::string> &path, float value)
+	virtual void Process(std::deque<std::string>& path, float value)
 	{
 		this->Process(path, static_cast<double>(value));
 	};
@@ -129,6 +129,19 @@ protected:
 	/** Track : Unmute Tracks. */
 	const int    UNMUTE_TRACKS = 40731;
 
+	/** Track: Disable MIDI input quantize for selected tracks */
+	const int    DISABLE_MIDI_INPUT_QUANTIZE = 42064;
+	/** Track: Set MIDI input quantize to grid for selected tracks */
+	const int    ENABLE_MIDI_INPUT_QUANTIZE = 42063;
+	/** Track: Set MIDI input quantize to 1/4 for selected tracks */
+	const int    SET_MIDI_INPUT_QUANTIZE_1_4 = 42043;
+	/** Track: Set MIDI input quantize to 1/8 for selected tracks */
+	const int    SET_MIDI_INPUT_QUANTIZE_1_8 = 42041;
+	/** Track: Set MIDI input quantize to 1/16 for selected tracks */
+	const int    SET_MIDI_INPUT_QUANTIZE_1_16 = 42039;
+	/** Track: Set MIDI input quantize to 1/32 for selected tracks */
+	const int    SET_MIDI_INPUT_QUANTIZE_1_32 = 42037;
+
 	/** Track: Set all FX offline for selected tracks. */
 	const int    SET_ALL_FX_OFFLINE = 40535;
 	/** Track: Set all FX online for selected tracks. */
@@ -154,32 +167,32 @@ protected:
 	const int    ZOOM_IN_VERT = 40111;
 
 	/** SWS/S&M: Toggle show FX chain windows for selected tracks. */
-	const char * SHOW_FX_CHAIN_WINDOWS = "_S&M_TOGLFXCHAIN";
+	const char* SHOW_FX_CHAIN_WINDOWS = "_S&M_TOGLFXCHAIN";
 	/** SWS: Add item(s) to left of selected item(s) to selection. */
-	const char * ADD_LEFT_ITEM_TO_SELECTION = "_SWS_ADDLEFTITEM";
+	const char* ADD_LEFT_ITEM_TO_SELECTION = "_SWS_ADDLEFTITEM";
 
 	/** SWS : Bypass FX on selected tracks. */
-	const char * BYPASS_ALL_FX_ON_SELECTED_TRACKS = "_S&M_FXBYPALL2";
+	const char* BYPASS_ALL_FX_ON_SELECTED_TRACKS = "_S&M_FXBYPALL2";
 	/** SWS/S&M: Unbypass all FX for selected tracks. */
-	const char * UNBYPASS_ALL_FX_ON_SELECTED_TRACKS = "_S&M_FXBYPALL3";
+	const char* UNBYPASS_ALL_FX_ON_SELECTED_TRACKS = "_S&M_FXBYPALL3";
 
 	/** SWS: Mute all sends from selected track(s). */
-	const char * MUTE_ALL_SENDS_ON_SELECTED_TRACKS = "_SWS_MUTESENDS";
+	const char* MUTE_ALL_SENDS_ON_SELECTED_TRACKS = "_SWS_MUTESENDS";
 	/** SWS: Unmute all sends from selected track(s). */
-	const char * UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS = "_SWS_UNMUTESENDS";
+	const char* UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS = "_SWS_UNMUTESENDS";
 
 	/** SWS: Mute all receives for selected track(s). */
-	const char * MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS = "_SWS_MUTERECVS";
+	const char* MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS = "_SWS_MUTERECVS";
 	/** SWS: Unmute all receives for selected track(s). */
-	const char * UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS = "_SWS_UNMUTERECVS";
+	const char* UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS = "_SWS_UNMUTERECVS";
 
 
 	const std::regex colorPattern{ "RGB\\((\\d+),(\\d+),(\\d+)\\)" };
 
-	Model &model;
+	Model& model;
 
 
-	void ExecuteActionEx(ReaProject *project, const char *action) const
+	void ExecuteActionEx(ReaProject* project, const char* action) const
 	{
 		const int actionID = NamedCommandLookup(action);
 		if (actionID > 0)
@@ -187,7 +200,7 @@ protected:
 	}
 
 
-	std::vector<std::string> SplitString(const std::string &value, char delimiter) const
+	std::vector<std::string> SplitString(const std::string& value, char delimiter) const
 	{
 		std::vector<std::string> result{};
 		std::string str = value;

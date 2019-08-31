@@ -134,7 +134,7 @@ public:
 		if (!path.empty())
 			return;
 
-		// TODO use the amount value
+		// Amount value currently not possible to use
 
 		HWND activeMidiEditor = MIDIEditor_GetActive();
 		const bool isNotOpen = activeMidiEditor == nullptr;
