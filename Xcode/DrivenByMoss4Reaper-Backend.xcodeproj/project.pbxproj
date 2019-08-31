@@ -53,6 +53,8 @@
 		858F7A0A21558EBC00488951 /* StringUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0221558EB900488951 /* StringUtils.h */; };
 		858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0321558EBA00488951 /* SceneProcessor.h */; };
 		858F7A0C21558EBC00488951 /* Parameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F7A0421558EBB00488951 /* Parameter.cpp */; };
+		85E7B72222F2052900F0B037 /* Send.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E7B72022F2052900F0B037 /* Send.cpp */; };
+		85E7B72322F2052900F0B037 /* Send.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E7B72122F2052900F0B037 /* Send.h */; };
 		85FB5BDF212F42DB00639003 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85FB5BDE212F42DA00639003 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
@@ -108,6 +110,8 @@
 		858F7A0421558EBB00488951 /* Parameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parameter.cpp; path = ../reaper_drivenbymoss/Parameter.cpp; sourceTree = "<group>"; };
 		85E1A7A420F4FB0000D38CC1 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Library; path = ../../../../../../Library; sourceTree = "<group>"; };
 		85E1A7A920F4FD0600D38CC1 /* JavaVM */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = JavaVM; path = ../../../../../../System/Library/Frameworks/JavaVM.framework/Versions/A/JavaVM; sourceTree = "<group>"; };
+		85E7B72022F2052900F0B037 /* Send.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Send.cpp; path = ../reaper_drivenbymoss/Send.cpp; sourceTree = "<group>"; };
+		85E7B72122F2052900F0B037 /* Send.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Send.h; path = ../reaper_drivenbymoss/Send.h; sourceTree = "<group>"; };
 		85FB5BDE212F42DA00639003 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -126,6 +130,8 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				85E7B72022F2052900F0B037 /* Send.cpp */,
+				85E7B72122F2052900F0B037 /* Send.h */,
 				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
 				8554F20320F40E3C00F5FF39 /* DataCollector.cpp */,
 				8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */,
@@ -214,6 +220,7 @@
 				858F7A0621558EBC00488951 /* Collectors.h in Headers */,
 				855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */,
 				8554F22A20F40E4000F5FF39 /* MastertrackProcessor.h in Headers */,
+				85E7B72322F2052900F0B037 /* Send.h in Headers */,
 				858F79F421558EA800488951 /* ReaperUtils.h in Headers */,
 				8554F22220F40E4000F5FF39 /* ClipProcessor.h in Headers */,
 				8554F22D20F40E4000F5FF39 /* FunctionExecutor.h in Headers */,
@@ -310,6 +317,7 @@
 				858F79F721558EA800488951 /* Track.cpp in Sources */,
 				8554F23920F40E4000F5FF39 /* DrivenByMossSurface.cpp in Sources */,
 				858F7A0C21558EBC00488951 /* Parameter.cpp in Sources */,
+				85E7B72222F2052900F0B037 /* Send.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
