@@ -42,6 +42,25 @@ public:
 	};
 
 protected:
+
+	/** Start playback. */
+	const int    TRANSPORT_PLAY = 1007;
+	/** Stop playback. */
+	const int    TRANSPORT_STOP = 1016;
+	/** Record. */
+	const int    TRANSPORT_RECORD = 1013;
+	/** Toggle repeat. */
+	const int    TRANSPORT_REPEAT = 1068;
+
+	/** Tempo: Increase current project tempo 0.1 BPM. */
+	const int    TEMPO_INC_SLOW = 41137;
+	/** Tempo: Increase current project tempo 01 BPM. */
+	const int    TEMPO_INC = 41129;
+	/** Tempo: Decrease current project tempo 0.1 BPM. */
+	const int    TEMPO_DEC_SLOW = 41138;
+	/** Tempo: Decrease current project tempo 01 BPM. */
+	const int    TEMPO_DEC = 41130;
+
 	/** Previous project tab. */
 	const int    PROJECT_TAB_PREVIOUS = 40862;
 	/** Next project tab. */

@@ -53,6 +53,15 @@ double Send::GetSendVolume(MediaTrack* track, int sendCounter, double position) 
 	const char* sendType = "<VOLENV";
 	TrackEnvelope* envelope = (TrackEnvelope*)GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType);
 	if (envelope != nullptr)
-		return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+	{
+		// It seems there is always a send envelope, even if not active.
+		// Therefore, check if the envelope is active
+		for (int i = 0; i < CountTrackEnvelopes(track); i++)
+		{
+			TrackEnvelope* te = GetTrackEnvelope(track, i);
+			if (envelope == te)
+				return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+		}
+	}
 	return ReaperUtils::ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
 }

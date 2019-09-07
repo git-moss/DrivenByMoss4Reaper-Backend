@@ -14,9 +14,9 @@
 class PlayProcessor : public OscProcessor
 {
 public:
-	PlayProcessor(Model &aModel) : OscProcessor(aModel) {};
+	PlayProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		const int playState = GetPlayStateEx(ReaperUtils::GetProject());
 		if (playState & 1)
@@ -33,9 +33,9 @@ public:
 class StopProcessor : public OscProcessor
 {
 public:
-	StopProcessor(Model &aModel) : OscProcessor(aModel) {};
+	StopProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		CSurf_OnStop();
 	};
@@ -44,9 +44,9 @@ public:
 class RecordProcessor : public OscProcessor
 {
 public:
-	RecordProcessor(Model &aModel) : OscProcessor(aModel) {};
+	RecordProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		CSurf_OnRecord();
 	};
@@ -55,27 +55,27 @@ public:
 class RepeatProcessor : public OscProcessor
 {
 public:
-	RepeatProcessor(Model &aModel) : OscProcessor(aModel) {};
+	RepeatProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
-		Main_OnCommandEx(1068, 0, ReaperUtils::GetProject());
+		Main_OnCommandEx(TRANSPORT_REPEAT, 0, ReaperUtils::GetProject());
 	};
 };
 
 class TimeProcessor : public OscProcessor
 {
 public:
-	TimeProcessor(Model &aModel) : OscProcessor(aModel) {};
+	TimeProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string>& path, int value) override
 	{
 		this->Process(path, static_cast<double> (value));
 	};
 
-	void Process(std::deque<std::string> &path, double value) override
+	void Process(std::deque<std::string>& path, double value) override
 	{
-		ReaProject * const project = ReaperUtils::GetProject();
+		ReaProject* const project = ReaperUtils::GetProject();
 		const double end = GetProjectLength(project);
 		SetEditCurPos2(project, value < end ? value : end, true, true);
 	};
@@ -84,30 +84,30 @@ public:
 class TempoProcessor : public OscProcessor
 {
 public:
-	TempoProcessor(Model &aModel) : OscProcessor(aModel) {};
+	TempoProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		if (path.empty())
 			return;
-		ReaProject *project = ReaperUtils::GetProject();
-		const char *direction = path.at(0).c_str();
+		ReaProject* project = ReaperUtils::GetProject();
+		const char* direction = path.at(0).c_str();
 		if (strcmp(direction, "+") == 0)
-			Main_OnCommandEx(41137, 0, project);
+			Main_OnCommandEx(TEMPO_INC_SLOW, 0, project);
 		else if (strcmp(direction, "++") == 0)
-			Main_OnCommandEx(41129, 0, project);
+			Main_OnCommandEx(TEMPO_INC, 0, project);
 		else if (strcmp(direction, "-") == 0)
-			Main_OnCommandEx(41138, 0, project);
+			Main_OnCommandEx(TEMPO_DEC_SLOW, 0, project);
 		else if (strcmp(direction, "--") == 0)
-			Main_OnCommandEx(41130, 0, project);
+			Main_OnCommandEx(TEMPO_DEC, 0, project);
 	};
 
-	void Process(std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string>& path, int value) override
 	{
 		CSurf_OnTempoChange(value);
 	}
 
-	void Process(std::deque<std::string> &path, double value) override
+	void Process(std::deque<std::string>& path, double value) override
 	{
 		CSurf_OnTempoChange(value);
 	}
@@ -116,9 +116,9 @@ public:
 class ActionProcessor : public OscProcessor
 {
 public:
-	ActionProcessor(Model &aModel) : OscProcessor(aModel) {};
+	ActionProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string>& path, int value) override
 	{
 		Main_OnCommandEx(value, 0, ReaperUtils::GetProject());
 	};
@@ -127,9 +127,9 @@ public:
 class QuantizeProcessor : public OscProcessor
 {
 public:
-	QuantizeProcessor(Model &aModel) : OscProcessor(aModel) {};
+	QuantizeProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path, double value) override
+	void Process(std::deque<std::string>& path, double value) override
 	{
 		if (!path.empty())
 			return;
@@ -155,13 +155,13 @@ public:
 class MetronomeVolumeProcessor : public OscProcessor
 {
 public:
-	MetronomeVolumeProcessor(Model &aModel) : OscProcessor(aModel) {};
+	MetronomeVolumeProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		if (path.empty())
 			return;
-		const char *direction = path.at(0).c_str();
+		const char* direction = path.at(0).c_str();
 		const int actionID = NamedCommandLookup(strcmp(direction, "+") == 0 ? "_S&M_METRO_VOL_UP" : "_S&M_METRO_VOL_DOWN");
 		if (actionID > 0)
 			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
@@ -171,9 +171,9 @@ public:
 class UndoProcessor : public OscProcessor
 {
 public:
-	UndoProcessor(Model &aModel) : OscProcessor(aModel) {};
+	UndoProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		Undo_DoUndo2(ReaperUtils::GetProject());
 	};
@@ -182,9 +182,9 @@ public:
 class RedoProcessor : public OscProcessor
 {
 public:
-	RedoProcessor(Model &aModel) : OscProcessor(aModel) {};
+	RedoProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		Undo_DoRedo2(ReaperUtils::GetProject());
 	};
@@ -193,9 +193,9 @@ public:
 class CursorProcessor : public OscProcessor
 {
 public:
-	CursorProcessor(Model &aModel) : OscProcessor(aModel) {};
+	CursorProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string>& path, int value) override
 	{
 		CSurf_OnArrow(value, 0);
 	};
@@ -204,9 +204,9 @@ public:
 class ProjectProcessor : public OscProcessor
 {
 public:
-	ProjectProcessor(Model &aModel) : OscProcessor(aModel) {};
+	ProjectProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string>& path, int value) override
 	{
 		if (path.empty() || std::strcmp(path.at(0).c_str(), "engine") != 0)
 			return;
@@ -220,9 +220,9 @@ public:
 class RefreshProcessor : public OscProcessor
 {
 public:
-	RefreshProcessor(Model &aModel) : OscProcessor(aModel) {};
+	RefreshProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path) override
+	void Process(std::deque<std::string>& path) override
 	{
 		this->model.SetDump();
 	};
@@ -231,15 +231,15 @@ public:
 class IniFileProcessor : public OscProcessor
 {
 public:
-	IniFileProcessor(Model &aModel) : OscProcessor(aModel) {};
+	IniFileProcessor(Model& aModel) : OscProcessor(aModel) {};
 
-	void Process(std::deque<std::string> &path, int value) override
+	void Process(std::deque<std::string>& path, int value) override
 	{
 		if (path.size() != 2)
 			return;
 
 #ifdef _WIN32
-		const std::wstring category = stringToWs (path.at(0));
+		const std::wstring category = stringToWs(path.at(0));
 		const std::wstring key = stringToWs(path.at(1));
 		const std::wstring iniPath = stringToWs(GetIniName());
 #else
@@ -257,21 +257,21 @@ public:
 #ifdef _WIN32
 		const std::wstring v = stringToWs(valStream.str());
 #else
-        const std::string v = valStream.str();
+		const std::string v = valStream.str();
 #endif
 		if (!WritePrivateProfileString(category.c_str(), key.c_str(), v.c_str(), iniPath.c_str()))
 			ReaDebug() << "ERROR: Could not store parameter in REAPER.ini";
 	};
 
-	const std::string GetIniName ()
+	const std::string GetIniName()
 	{
 		std::stringstream ss;
 		ss << GetResourcePath();
-		#ifdef _WIN32
+#ifdef _WIN32
 		ss << "\\";
-		#else
+#else
 		ss << "/";
-		#endif			
+#endif			
 		ss << "REAPER.ini";
 		return ss.str();
 	};

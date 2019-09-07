@@ -35,7 +35,7 @@ void ClipProcessor::Process(std::deque<std::string> &path)
 	if (std::strcmp(cmd, "duplicate") == 0)
 	{
 		// Item: Duplicate items
-		Main_OnCommandEx(41295, 0, project);
+		Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
 		return;
 	}
 
@@ -44,7 +44,7 @@ void ClipProcessor::Process(std::deque<std::string> &path)
 		Undo_BeginBlock2(project);
 
 		// Item: Duplicate items
-		Main_OnCommandEx(41295, 0, project);
+		Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
 
 		// SWS: Add item(s) to left of selected item(s) to selection
 		const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
@@ -52,7 +52,7 @@ void ClipProcessor::Process(std::deque<std::string> &path)
 			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
 
 		// Item: Glue items
-		Main_OnCommandEx(41588, 0, project);
+		Main_OnCommandEx(GLUE_ITEMS, 0, project);
 
 		Undo_EndBlock2(project, "Duplicate content of clip", 0);
 		return;

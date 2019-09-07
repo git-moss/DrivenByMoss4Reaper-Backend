@@ -60,6 +60,12 @@ void TrackProcessor::Process(std::deque<std::string>& path)
 		return;
 	}
 
+	if (std::strcmp(cmd, "recordClip") == 0)
+	{
+		RecordMidiClip(project, track);
+		return;
+	}
+
 	if (std::strcmp(cmd, "clip") == 0)
 	{
 		if (path.size() < 4)
@@ -330,13 +336,12 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 }
 
 
-/** {@inheritDoc} */
 void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int beats)
 {
 	Undo_BeginBlock2(project);
 
 	// Stop playback to update the play cursor position
-	Main_OnCommandEx(1016, 0, project);
+	Main_OnCommandEx(TRANSPORT_STOP, 0, project);
 
 	// Disable recording on all tracks
 	for (int idx = 0; idx < CountTracks(project); idx++)
@@ -367,10 +372,31 @@ void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int 
 		GetSet_LoopTimeRange(true, true, &cursorPos, &end, false);
 		SetMediaItemSelected(item, true);
 
-		CSurf_OnPlay();
+		Main_OnCommandEx(TRANSPORT_PLAY, 0, project);
 	}
 
 	Undo_EndBlock2(project, "Create Midi Clip and Record", 0);
+}
+
+
+void TrackProcessor::RecordMidiClip(ReaProject* project, MediaTrack* track)
+{
+	Undo_BeginBlock2(project);
+
+	// Stop playback to update the play cursor position
+	Main_OnCommandEx(TRANSPORT_STOP, 0, project);
+
+	// Disable recording on all tracks
+	for (int idx = 0; idx < CountTracks(project); idx++)
+		SetMediaTrackInfo_Value(GetTrack(project, idx), "I_RECARM", 0);
+	// Set recording mode to midi overdub
+	SetMediaTrackInfo_Value(track, "I_RECMODE", 7);
+	// Enable Recording on current track
+	SetMediaTrackInfo_Value(track, "I_RECARM", 1);
+
+	Main_OnCommandEx(TRANSPORT_RECORD, 0, project);
+
+	Undo_EndBlock2(project, "Record Midi Clip", 0);
 }
 
 

@@ -23,6 +23,8 @@ public:
 
 private:
 	void CreateMidiClip(ReaProject *project, MediaTrack *track, int beats);
+	void RecordMidiClip(ReaProject* project, MediaTrack* track);
+
 	void EnableRepeatPlugin(ReaProject *project, MediaTrack *track, bool enable);
 	void SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution);
 	void SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value);
