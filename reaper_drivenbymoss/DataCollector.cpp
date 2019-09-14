@@ -350,6 +350,7 @@ void DataCollector::CollectClipData(std::stringstream& ss, ReaProject* project, 
 	int red = 0, green = 0, blue = 0;
 	MediaItem* item = nullptr;
 	int loopIsEnabled = 0;
+	this->clipExists = Collectors::CollectIntValue(ss, "/clip/exists", this->clipExists, count > 0 ? 1 : 0, dump);
 	if (count > 0)
 	{
 		item = GetSelectedMediaItem(project, 0);

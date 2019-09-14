@@ -49,6 +49,7 @@ private:
 	int projectEngine{};
 
 	// Clip values
+	int clipExists{ -1 };
 	std::string clipColor{};
 	double clipMusicalStart{};
 	double clipMusicalEnd{};
