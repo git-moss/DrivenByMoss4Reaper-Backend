@@ -25,12 +25,14 @@ public:
 	virtual ~DataCollector();
 
 	std::string CollectData(const bool& dump);
+
+	void EnableUpdate(std::string processor, bool enable);
 	void DelayUpdate(std::string processor);
-	bool CheckDelay(std::string processor);
 
 private:
 	const static int DELAY = 300;
 
+	std::map<std::string, bool> disableUpdateMap;
 	std::map<std::string, long long> delayUpdateMap;
 	std::mutex delayMutex;
 
@@ -114,18 +116,22 @@ private:
 	int quantizeStrength{};
 
 
+	bool IsActive(std::string processor);
+	bool CheckDelay(std::string processor);
+
 	void CollectProjectData(std::stringstream& ss, ReaProject* project, const bool& dump);
 	void CollectTransportData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectDeviceData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectDeviceData(std::stringstream& ss, MediaTrack* track, const bool& dump);
 	void CollectTrackData(std::stringstream& ss, ReaProject* project, const bool& dump);
 	void CollectMasterTrackData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectBrowserData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectBrowserData(std::stringstream& ss, MediaTrack* track, const bool& dump);
 	void CollectMarkerData(std::stringstream& ss, ReaProject* project, const bool& dump);
 	void CollectClipData(std::stringstream& ss, ReaProject* project, const bool& dump);
 	void CollectSessionData(std::stringstream& ss, ReaProject* project, const bool& dump);
 
 	std::string CollectClipNotes(ReaProject* project, MediaItem* item);
 	std::string CollectPlayingNotes(ReaProject* project, MediaTrack* track);
+
 	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const;
 	void LoadDevicePresetFile(std::stringstream& ss, MediaTrack* track, int fx, const bool& dump);
 };

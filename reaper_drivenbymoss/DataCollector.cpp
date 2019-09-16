@@ -34,45 +34,6 @@ DataCollector::~DataCollector()
 
 
 /**
- * Delay updates for a specific processor. Use to prevent that Reaper sends old
- * values before the latest ones are applied.
- *
- * @param processor The processor to delay
- */
-void DataCollector::DelayUpdate(std::string processor)
-{
-	this->delayMutex.lock();
-	this->delayUpdateMap[processor] = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
-	this->delayMutex.unlock();
-}
-
-
-/**
- * Tests if the given processor is currently delayed and therefore no updated data
- * should be sent.
- *
- * @param processor The processor to check if it is delayed
- */
-bool DataCollector::CheckDelay(std::string processor)
-{
-	this->delayMutex.lock();
-	bool result = true;
-	std::map<std::string, long long>::iterator it = this->delayUpdateMap.find(processor);
-	if (it != this->delayUpdateMap.end())
-	{
-		const long long oldValue = it->second;
-		const long long millis = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
-		if (millis - oldValue < DELAY)
-			result = false;
-		else
-			this->delayUpdateMap.erase(processor);
-	}
-	this->delayMutex.unlock();
-	return result;
-}
-
-
-/**
  * Collect all (changed) data.
  *
  * @param dump If true all data is collected not only the changed one since the last call
@@ -82,24 +43,25 @@ std::string DataCollector::CollectData(const bool& dump)
 {
 	std::stringstream ss;
 	ReaProject* project = ReaperUtils::GetProject();
+	MediaTrack* track = GetSelectedTrack(project, 0);
 
-	if (CheckDelay("transport"))
+	if (IsActive("transport"))
 		CollectTransportData(ss, project, dump);
-	if (CheckDelay("project"))
+	if (IsActive("project"))
 		CollectProjectData(ss, project, dump);
-	if (CheckDelay("track"))
+	if (IsActive("track"))
 		CollectTrackData(ss, project, dump);
-	if (CheckDelay("device"))
-		CollectDeviceData(ss, project, dump);
-	if (CheckDelay("mastertrack"))
+	if (IsActive("device"))
+		CollectDeviceData(ss, track, dump);
+	if (IsActive("mastertrack"))
 		CollectMasterTrackData(ss, project, dump);
-	if (CheckDelay("browser"))
-		CollectBrowserData(ss, project, dump);
-	if (CheckDelay("marker"))
+	if (IsActive("browser"))
+		CollectBrowserData(ss, track, dump);
+	if (IsActive("marker"))
 		CollectMarkerData(ss, project, dump);
-	if (CheckDelay("clip"))
+	if (IsActive("clip"))
 		CollectClipData(ss, project, dump);
-	if (CheckDelay("session"))
+	if (IsActive("session"))
 		CollectSessionData(ss, project, dump);
 
 	return ss.str();
@@ -168,13 +130,11 @@ void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* proj
  * Collect the (changed) device data.
  *
  * @param ss The stream where to append the formatted data
- * @param project The current Reaper project
+ * @param track The currently selected track
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectDeviceData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, const bool& dump)
 {
-	MediaTrack* track = GetSelectedTrack(project, 0);
-
 	const int deviceIndex = this->model.deviceBankOffset + this->model.deviceSelected;
 	int bankDeviceIndex = 1;
 	this->model.deviceCount = Collectors::CollectIntValue(ss, "/device/count", this->model.deviceCount, TrackFX_GetCount(track), dump);
@@ -233,7 +193,10 @@ void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project,
 	int count = CountTracks(project);
 	int trackIndex{ 0 };
 	int trackState{};
-	std::string playingNotes{""};
+	std::string playingNotes{ "" };
+
+	const bool isActive = IsActive("playingnotes");
+
 	for (int index = 0; index < count; index++)
 	{
 		MediaTrack* mediaTrack = GetTrack(project, index);
@@ -245,18 +208,20 @@ void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project,
 			continue;
 		Track* track = this->model.GetTrack(trackIndex);
 		track->CollectData(ss, project, mediaTrack, trackIndex, dump);
-		if (track->isSelected > 0)
+		if (isActive)
 		{
-			std::stringstream das;
-			das << "/track/" << trackIndex << "/playingnotes";
-			playingNotes = this->CollectPlayingNotes(project, mediaTrack);
-			this->playingNotesStr = Collectors::CollectStringValue(ss, das.str().c_str(), this->playingNotesStr, playingNotes.c_str(), dump);
+			if (track->isSelected > 0)
+			{
+				std::stringstream das;
+				das << "/track/" << trackIndex << "/playingnotes";
+				playingNotes = this->CollectPlayingNotes(project, mediaTrack);
+				this->playingNotesStr = Collectors::CollectStringValue(ss, das.str().c_str(), this->playingNotesStr, playingNotes.c_str(), dump);
+			}
 		}
 		trackIndex++;
 	}
 	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, trackIndex, dump);
 }
-
 
 std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* track)
 {
@@ -447,12 +412,11 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
  * Collect the (changed) browser data.
  *
  * @param ss The stream where to append the formatted data
- * @param project The current Reaper project
+ * @param project The currently selected track
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectBrowserData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectBrowserData(std::stringstream& ss, MediaTrack* track, const bool& dump)
 {
-	MediaTrack* track = GetSelectedTrack(project, 0);
 	const int sel = this->model.deviceBankOffset + this->model.deviceSelected;
 	LoadDevicePresetFile(ss, track, sel, dump);
 
@@ -567,6 +531,72 @@ void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* projec
 		Marker* scene = this->model.GetRegion(regions.at(index));
 		scene->CollectData(ss, project, "scene", index, regions.at(index), dump);
 	}
+}
+
+
+/**
+ * Delay updates for a specific processor. Use to prevent that Reaper sends old
+ * values before the latest ones are applied.
+ *
+ * @param processor The processor to delay
+ */
+void DataCollector::DelayUpdate(std::string processor)
+{
+	this->delayMutex.lock();
+	this->delayUpdateMap[processor] = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+	this->delayMutex.unlock();
+}
+
+
+/**
+ * Dis-/enable an update processor for performance improvements.
+ *
+ * @param processor The processor to dis-/enable
+ * @param enable True to enable processor updates, false to disable
+ */
+void DataCollector::EnableUpdate(std::string processor, bool enable)
+{
+	this->disableUpdateMap[processor] = !enable;
+}
+
+
+/**
+ * Tests if the given processor is currently active (it is not disabled and not delayed).
+ *
+ * @param processor The processor to check
+ * @return True if the processor is active and not delayed
+ */
+bool DataCollector::IsActive(std::string processor)
+{
+	if (this->disableUpdateMap[processor])
+		return false;
+	return this->CheckDelay(processor);
+}
+
+
+/**
+ * Tests if the given processor is currently delayed and therefore no updated data
+ * should be sent.
+ *
+ * @param processor The processor to check if it is delayed
+ * @return True if the processor is not delayed
+ */
+bool DataCollector::CheckDelay(std::string processor)
+{
+	this->delayMutex.lock();
+	bool result = true;
+	std::map<std::string, long long>::iterator it = this->delayUpdateMap.find(processor);
+	if (it != this->delayUpdateMap.end())
+	{
+		const long long oldValue = it->second;
+		const long long millis = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+		if (millis - oldValue < DELAY)
+			result = false;
+		else
+			this->delayUpdateMap.erase(processor);
+	}
+	this->delayMutex.unlock();
+	return result;
 }
 
 

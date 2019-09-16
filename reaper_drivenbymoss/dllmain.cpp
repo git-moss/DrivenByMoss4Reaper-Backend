@@ -148,10 +148,33 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 
 
 /**
+ * Java callback to dis-/enable updates for a specific processor.
+ *
+ * @param env       The JNI environment
+ * @param object    The JNI object
+ * @param processor The processor to delay
+ * @param enable    True to enable updates for the processor
+ */
+void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean enable)
+{
+	if (env == nullptr || gSurface == nullptr)
+		return;
+	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	if (proc == nullptr)
+		return;
+	std::string procstr(proc);
+	gSurface->GetDataCollector().EnableUpdate(procstr, enable);
+	env->ReleaseStringUTFChars(processor, proc);
+}
+
+
+/**
  * Java callback to delay updates for a specific processor. Use to prevent that Reaper sends old
  * values before the latest ones are applied.
  *
- * @param processor The processor to delay.
+ * @param env       The JNI environment
+ * @param object    The JNI object
+ * @param processor The processor to delay
  */
 void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 {
@@ -161,9 +184,7 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
-	
 	gSurface->GetDataCollector().DelayUpdate(procstr);
-
 	env->ReleaseStringUTFChars(processor, proc);
 }
 
@@ -189,7 +210,7 @@ static void createJVM()
 	if (jvmManager != nullptr)
 		return;
 	jvmManager = new JvmManager(DEBUG_JAVA);
-	jvmManager->init((void*)& processNoArgCPP, (void*)& processStringArgCPP, (void*)& processIntArgCPP, (void*)& processDoubleArgCPP, (void*)& delayUpdatesCPP, (void*)& processMidiArgCPP);
+	jvmManager->init((void*)& processNoArgCPP, (void*)& processStringArgCPP, (void*)& processIntArgCPP, (void*)& processDoubleArgCPP, (void*)& enableUpdatesCPP, (void*)& delayUpdatesCPP, (void*)& processMidiArgCPP);
 }
 
 

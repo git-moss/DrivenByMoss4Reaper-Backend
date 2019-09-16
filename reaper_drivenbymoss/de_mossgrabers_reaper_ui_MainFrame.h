@@ -121,6 +121,14 @@ JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_delayUpdates
 
 /*
  * Class:     de_mossgrabers_reaper_ui_MainFrame
+ * Method:    enableUpdates
+ * Signature: (Ljava/lang/String;Z)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_ui_MainFrame_enableUpdates
+  (JNIEnv *, jobject, jstring, jboolean);
+
+/*
+ * Class:     de_mossgrabers_reaper_ui_MainFrame
  * Method:    processMidiArg
  * Signature: (III)V
  */

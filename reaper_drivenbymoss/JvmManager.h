@@ -18,7 +18,7 @@ public:
 	JvmManager(bool enableDebug);
 	~JvmManager();
 
-	void init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
+	void init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
 
 	bool isRunning() const
 	{
@@ -57,7 +57,7 @@ private:
 
 
 	void Create();
-	void RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
+	void RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
 	void StartApp();
 
 	bool LoadJvmLibrary();

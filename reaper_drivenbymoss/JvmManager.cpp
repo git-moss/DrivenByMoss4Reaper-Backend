@@ -73,10 +73,11 @@ JvmManager::~JvmManager()
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
- * @param delayUpdatesCPP The processing method to delay processor updates
+ * @param enableUpdatesCPP Dis-/Enable processor updates
+ * @param delayUpdatesCPP Delay processor updates
  * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
+void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
 {
 	if (this->isInitialised)
 		return;
@@ -84,7 +85,7 @@ void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* pr
 	this->Create();
 	if (this->jvm == nullptr)
 		return;
-	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, delayUpdatesCPP, processMidiArgCPP);
+	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
 	this->StartApp();
 }
 
@@ -202,10 +203,11 @@ std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePath) const
  * @param processStringArgCPP The processing method with a string argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
- * @param delayUpdatesCPP The processing method to delay processor updates
+ * @param enableUpdatesCPP Dis-/Enable processor updates
+ * @param delayUpdatesCPP Delay processor updates
  * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void *delayUpdatesCPP, void* processMidiArgCPP)
+void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void *delayUpdatesCPP, void* processMidiArgCPP)
 {
 	const JNINativeMethod methods[]
 	{
@@ -213,6 +215,7 @@ void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCP
 		{ (char*) "processStringArg", (char*) "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
 		{ (char*) "processIntArg", (char*) "(Ljava/lang/String;Ljava/lang/String;I)V", processIntArgCPP },
 		{ (char*) "processDoubleArg", (char*) "(Ljava/lang/String;Ljava/lang/String;D)V", processDoubleArgCPP },
+		{ (char*) "enableUpdates", (char*) "(Ljava/lang/String;Z)V", enableUpdatesCPP },
 		{ (char*) "delayUpdates", (char*) "(Ljava/lang/String;)V", delayUpdatesCPP },
 		{ (char*) "processMidiArg", (char*) "(III)V", processMidiArgCPP }
 	};
@@ -346,13 +349,14 @@ std::string JvmManager::CreateClasspath(std::string libDir) const
 #endif
 		}
 	}
-	std::string result = stream.str();
-	if (result.empty())
+	std::string classpath = stream.str();
+	if (classpath.empty())
 	{
 		ReaDebug() << "No JAR files found in library path: " << path;
-		return result;
+		return classpath;
 	}
-	return "-Djava.class.path=" + result.substr(0, result.length() - 1);
+	std::string result{ "-Djava.class.path=" + classpath.substr(0, classpath.length() - 1) };
+	return result;
 }
 
 
