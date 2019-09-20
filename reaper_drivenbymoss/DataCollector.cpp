@@ -412,7 +412,7 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
  * Collect the (changed) browser data.
  *
  * @param ss The stream where to append the formatted data
- * @param project The currently selected track
+ * @param track The currently selected track
  * @param dump If true all data is collected not only the changed one since the last call
  */
 void DataCollector::CollectBrowserData(std::stringstream& ss, MediaTrack* track, const bool& dump)
