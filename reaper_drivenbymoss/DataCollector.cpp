@@ -45,6 +45,8 @@ std::string DataCollector::CollectData(const bool& dump)
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetSelectedTrack(project, 0);
 
+	this->slowCounter = (this->slowCounter + 1) % SLOW_UPDATE;
+
 	if (IsActive("transport"))
 		CollectTransportData(ss, project, dump);
 	if (IsActive("project"))
@@ -69,22 +71,6 @@ std::string DataCollector::CollectData(const bool& dump)
 
 
 /**
- * Collect the (changed) project data.
- *
- * @param ss The stream where to append the formatted data
- * @param project The current Reaper project
- * @param dump If true all data is collected not only the changed one since the last call
- */
-void DataCollector::CollectProjectData(std::stringstream& ss, ReaProject* project, const bool& dump)
-{
-	char newProjectName[20];
-	GetProjectName(project, newProjectName, 20);
-	this->projectName = Collectors::CollectStringValue(ss, "/project/name", projectName, newProjectName, dump);
-	this->projectEngine = Collectors::CollectIntValue(ss, "/project/engine", projectEngine, Audio_IsRunning(), dump);
-}
-
-
-/**
  * Collect the (changed) transport data.
  *
  * @param ss The stream where to append the formatted data
@@ -99,30 +85,51 @@ void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* proj
 	this->record = Collectors::CollectIntValue(ss, "/record", this->record, (playState & 4) > 0, dump);
 	this->repeat = Collectors::CollectIntValue(ss, "/repeat", this->repeat, GetSetRepeat(-1), dump);
 	this->metronome = Collectors::CollectIntValue(ss, "/click", this->metronome, GetToggleCommandState(40364), dump);
+	this->prerollClick = Collectors::CollectIntValue(ss, "/prerollClick", this->prerollClick, GetToggleCommandState(41819), dump);
 
 	// The tempo
 	this->tempo = Collectors::CollectDoubleValue(ss, "/tempo", this->tempo, Master_GetTempo(), dump);
 
-	// Get the time signature at the current play position
-	double cursorPos = ReaperUtils::GetCursorPosition(project);
-	int timesig;
-	int denomOut;
-	double startBPM;
-	TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
-	this->globalTimesig = Collectors::CollectIntValue(ss, "/numerator", this->globalTimesig, timesig, dump);
-	this->globalDenomOut = Collectors::CollectIntValue(ss, "/denominator", this->globalDenomOut, denomOut, dump);
+	// Get the time signature at the current play position, if playback is active or never was read
+	if (this->play > 0 || this->globalTimesig < 0)
+	{
+		double cursorPos = ReaperUtils::GetCursorPosition(project);
+		int timesig;
+		int denomOut;
+		double startBPM;
+		TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
+		this->globalTimesig = Collectors::CollectIntValue(ss, "/numerator", this->globalTimesig, timesig, dump);
+		this->globalDenomOut = Collectors::CollectIntValue(ss, "/denominator", this->globalDenomOut, denomOut, dump);
 
-	// Result is in seconds
-	TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
-	this->playPosition = Collectors::CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
-	char timeStr[20];
-	format_timestr(cursorPos, timeStr, 20);
-	this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
-	// 2 = measures.beats
-	format_timestr_pos(cursorPos, timeStr, 20, 2);
-	this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
+		// Result is in seconds
+		TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
+		this->playPosition = Collectors::CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
+		char timeStr[20];
+		format_timestr(cursorPos, timeStr, 20);
+		this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
+		// 2 = measures.beats
+		format_timestr_pos(cursorPos, timeStr, 20, 2);
+		this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
+	}
+}
 
-	this->prerollClick = Collectors::CollectIntValue(ss, "/prerollClick", this->prerollClick, GetToggleCommandState(41819), dump);
+
+/**
+ * Collect the (changed) project data.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param project The current Reaper project
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
+void DataCollector::CollectProjectData(std::stringstream& ss, ReaProject* project, const bool& dump)
+{
+	if (this->slowCounter == 0)
+	{
+		char newProjectName[20];
+		GetProjectName(project, newProjectName, 20);
+		this->projectName = Collectors::CollectStringValue(ss, "/project/name", projectName, newProjectName, dump);
+		this->projectEngine = Collectors::CollectIntValue(ss, "/project/engine", projectEngine, Audio_IsRunning(), dump);
+	}
 }
 
 
@@ -145,18 +152,22 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
 
 	const int LENGTH = 30;
 	char name[LENGTH];
-	bool result = TrackFX_GetFXName(track, deviceIndex, name, LENGTH);
-	this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
-	this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
 
-	for (int index = 0; index < this->model.deviceBankSize; index++)
+	if (this->slowCounter == 0)
 	{
-		std::stringstream das;
-		das << "/device/sibling/" << bankDeviceIndex << "/name";
-		std::string deviceAddress = das.str();
-		result = TrackFX_GetFXName(track, this->model.deviceBankOffset + index, name, LENGTH);
-		Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? name : "", dump);
-		bankDeviceIndex++;
+		bool result = TrackFX_GetFXName(track, deviceIndex, name, LENGTH);
+		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
+		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
+
+		for (int index = 0; index < this->model.deviceBankSize; index++)
+		{
+			std::stringstream das;
+			das << "/device/sibling/" << bankDeviceIndex << "/name";
+			std::string deviceAddress = das.str();
+			result = TrackFX_GetFXName(track, this->model.deviceBankOffset + index, name, LENGTH);
+			Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? name : "", dump);
+			bankDeviceIndex++;
+		}
 	}
 
 	const int paramCount = TrackFX_GetNumParams(track, deviceIndex);
@@ -169,15 +180,18 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
 
 	// First instrument (primary) data
 
-	int instrumentIndex = TrackFX_GetInstrument(track);
-	this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentIndex >= 0, dump);
-	this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
-	result = TrackFX_GetFXName(track, instrumentIndex, name, LENGTH);
-	this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? name : "", dump);
+	if (this->slowCounter == 0)
+	{
+		int instrumentIndex = TrackFX_GetInstrument(track);
+		this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentIndex >= 0, dump);
+		this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
+		bool result = TrackFX_GetFXName(track, instrumentIndex, name, LENGTH);
+		this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? name : "", dump);
 
-	// Currently, we only need 1 parameter for the Kontrol OSC ID
-	Collectors::CollectIntValue(ss, "/primary/param/count", 1, 1, dump);
-	this->instrumentParameter1.CollectData(ss, "/primary/param/", track, instrumentIndex, 0, 1, dump);
+		// Currently, we only need 1 parameter for the Kontrol OSC ID
+		Collectors::CollectIntValue(ss, "/primary/param/count", 1, 1, dump);
+		this->instrumentParameter1.CollectData(ss, "/primary/param/", track, instrumentIndex, 0, 1, dump);
+	}
 }
 
 
@@ -202,22 +216,23 @@ void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project,
 		MediaTrack* mediaTrack = GetTrack(project, index);
 		if (mediaTrack == nullptr)
 			continue;
+
 		// Ignore track if hidden
 		GetTrackState(mediaTrack, &trackState);
 		if ((trackState & 1024) > 0)
 			continue;
 		Track* track = this->model.GetTrack(trackIndex);
-		track->CollectData(ss, project, mediaTrack, trackIndex, dump);
-		if (isActive)
+		track->CollectData(ss, project, mediaTrack, trackIndex, this->slowCounter == 0, dump);
+
+		// Only collect note information, if enabled, track is active and playback is on
+		if (isActive && this->play > 0 && track->isSelected > 0)
 		{
-			if (track->isSelected > 0)
-			{
-				std::stringstream das;
-				das << "/track/" << trackIndex << "/playingnotes";
-				playingNotes = this->CollectPlayingNotes(project, mediaTrack);
-				this->playingNotesStr = Collectors::CollectStringValue(ss, das.str().c_str(), this->playingNotesStr, playingNotes.c_str(), dump);
-			}
+			std::stringstream das;
+			das << "/track/" << trackIndex << "/playingnotes";
+			playingNotes = this->CollectPlayingNotes(project, mediaTrack);
+			this->playingNotesStr = Collectors::CollectStringValue(ss, das.str().c_str(), this->playingNotesStr, playingNotes.c_str(), dump);
 		}
+
 		trackIndex++;
 	}
 	this->model.trackCount = Collectors::CollectIntValue(ss, "/track/count", this->model.trackCount, trackIndex, dump);
@@ -283,17 +298,20 @@ void DataCollector::CollectMasterTrackData(std::stringstream& ss, ReaProject* pr
 	this->masterVULeft = Collectors::CollectDoubleValue(ss, "/master/vuleft", this->masterVULeft, DB2SLIDER(ReaperUtils::ValueToDB(Track_GetPeakInfo(master, 0))) / 1000.0, dump);
 	this->masterVURight = Collectors::CollectDoubleValue(ss, "/master/vuright", this->masterVURight, DB2SLIDER(ReaperUtils::ValueToDB(Track_GetPeakInfo(master, 1))) / 1000.0, dump);
 
-	// Track color
-	int red = -1, green = -1, blue = -1;
-	// Note: GetTrackColor is not working for the master track
-	int nativeColor = (int)GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR");
-	if (nativeColor != 0)
-		ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
-	this->masterColor = Collectors::CollectStringValue(ss, "/master/color", this->masterColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
+	if (this->slowCounter == 0)
+	{
+		// Track color
+		int red = -1, green = -1, blue = -1;
+		// Note: GetTrackColor is not working for the master track
+		int nativeColor = (int)GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR");
+		if (nativeColor != 0)
+			ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
+		this->masterColor = Collectors::CollectStringValue(ss, "/master/color", this->masterColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
 
-	// Automation mode
-	const double automode = GetMediaTrackInfo_Value(master, "I_AUTOMODE");
-	this->masterAutoMode = Collectors::CollectIntValue(ss, "/master/automode", this->masterAutoMode, static_cast<int>(automode), dump);
+		// Automation mode
+		const double automode = GetMediaTrackInfo_Value(master, "I_AUTOMODE");
+		this->masterAutoMode = Collectors::CollectIntValue(ss, "/master/automode", this->masterAutoMode, static_cast<int>(automode), dump);
+	}
 }
 
 
@@ -417,7 +435,11 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
  */
 void DataCollector::CollectBrowserData(std::stringstream& ss, MediaTrack* track, const bool& dump)
 {
+	if (this->slowCounter != 0)
+		return;
+
 	const int sel = this->model.deviceBankOffset + this->model.deviceSelected;
+
 	LoadDevicePresetFile(ss, track, sel, dump);
 
 	const int LENGTH = 20;
@@ -439,13 +461,16 @@ void DataCollector::CollectBrowserData(std::stringstream& ss, MediaTrack* track,
  */
 void DataCollector::CollectMarkerData(std::stringstream& ss, ReaProject* project, const bool& dump)
 {
-	const std::vector<int> markers = Marker::GetMarkers(project);
-	const int count = (int)markers.size();
-	this->model.markerCount = Collectors::CollectIntValue(ss, "/marker/count", this->model.markerCount, count, dump);
-	for (int index = 0; index < count; index++)
+	if (this->slowCounter == 0)
 	{
-		Marker* marker = this->model.GetMarker(markers.at(index));
-		marker->CollectData(ss, project, "marker", index, markers.at(index), dump);
+		const std::vector<int> markers = Marker::GetMarkers(project);
+		const int count = (int)markers.size();
+		this->model.markerCount = Collectors::CollectIntValue(ss, "/marker/count", this->model.markerCount, count, dump);
+		for (int index = 0; index < count; index++)
+		{
+			Marker* marker = this->model.GetMarker(markers.at(index));
+			marker->CollectData(ss, project, "marker", index, markers.at(index), dump);
+		}
 	}
 }
 

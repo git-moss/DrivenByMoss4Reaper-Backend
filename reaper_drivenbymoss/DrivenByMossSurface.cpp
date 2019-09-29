@@ -33,6 +33,12 @@ DrivenByMossSurface::~DrivenByMossSurface()
 void DrivenByMossSurface::Run()
 {
 	this->functionExecutor.ExecuteFunctions();
+
+	// Only update each 2nd call (about 60ms)
+	this->updateModel = !this->updateModel;
+	if (!this->updateModel)
+		return;
+
 	std::string data = this->CollectData(this->model.ShouldDump());
 	if (data.length() > 0)
 		jvmManager->UpdateModel(data);

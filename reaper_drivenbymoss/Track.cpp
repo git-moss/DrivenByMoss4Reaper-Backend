@@ -34,9 +34,10 @@ Track::~Track()
  * @param project The current Reaper project
  * @param track The track
  * @param trackIndex The index of the track
+ * @param slowUpdate If true, also update the data on the slow thread
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& dump)
+void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& dump)
 {
 	std::stringstream das;
 	das << "/track/" << trackIndex << "/";
@@ -50,9 +51,9 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 	this->depth = Collectors::CollectIntValue(ss, (trackAddress + "depth").c_str(), this->depth, GetTrackDepth(track), dump);
 
 	// Track name
-	char name[NAME_LENGTH];
-	bool result = GetTrackName(track, name, NAME_LENGTH);
-	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, result ? name : "", dump);
+	char tempName[NAME_LENGTH];
+	bool result = GetTrackName(track, tempName, NAME_LENGTH);
+	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, result ? tempName : "", dump);
 
 	// Track type (GROUP or HYBRID), select, mute, solo, recarm and monitor states
 	int trackState{};
@@ -65,13 +66,13 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 	this->recArmed = Collectors::CollectIntValue(ss, (trackAddress + "recarm").c_str(), this->recArmed, (trackState & 64) > 0 ? 1 : 0, dump);
 
 	// Attributes which need to be read from the track chunk...
-	char chunk[CHUNK_LENGTH];
-	if (GetTrackStateChunk(track, chunk, CHUNK_LENGTH, false))
+	char tempChunk[CHUNK_LENGTH];
+	if (slowUpdate && GetTrackStateChunk(track, tempChunk, CHUNK_LENGTH, false))
 	{
 		// Uses "lock track" as active indication
-		this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(chunk) ? 0 : 1, dump);
+		this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(tempChunk) ? 0 : 1, dump);
 
-		this->ParseInputQuantize(ss, trackAddress, dump, chunk);
+		this->ParseInputQuantize(ss, trackAddress, dump, tempChunk);
 	}
 
 	const double monitor = GetMediaTrackInfo_Value(track, "I_RECMON");
@@ -154,7 +155,7 @@ int Track::GetMute(MediaTrack* track, double position, int trackState) const
 {
 	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Mute");
 	if (envelope != nullptr)
-		return (int) ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+		return (int)ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
 	return (trackState & 8) > 0 ? 1 : 0;
 }
 
@@ -177,7 +178,7 @@ int Track::GetTrackLockState(char* chunk) const
 }
 
 
-void Track::ParseInputQuantize(std::stringstream& ss, std::string &trackAddress, const bool& dump, char* chunk)
+void Track::ParseInputQuantize(std::stringstream& ss, std::string& trackAddress, const bool& dump, char* chunk)
 {
 	std::cmatch result{};
 	if (!std::regex_search(chunk, result, INPUT_QUANTIZE_PATTERN))

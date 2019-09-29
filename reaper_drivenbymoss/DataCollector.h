@@ -30,11 +30,15 @@ public:
 	void DelayUpdate(std::string processor);
 
 private:
-	const static int DELAY = 300;
+	const static int DELAY{ 300 };
+	static const int SLOW_UPDATE{ 16 };
 
 	std::map<std::string, bool> disableUpdateMap;
 	std::map<std::string, long long> delayUpdateMap;
 	std::mutex delayMutex;
+
+	int slowCounter{ 0 };
+
 
 	Model& model;
 	int projectState{ -1 };
@@ -64,8 +68,8 @@ private:
 	std::string formattedClips{};
 
 	// Transport values
-	int globalTimesig{};
-	int globalDenomOut{};
+	int globalTimesig{ -1 };
+	int globalDenomOut{ -1 };
 	double playPosition{};
 	std::string strPlayPosition{};
 	std::string strBeatPosition{};

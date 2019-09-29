@@ -58,7 +58,7 @@ public:
 	Track();
 	virtual ~Track();
 
-	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& dump);
+	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool &slowUpdate, const bool& dump);
 
 	Send* GetSend(const int index);
 

@@ -68,6 +68,7 @@ private:
 	Model model;
 	OscParser oscParser{ model };
 	DataCollector dataCollector{ model };
+	bool updateModel = false;
 
 
 	std::string CollectData(bool dump)
