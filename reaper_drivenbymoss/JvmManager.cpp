@@ -220,7 +220,7 @@ void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCP
 		{ (char*) "processMidiArg", (char*) "(III)V", processMidiArgCPP }
 	};
 
-	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/ui/MainFrame");
+	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/MainApp");
 	if (mainFrameClass == nullptr)
 	{
 		ReaDebug() << "MainFrame.class could not be retrieved.";
