@@ -493,7 +493,7 @@
 				85823BC520F40CD000E4CC57 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		85823BC620F40CD000E4CC57 /* Build configuration list for PBXNativeTarget "reaper_drivenbymoss" */ = {
 			isa = XCConfigurationList;
@@ -502,7 +502,7 @@
 				85823BC820F40CD000E4CC57 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
