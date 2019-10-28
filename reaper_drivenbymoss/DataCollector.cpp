@@ -65,6 +65,8 @@ std::string DataCollector::CollectData(const bool& dump)
 		CollectClipData(ss, project, dump);
 	if (IsActive("session"))
 		CollectSessionData(ss, project, dump);
+	if (IsActive("noterepeat"))
+		CollectNoteRepeatData(ss, project, dump);
 
 	return ss.str();
 }
@@ -556,6 +558,27 @@ void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* projec
 		Marker* scene = this->model.GetRegion(regions.at(index));
 		scene->CollectData(ss, project, "scene", index, regions.at(index), dump);
 	}
+}
+
+
+/**
+ * Collect the NoteRepeat data.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param project The current Reaper project
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
+void DataCollector::CollectNoteRepeatData(std::stringstream& ss, ReaProject* project, const bool& dump)
+{
+	MediaTrack* const track = GetSelectedTrack(project, 0);
+
+	// Midi note repeat plugin is on track?
+	const int position = track ? TrackFX_AddByName(track, "midi_note_repeater", 1, 0) : -1;
+	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, 0x1000000 + position) ? 1 : 0;
+	this->repeatActive = Collectors::CollectIntValue(ss, "/noterepeat/active", this->repeatActive, repeatActive ? 1 : 0, dump);
+	double minVal{}, maxVal{};
+	const double repeatNoteLength = position > -1 ? TrackFX_GetParam(track, 0x1000000 + position, 0, &minVal, &maxVal) : 1.0;
+	this->repeatNoteLength = Collectors::CollectDoubleValue(ss, "/noterepeat/period", this->repeatNoteLength, repeatNoteLength, dump);
 }
 
 

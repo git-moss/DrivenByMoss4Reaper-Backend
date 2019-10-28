@@ -27,6 +27,7 @@ OscParser::OscParser(Model &model) :
 	projectProcessor(model),
 	mastertrackProcessor(model),
 	trackProcessor(model),
+	noteRepeatProcessor(model),
 	deviceProcessor(model),
 	clipProcessor(model),
 	markerProcessor(model),
@@ -50,6 +51,7 @@ OscParser::OscParser(Model &model) :
 	this->processors["project"] = &projectProcessor;
 	this->processors["master"] = &mastertrackProcessor;
 	this->processors["track"] = &trackProcessor;
+	this->processors["noterepeat"] = &noteRepeatProcessor;
 	this->processors["device"] = &deviceProcessor;
 	this->processors["clip"] = &clipProcessor;
 	this->processors["marker"] = &markerProcessor;

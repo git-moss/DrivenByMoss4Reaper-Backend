@@ -146,12 +146,6 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 		return;
 	}
 
-	if (std::strcmp(cmd, "noterepeat") == 0)
-	{
-		EnableRepeatPlugin(project, track, value > 0);
-		return;
-	}
-
 	if (std::strcmp(cmd, "active") == 0)
 	{
 		SetIsActivated(project, value > 0);
@@ -279,12 +273,6 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		return;
 	}
 
-	if (std::strcmp(cmd, "noterepeatlength") == 0)
-	{
-		SetRepeatLength(project, track, value);
-		return;
-	}
-
 	if (std::strcmp(cmd, "inQuantResolution") == 0)
 	{
 		if (value < 0 || value > 1)
@@ -397,39 +385,6 @@ void TrackProcessor::RecordMidiClip(ReaProject* project, MediaTrack* track)
 	Main_OnCommandEx(TRANSPORT_RECORD, 0, project);
 
 	Undo_EndBlock2(project, "Record Midi Clip", 0);
-}
-
-
-void TrackProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable)
-{
-	if (track == nullptr)
-		return;
-
-	// Get or insert note midi repeat plugin
-	Undo_BeginBlock2(project);
-	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 1);
-	if (position > -1)
-	{
-		// Note: 0x1000000 selects plugins on the record input FX chain
-		TrackFX_SetEnabled(track, 0x1000000 + position, enable);
-	}
-	Undo_EndBlock2(project, "Dis-/enable note repeat (inserts plugin)", 0);
-}
-
-
-void TrackProcessor::SetRepeatLength(ReaProject* project, MediaTrack* track, double resolution)
-{
-	if (track == nullptr)
-		return;
-
-	Undo_BeginBlock2(project);
-	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 0);
-	if (position > -1)
-	{
-		// Note: 0x1000000 selects plugins on the record input FX chain
-		TrackFX_SetParam(track, 0x1000000 + position, 0, resolution);
-	}
-	Undo_EndBlock2(project, "Set note repeat length", 0);
 }
 
 

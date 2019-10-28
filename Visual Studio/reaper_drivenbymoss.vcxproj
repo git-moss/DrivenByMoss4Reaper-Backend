@@ -155,6 +155,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\MarkerProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\MastertrackProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Model.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\NoteRepeatProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\OscParser.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Parameter.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\ReaDebug.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="..\reaper_drivenbymoss\MarkerProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MastertrackProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Model.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\NoteRepeatProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\OscParser.h" />
     <ClInclude Include="..\reaper_drivenbymoss\OscProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Parameter.h" />

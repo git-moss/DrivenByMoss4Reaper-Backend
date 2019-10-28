@@ -51,9 +51,6 @@ public:
 	double vuRight{ 0.0 };
 	int autoMode{ 0 };
 
-	int repeatActive{ 0 };
-	double repeatNoteLength{ 0 };
-
 
 	Track();
 	virtual ~Track();

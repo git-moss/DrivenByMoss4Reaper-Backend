@@ -111,14 +111,6 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 	for (int sendCounter = 0; sendCounter < numSends; sendCounter++)
 		this->GetSend(sendCounter)->CollectData(ss, project, track, sendCounter, trackAddress, dump);
 	this->sendCount = Collectors::CollectIntValue(ss, (trackAddress + "send/count").c_str(), this->sendCount, numSends, dump);
-
-	// Midi note repeat plugin is on track?
-	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 0);
-	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, 0x1000000 + position) ? 1 : 0;
-	this->repeatActive = Collectors::CollectIntValue(ss, (trackAddress + "repeatActive").c_str(), this->repeatActive, repeatActive ? 1 : 0, dump);
-	double minVal{}, maxVal{};
-	const double repeatNoteLength = position > -1 ? TrackFX_GetParam(track, 0x1000000 + position, 0, &minVal, &maxVal) : 1.0;
-	this->repeatNoteLength = Collectors::CollectDoubleValue(ss, (trackAddress + "noterepeatlength").c_str(), this->repeatNoteLength, repeatNoteLength, dump);
 }
 
 

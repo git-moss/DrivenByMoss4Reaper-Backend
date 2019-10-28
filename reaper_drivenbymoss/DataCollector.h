@@ -119,6 +119,10 @@ private:
 	int grooveTolerance{};
 	int quantizeStrength{};
 
+	// NoteRepeat values
+	int repeatActive{ 0 };
+	double repeatNoteLength{ 0 };
+
 
 	bool IsActive(std::string processor);
 	bool CheckDelay(std::string processor);
@@ -132,6 +136,7 @@ private:
 	void CollectMarkerData(std::stringstream& ss, ReaProject* project, const bool& dump);
 	void CollectClipData(std::stringstream& ss, ReaProject* project, const bool& dump);
 	void CollectSessionData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectNoteRepeatData(std::stringstream& ss, ReaProject* project, const bool& dump);
 
 	std::string CollectClipNotes(ReaProject* project, MediaItem* item);
 	std::string CollectPlayingNotes(ReaProject* project, MediaTrack* track);

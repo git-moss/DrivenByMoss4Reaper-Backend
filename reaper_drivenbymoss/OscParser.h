@@ -20,6 +20,7 @@
 #include "ClipProcessor.h"
 #include "MarkerProcessor.h"
 #include "SceneProcessor.h"
+#include "NoteRepeatProcessor.h"
 
 
 /**
@@ -52,6 +53,7 @@ private:
 	ProjectProcessor 				 projectProcessor;
 	MastertrackProcessor 			 mastertrackProcessor;
 	TrackProcessor 					 trackProcessor;
+	NoteRepeatProcessor              noteRepeatProcessor;
 	DeviceProcessor 				 deviceProcessor;
 	ClipProcessor 					 clipProcessor;
 	MarkerProcessor 				 markerProcessor;
