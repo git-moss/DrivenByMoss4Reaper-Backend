@@ -53,6 +53,8 @@
 		858F7A0A21558EBC00488951 /* StringUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0221558EB900488951 /* StringUtils.h */; };
 		858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0321558EBA00488951 /* SceneProcessor.h */; };
 		858F7A0C21558EBC00488951 /* Parameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F7A0421558EBB00488951 /* Parameter.cpp */; };
+		85CED11C236E3728006C2036 /* NoteRepeatProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */; };
+		85CED11D236E3728006C2036 /* NoteRepeatProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */; };
 		85E7B72222F2052900F0B037 /* Send.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E7B72022F2052900F0B037 /* Send.cpp */; };
 		85E7B72322F2052900F0B037 /* Send.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E7B72122F2052900F0B037 /* Send.h */; };
 		85FB5BDF212F42DB00639003 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85FB5BDE212F42DA00639003 /* Cocoa.framework */; };
@@ -108,6 +110,8 @@
 		858F7A0221558EB900488951 /* StringUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringUtils.h; path = ../reaper_drivenbymoss/StringUtils.h; sourceTree = "<group>"; };
 		858F7A0321558EBA00488951 /* SceneProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SceneProcessor.h; path = ../reaper_drivenbymoss/SceneProcessor.h; sourceTree = "<group>"; };
 		858F7A0421558EBB00488951 /* Parameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parameter.cpp; path = ../reaper_drivenbymoss/Parameter.cpp; sourceTree = "<group>"; };
+		85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NoteRepeatProcessor.cpp; path = ../reaper_drivenbymoss/NoteRepeatProcessor.cpp; sourceTree = "<group>"; };
+		85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NoteRepeatProcessor.h; path = ../reaper_drivenbymoss/NoteRepeatProcessor.h; sourceTree = "<group>"; };
 		85E1A7A420F4FB0000D38CC1 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Library; path = ../../../../../../Library; sourceTree = "<group>"; };
 		85E1A7A920F4FD0600D38CC1 /* JavaVM */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = JavaVM; path = ../../../../../../System/Library/Frameworks/JavaVM.framework/Versions/A/JavaVM; sourceTree = "<group>"; };
 		85E7B72022F2052900F0B037 /* Send.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Send.cpp; path = ../reaper_drivenbymoss/Send.cpp; sourceTree = "<group>"; };
@@ -130,6 +134,8 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */,
+				85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */,
 				85E7B72022F2052900F0B037 /* Send.cpp */,
 				85E7B72122F2052900F0B037 /* Send.h */,
 				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
@@ -235,6 +241,7 @@
 				858F79F921558EA800488951 /* Parameter.h in Headers */,
 				8554F22120F40E4000F5FF39 /* DataCollector.h in Headers */,
 				8554F22B20F40E4000F5FF39 /* Model.h in Headers */,
+				85CED11D236E3728006C2036 /* NoteRepeatProcessor.h in Headers */,
 				8554F22820F40E4000F5FF39 /* DrivenByMossSurface.h in Headers */,
 				858F79F321558EA800488951 /* Track.h in Headers */,
 				8554F23120F40E4000F5FF39 /* OscProcessor.h in Headers */,
@@ -310,6 +317,7 @@
 				8554F22020F40E4000F5FF39 /* DeviceProcessor.cpp in Sources */,
 				8554F22520F40E4000F5FF39 /* FunctionExecutor.cpp in Sources */,
 				8554F21F20F40E4000F5FF39 /* dllmain.cpp in Sources */,
+				85CED11C236E3728006C2036 /* NoteRepeatProcessor.cpp in Sources */,
 				8554F23720F40E4000F5FF39 /* stdafx.cpp in Sources */,
 				8554F22920F40E4000F5FF39 /* JvmManager.cpp in Sources */,
 				8554F23820F40E4000F5FF39 /* ClipProcessor.cpp in Sources */,
