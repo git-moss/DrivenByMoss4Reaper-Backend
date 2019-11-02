@@ -68,7 +68,8 @@ void ClipProcessor::Process(std::deque<std::string> &path)
 		// Clear all notes with a specific pitch
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			this->ClearNotes(project, item, pitch);
+			const int channel = atoi(path.at(3).c_str());
+			this->ClearNotes(project, item, channel, pitch);
 			return;
 		}
 
@@ -135,7 +136,8 @@ void ClipProcessor::Process(std::deque<std::string> &path, double value)
 				return;
 			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
 			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
-			this->ClearNote(project, item, pitch, ppqPosStart);
+			const int channel = atoi (path.at(3).c_str());
+			this->ClearNote(project, item, channel, pitch, ppqPosStart);
 			return;
 		}
 		return;
@@ -183,12 +185,13 @@ void ClipProcessor::Process(std::deque<std::string> &path, const std::string &va
 		const char *noteCmd = path.at(2).c_str();
 
 		std::vector<std::string> parts = this->SplitString(value, ' ');
-		if (parts.size() != 3)
+		if (parts.size() != 4)
 			return;
 
 		const double pos = std::atof(parts.at(0).c_str());
 		const double length = std::atof(parts.at(1).c_str());
 		const int velocity = std::atoi(parts.at(2).c_str());
+		const int channel = std::atoi(parts.at(3).c_str());
 
 		// Subtract the start of the clip
 		const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
@@ -197,9 +200,9 @@ void ClipProcessor::Process(std::deque<std::string> &path, const std::string &va
 
 		if (std::strcmp(noteCmd, "toggle") == 0)
 		{
-			if (!ClearNote(project, item, pitch, ppqPosStart))
+			if (!ClearNote(project, item, channel, pitch, ppqPosStart))
 			{
-				MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
+				MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, channel, pitch, velocity, nullptr);
 				UpdateItemInProject(item);
 				Undo_OnStateChange_Item(project, "Insert note", item);
 			}
@@ -208,7 +211,7 @@ void ClipProcessor::Process(std::deque<std::string> &path, const std::string &va
 
 		if (std::strcmp(noteCmd, "set") == 0)
 		{
-			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, 0, pitch, velocity, nullptr);
+			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, channel, pitch, velocity, nullptr);
 			UpdateItemInProject(item);
 			Undo_OnStateChange_Item(project, "Insert note", item);
 			return;
@@ -292,9 +295,10 @@ void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *item, int tran
  *
  * @param project The Reaper project
  * @param item The media item
+ * @param channel The MIDI channel of the note to delete
  * @param pitch The pitch of the notes to delete
  */
-void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int pitch)
+void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int channel, int pitch)
 {
 	MediaItem_Take *take = GetActiveTake(item);
 	if (take == nullptr || !TakeIsMIDI(take))
@@ -306,11 +310,12 @@ void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int pitch)
 
 	PreventUIRefresh(1);
 
+	int midiChannel;
 	int notePitch;
 	for (int id = 0; id < noteCount; id++)
 	{
-		MIDI_GetNote(take, id, nullptr, nullptr, nullptr, nullptr, nullptr, &notePitch, nullptr);
-		if (pitch == notePitch)
+		MIDI_GetNote(take, id, nullptr, nullptr, nullptr, nullptr, &midiChannel, &notePitch, nullptr);
+		if (channel == midiChannel && pitch == notePitch)
 			MIDI_DeleteNote(take, id);
 	}
 
@@ -326,11 +331,12 @@ void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int pitch)
  *
  * @param project The Reaper project
  * @param item The media item
+ * @param channel The MIDI channel of the note to delete
  * @param pitch The pitch of the note to delete
  * @param position The position of the note to delete
  * @return True if note was found and deleted
  */
-bool ClipProcessor::ClearNote(ReaProject *project, MediaItem *item, int pitch, double position)
+bool ClipProcessor::ClearNote(ReaProject *project, MediaItem *item, int channel, int pitch, double position)
 {
 	MediaItem_Take *take = GetActiveTake(item);
 	if (take == nullptr || !TakeIsMIDI(take))
@@ -341,12 +347,13 @@ bool ClipProcessor::ClearNote(ReaProject *project, MediaItem *item, int pitch, d
 		return false;
 
 	bool found{ false };
+	int midiChannel;
 	int notePitch;
 	double startppqpos{ -1 };
 	for (int id = 0; id < noteCount; id++)
 	{
-		MIDI_GetNote(take, id, nullptr, nullptr, &startppqpos, nullptr, nullptr, &notePitch, nullptr);
-		if (pitch == notePitch && std::abs(startppqpos - position) < 0.0001)
+		MIDI_GetNote(take, id, nullptr, nullptr, &startppqpos, nullptr, &midiChannel, &notePitch, nullptr);
+		if (channel == midiChannel && pitch == notePitch && std::abs(startppqpos - position) < 0.0001)
 		{
 			MIDI_DeleteNote(take, id);
 			found = true;

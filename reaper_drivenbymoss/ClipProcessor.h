@@ -28,6 +28,6 @@ public:
 private:
 	void SetColorOfClip(ReaProject *project, MediaItem *item, std::string value);
 	void TransposeClip(ReaProject *project, MediaItem *clip, int transpose);
-	void ClearNotes(ReaProject *project, MediaItem *item, int pitch);
-	bool ClearNote(ReaProject *project, MediaItem *item, int pitch, double position);
+	void ClearNotes(ReaProject *project, MediaItem *item, int channel, int pitch);
+	bool ClearNote(ReaProject *project, MediaItem *item, int channel, int pitch, double position);
 };

@@ -121,7 +121,10 @@ private:
 
 	// NoteRepeat values
 	int repeatActive{ 0 };
-	double repeatNoteLength{ 0 };
+	double repeatRate{ 1.0 };
+	double repeatNoteLength{ 1.0 };
+	int repeatMode{ 0 };
+	int repeatVelocity{ 1 };
 
 
 	bool IsActive(std::string processor);

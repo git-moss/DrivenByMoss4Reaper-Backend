@@ -14,12 +14,18 @@
 class NoteRepeatProcessor : public OscProcessor
 {
 public:
-	NoteRepeatProcessor(Model &model);
+	static constexpr char* MIDI_ARP_PLUGIN{ "midi_arp" };
+	static const int MIDI_ARP_PARAM_RATE{ 0 };
+	static const int MIDI_ARP_PARAM_NOTE_LENGTH{ 1 };
+	static const int MIDI_ARP_PARAM_MODE{ 2 };
+	static const int MIDI_ARP_PARAM_VELOCITY{ 7 };
 
-	void Process(std::deque<std::string> &path, int value) override;
-	void Process(std::deque<std::string> &path, double value) override;
+	NoteRepeatProcessor(Model& model);
+
+	void Process(std::deque<std::string>& path, int value) override;
+	void Process(std::deque<std::string>& path, double value) override;
 
 private:
-	void EnableRepeatPlugin(ReaProject *project, MediaTrack *track, bool enable);
-	void SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution);
+	void EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const;
+	void SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const;
 };

@@ -6,6 +6,7 @@
 
 #include "DataCollector.h"
 #include "Collectors.h"
+#include "NoteRepeatProcessor.h"
 #include "ReaperUtils.h"
 #include "ReaDebug.h"
 
@@ -252,20 +253,20 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return notesStrNew;
 
-	int pitch, velocity;
+	int channel, pitch, velocity;
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 
 	std::stringstream notes;
 
 	for (int i = 0; i < noteCount; ++i)
 	{
-		MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, nullptr, &pitch, &velocity);
+		MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, &channel, &pitch, &velocity);
 
 		musicalStart = MIDI_GetProjTimeFromPPQPos(take, startppqpos);
 		musicalEnd = MIDI_GetProjTimeFromPPQPos(take, endppqpos);
 
 		if (this->playPosition >= musicalStart && this->playPosition <= musicalEnd)
-			notes << musicalStart << ":" << musicalEnd << ":" << pitch << ":" << velocity << ";";
+			notes << musicalStart << ":" << musicalEnd << ":" << channel << ":" << pitch << ":" << velocity << ";";
 	}
 	return notes.str().c_str();
 }
@@ -403,7 +404,7 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return notesStrNew;
 
-	int pitch, velocity;
+	int channel, pitch, velocity;
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 	double bpm{};
 	std::stringstream notes;
@@ -411,7 +412,7 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 
 	for (int i = 0; i < noteCount; ++i)
 	{
-		MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, nullptr, &pitch, &velocity);
+		MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, &channel, &pitch, &velocity);
 
 		musicalStart = MIDI_GetProjTimeFromPPQPos(take, startppqpos);
 		musicalEnd = MIDI_GetProjTimeFromPPQPos(take, endppqpos);
@@ -422,7 +423,7 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 		musicalStart = bpm * musicalStart / 60.0;
 		TimeMap_GetTimeSigAtTime(project, endppqpos, nullptr, nullptr, &bpm);
 		musicalEnd = bpm * musicalEnd / 60.0;
-		notes << musicalStart << ":" << musicalEnd << ":" << pitch << ":" << velocity << ";";
+		notes << musicalStart << ":" << musicalEnd << ":" << channel << ":" << pitch << ":" << velocity << ";";
 	}
 	return notes.str().c_str();
 }
@@ -555,7 +556,7 @@ void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* projec
 	this->model.sceneCount = Collectors::CollectIntValue(ss, "/scene/count", this->model.sceneCount, count, dump);
 	for (int index = 0; index < count; index++)
 	{
-		Marker* scene = this->model.GetRegion(regions.at(index));
+		Marker* const scene = this->model.GetRegion(regions.at(index));
 		scene->CollectData(ss, project, "scene", index, regions.at(index), dump);
 	}
 }
@@ -573,12 +574,24 @@ void DataCollector::CollectNoteRepeatData(std::stringstream& ss, ReaProject* pro
 	MediaTrack* const track = GetSelectedTrack(project, 0);
 
 	// Midi note repeat plugin is on track?
-	const int position = track ? TrackFX_AddByName(track, "midi_note_repeater", 1, 0) : -1;
-	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, 0x1000000 + position) ? 1 : 0;
+	const int position = track ? TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 0) : -1;
+	const int inputPosition = 0x1000000 + position;
+
+	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, inputPosition) ? 1 : 0;
 	this->repeatActive = Collectors::CollectIntValue(ss, "/noterepeat/active", this->repeatActive, repeatActive ? 1 : 0, dump);
+
 	double minVal{}, maxVal{};
-	const double repeatNoteLength = position > -1 ? TrackFX_GetParam(track, 0x1000000 + position, 0, &minVal, &maxVal) : 1.0;
-	this->repeatNoteLength = Collectors::CollectDoubleValue(ss, "/noterepeat/period", this->repeatNoteLength, repeatNoteLength, dump);
+	const double repeatRate = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_RATE, &minVal, &maxVal) : 1.0;
+	this->repeatRate = Collectors::CollectDoubleValue(ss, "/noterepeat/period", this->repeatRate, repeatRate, dump);
+
+	const double repeatNoteLength = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_NOTE_LENGTH, &minVal, &maxVal) : 1.0;
+	this->repeatNoteLength = Collectors::CollectDoubleValue(ss, "/noterepeat/notelength", this->repeatNoteLength, repeatNoteLength, dump);
+
+	const double repeatMode = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_MODE, &minVal, &maxVal) : 0;
+	this->repeatMode = Collectors::CollectIntValue(ss, "/noterepeat/mode", this->repeatMode, (int)repeatMode, dump);
+
+	const double repeatVelocity = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, &minVal, &maxVal) : 0;
+	this->repeatVelocity = Collectors::CollectIntValue(ss, "/noterepeat/velocity", this->repeatVelocity, repeatVelocity == 0 ? 1 : 0, dump);
 }
 
 
@@ -664,6 +677,10 @@ MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, Me
 		if (take == nullptr || !TakeIsMIDI(take))
 			continue;
 
+		// Ignore muted items
+		if (GetMediaItemInfo_Value(item, "B_MUTE") > 0)
+			continue;
+
 		const double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
 		const double itemEnd = itemStart + GetMediaItemInfo_Value(item, "D_LENGTH");
 		if (this->playPosition >= itemStart && this->playPosition <= itemEnd)
@@ -712,7 +729,7 @@ void DataCollector::LoadDevicePresetFile(std::stringstream& ss, MediaTrack* trac
 			counter += 1;
 		}
 	}
-	catch (std::ios_base::failure& ex)
+	catch (std::ios_base::failure & ex)
 	{
 		(void)ex;
 		// File does not exist

@@ -57,36 +57,55 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value)
 
 	const char* cmd = path.at(0).c_str();
 
-	if (std::strcmp(cmd, "length") == 0)
+	if (std::strcmp(cmd, "rate") == 0)
 	{
-		SetRepeatLength(project, track, value);
+		this->SetParameter(project, track, NoteRepeatProcessor::MIDI_ARP_PARAM_RATE, value);
+		return;
+	}
+
+	if (std::strcmp(cmd, "notelength") == 0)
+	{
+		this->SetParameter(project, track, NoteRepeatProcessor::MIDI_ARP_PARAM_NOTE_LENGTH, value);
+		return;
+	}
+
+	if (std::strcmp(cmd, "mode") == 0)
+	{
+		this->SetParameter(project, track, NoteRepeatProcessor::MIDI_ARP_PARAM_MODE, value);
+		return;
+	}
+
+	if (std::strcmp(cmd, "velocity") == 0)
+	{
+		this->SetParameter(project, track, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, value == 0 ? 127 : 0);
 		return;
 	}
 }
 
 
-void NoteRepeatProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable)
+void NoteRepeatProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const
 {
-	// Get or insert note midi repeat plugin
-	Undo_BeginBlock2(project);
-	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 1);
+	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 1);
 	if (position > -1)
 	{
 		// Note: 0x1000000 selects plugins on the record input FX chain
 		TrackFX_SetEnabled(track, 0x1000000 + position, enable);
 	}
-	Undo_EndBlock2(project, "Dis-/enable note repeat (inserts plugin)", 0);
 }
 
 
-void NoteRepeatProcessor::SetRepeatLength(ReaProject* project, MediaTrack* track, double resolution)
+void NoteRepeatProcessor::SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const
 {
-	Undo_BeginBlock2(project);
-	const int position = TrackFX_AddByName(track, "midi_note_repeater", 1, 1);
+	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 1);
 	if (position > -1)
 	{
 		// Note: 0x1000000 selects plugins on the record input FX chain
-		TrackFX_SetParam(track, 0x1000000 + position, 0, resolution);
+		const int inputPosition = 0x1000000 + position;
+
+		double minVal{}, maxVal{};
+		TrackFX_GetParam(track, inputPosition, parameterIndex, &minVal, &maxVal);
+
+		const double range = maxVal - minVal;
+		TrackFX_SetParamNormalized(track, inputPosition, parameterIndex, value / range);
 	}
-	Undo_EndBlock2(project, "Set note repeat length", 0);
 }
