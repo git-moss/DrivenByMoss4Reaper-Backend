@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Bucket
+   uuid = "A96BEC95-75F0-4872-984E-A3655DA33DF3"
    type = "1"
    version = "2.0">
    <Breakpoints>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.SymbolicBreakpoint">
          <BreakpointContent
+            uuid = "FD00BAC4-7D7E-4094-AE73-5A476423A8EE"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             condition = "process handle SIGSEGV -n true -p true -s false"
@@ -14,6 +16,7 @@
             moduleName = "">
             <Locations>
                <Location
+                  uuid = "FD00BAC4-7D7E-4094-AE73-5A476423A8EE - a8f96680031534a4"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
