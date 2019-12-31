@@ -51,7 +51,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path)
 	}
 
 	ReaProject *project = ReaperUtils::GetProject();
-	const int fx = atoi(part) - 1;
+	int fx = atoi(part) - 1;
 
 	MediaTrack *track = GetSelectedTrack(project, 0);
 	if (track == nullptr)
@@ -60,7 +60,13 @@ void DeviceProcessor::Process(std::deque<std::string> &path)
 	const char *cmd = path.at(1).c_str();
 	if (std::strcmp(cmd, "remove") == 0)
 	{
+		Undo_BeginBlock2(project);
 		TrackFX_Delete(track, fx);
+		// Make sure a device is selected
+		const int max = TrackFX_GetCount(track);
+		if (fx >= max)
+			this->model.deviceSelected = max - 1 - this->model.deviceBankOffset;
+		Undo_EndBlock2(project, "Delete device", 0);
 		return;
 	}
 

@@ -56,7 +56,10 @@ void SceneProcessor::Process(std::deque<std::string> &path)
 
 	if (std::strcmp(cmd, "remove") == 0)
 	{
+		// Note: This method seems not to support Undo ...
 		DeleteProjectMarkerByIndex(project, sceneID);
+		// ... at least we can change the state, so the document state gets updated
+		Undo_OnStateChange2(project, "Delete region.");
 		return;
 	}
 }

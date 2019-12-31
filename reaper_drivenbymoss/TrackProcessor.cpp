@@ -28,7 +28,7 @@ void TrackProcessor::Process(std::deque<std::string>& path)
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
@@ -49,6 +49,18 @@ void TrackProcessor::Process(std::deque<std::string>& path)
 	{
 		Undo_BeginBlock2(project);
 		DeleteTrack(track);
+		// Make sure that a track is selected
+		if (GetSelectedTrack(project, 0) == nullptr)
+		{
+			if (trackIndex >= CountTracks(project))
+				trackIndex = trackIndex - 1;
+			if (trackIndex >= 0)
+			{
+				track = GetTrack(project, trackIndex);
+				if (track)
+					SetTrackSelected(track, true);
+			}
+		}
 		Undo_EndBlock2(project, "Delete track", 0);
 		return;
 	}
