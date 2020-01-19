@@ -123,6 +123,16 @@ void TrackProcessor::Process(std::deque<std::string>& path)
 			return;
 		}
 
+		if (std::strcmp(subcmd, "duplicate") == 0)
+		{
+			Main_OnCommandEx(UNSELECT_ALL_ITEMS, 0, project);
+			SetMediaItemSelected(item, true);
+			Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
+			UpdateTimeline();
+			Undo_OnStateChangeEx("Duplicate item", UNDO_STATE_ITEMS, -1);
+			return;
+		}
+
 		return;
 	}
 }
