@@ -65,9 +65,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/swell"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-11.0.5+10/include/"/>
+                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-13.0.2+8/include/"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-11.0.5+10/include/linux"/>
+                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-13.0.2+8/include/linux"/>
                                     								
                                 </option>
                                 								
@@ -221,9 +221,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/swell"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-11.0.5+10/include/"/>
+                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-13.0.2+8/include"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-11.0.5+10/include/linux"/>
+                                    <listOptionValue builtIn="false" value="/home/mos/java/jdk-13.0.2+8/include/linux"/>
                                     								
                                 </option>
                                 								
@@ -261,7 +261,7 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.cpp.linker.so.release.30861460" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.release">
                                 								
-                                <option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.750424566" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" valueType="boolean"/>
+                                <option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.750424566" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" useByScannerDiscovery="false" valueType="boolean"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.949411081" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
                                     									
