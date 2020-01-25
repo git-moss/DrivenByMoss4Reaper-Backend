@@ -186,7 +186,7 @@ std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePath) const
 #elif LINUX
 	std::string libPath = javaHomePath + "/lib/server/libjvm.so";
 #else
-	std::string libPath = javaHomePath + "/lib/jli/libjli.dylib";
+	std::string libPath = javaHomePath + "/lib/libjli.dylib";
 #endif
 	std::ifstream in(libPath);
 	if (in.good())

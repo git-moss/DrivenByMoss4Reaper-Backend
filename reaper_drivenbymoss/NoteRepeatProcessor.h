@@ -14,7 +14,7 @@
 class NoteRepeatProcessor : public OscProcessor
 {
 public:
-	static constexpr char* MIDI_ARP_PLUGIN{ "midi_arp" };
+    static constexpr char const* MIDI_ARP_PLUGIN { "midi_arp" };
 	static const int MIDI_ARP_PARAM_RATE{ 0 };
 	static const int MIDI_ARP_PARAM_NOTE_LENGTH{ 1 };
 	static const int MIDI_ARP_PARAM_MODE{ 2 };

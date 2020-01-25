@@ -131,13 +131,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8529D3DF23DC60000053BB6C /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				858F7A0221558EB900488951 /* StringUtils.h */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
-				85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */,
-				85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */,
-				85E7B72022F2052900F0B037 /* Send.cpp */,
-				85E7B72122F2052900F0B037 /* Send.h */,
 				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
 				8554F20320F40E3C00F5FF39 /* DataCollector.cpp */,
 				8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */,
@@ -149,10 +153,12 @@
 				850C4C47212017370059A6B0 /* MarkerProcessor.cpp */,
 				8554F21920F40E3F00F5FF39 /* MastertrackProcessor.cpp */,
 				8554F21320F40E3E00F5FF39 /* Model.cpp */,
+				85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */,
 				8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */,
 				858F7A0421558EBB00488951 /* Parameter.cpp */,
 				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
 				858F79EB21558E9A00488951 /* SceneProcessor.cpp */,
+				85E7B72022F2052900F0B037 /* Send.cpp */,
 				8554F21620F40E3F00F5FF39 /* stdafx.cpp */,
 				858F79ED21558E9C00488951 /* Track.cpp */,
 				8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */,
@@ -168,6 +174,7 @@
 				850C4C48212017380059A6B0 /* MarkerProcessor.h */,
 				8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */,
 				8554F20A20F40E3D00F5FF39 /* Model.h */,
+				85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */,
 				8554F21520F40E3E00F5FF39 /* OscParser.h */,
 				8554F21020F40E3E00F5FF39 /* OscProcessor.h */,
 				858F79EF21558EA200488951 /* Parameter.h */,
@@ -177,8 +184,8 @@
 				858F79EA21558E9900488951 /* ReaperUtils.h */,
 				858F79EC21558E9B00488951 /* resource.h */,
 				858F7A0321558EBA00488951 /* SceneProcessor.h */,
+				85E7B72122F2052900F0B037 /* Send.h */,
 				8554F1FC20F40E3B00F5FF39 /* stdafx.h */,
-				858F7A0221558EB900488951 /* StringUtils.h */,
 				8554F21A20F40E3F00F5FF39 /* targetver.h */,
 				858F79E921558E9800488951 /* Track.h */,
 				8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */,
@@ -188,6 +195,7 @@
 				85823BC320F40CD000E4CC57 /* Products */,
 				858F79F121558EA400488951 /* SceneProcessor.h */,
 				858F79EE21558EA100488951 /* StringUtils.h */,
+				8529D3DF23DC60000053BB6C /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -457,7 +465,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/adoptopenjdk-13.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
@@ -480,7 +488,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/adoptopenjdk-13.jdk/Contents/Home/include/**",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
