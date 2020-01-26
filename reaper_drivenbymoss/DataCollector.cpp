@@ -94,26 +94,23 @@ void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* proj
 	this->tempo = Collectors::CollectDoubleValue(ss, "/tempo", this->tempo, Master_GetTempo(), dump);
 
 	// Get the time signature at the current play position, if playback is active or never was read
-	if (this->play > 0 || this->globalTimesig < 0)
-	{
-		double cursorPos = ReaperUtils::GetCursorPosition(project);
-		int timesig;
-		int denomOut;
-		double startBPM;
-		TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
-		this->globalTimesig = Collectors::CollectIntValue(ss, "/numerator", this->globalTimesig, timesig, dump);
-		this->globalDenomOut = Collectors::CollectIntValue(ss, "/denominator", this->globalDenomOut, denomOut, dump);
+	double cursorPos = ReaperUtils::GetCursorPosition(project);
+	int timesig;
+	int denomOut;
+	double startBPM;
+	TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
+	this->globalTimesig = Collectors::CollectIntValue(ss, "/numerator", this->globalTimesig, timesig, dump);
+	this->globalDenomOut = Collectors::CollectIntValue(ss, "/denominator", this->globalDenomOut, denomOut, dump);
 
-		// Result is in seconds
-		TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
-		this->playPosition = Collectors::CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
-		char timeStr[20];
-		format_timestr(cursorPos, timeStr, 20);
-		this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
-		// 2 = measures.beats
-		format_timestr_pos(cursorPos, timeStr, 20, 2);
-		this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
-	}
+	// Result is in seconds
+	TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
+	this->playPosition = Collectors::CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
+	char timeStr[20];
+	format_timestr(cursorPos, timeStr, 20);
+	this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
+	// 2 = measures.beats
+	format_timestr_pos(cursorPos, timeStr, 20, 2);
+	this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
 }
 
 
