@@ -316,7 +316,7 @@ void DataCollector::CollectMasterTrackData(std::stringstream& ss, ReaProject* pr
 
 
 /**
- * Collect the (changed) clip data.
+ * Collect the (changed) data of the first selected clip.
  *
  * @param ss The stream where to append the formatted data
  * @param project The current Reaper project
@@ -369,7 +369,7 @@ void DataCollector::CollectClipData(std::stringstream& ss, ReaProject* project, 
 
 
 /**
- * Collect the notes data of the active clip if changed.
+ * Collect the notes data of the first selected clip if changed.
  *
  * @param project The current Reaper project
  * @param item The media item
@@ -476,7 +476,7 @@ void DataCollector::CollectMarkerData(std::stringstream& ss, ReaProject* project
 
 
 /**
- * Collect the (changed) clip data.
+ * Collect the (changed) session data (clips are Media items, scenes are Region markers).
  *
  * @param ss The stream where to append the formatted data
  * @param project The current Reaper project
