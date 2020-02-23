@@ -105,9 +105,13 @@ void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* proj
 	// Result is in seconds
 	TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
 	this->playPosition = Collectors::CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
+
+	// Add project offset, if configured in project settings
+	double timeOffset = GetProjectTimeOffset(project, false);
 	char timeStr[20];
-	format_timestr(cursorPos, timeStr, 20);
+	format_timestr(timeOffset + cursorPos, timeStr, 20);
 	this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
+
 	// 2 = measures.beats
 	format_timestr_pos(cursorPos, timeStr, 20, 2);
 	this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
