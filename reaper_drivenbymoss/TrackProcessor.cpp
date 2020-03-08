@@ -204,7 +204,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 		return;
 	}
 
-	if (std::strcmp(cmd, "autotrim") == 0)
+	if (std::strcmp(cmd, "autotrim_read") == 0)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 0);
@@ -236,6 +236,13 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 	{
 		if (value > 0)
 			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 4);
+		return;
+	}
+
+	if (std::strcmp(cmd, "autolatch_preview") == 0)
+	{
+		if (value > 0)
+			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 5);
 		return;
 	}
 
