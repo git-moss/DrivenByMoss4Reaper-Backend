@@ -24,7 +24,7 @@ Model::Model(FunctionExecutor &aFunctionExecutor) :
 Track *Model::GetTrack(const int index)
 {
 	this->tracklock.lock();
-	const int diff = index - (int) this->tracks.size() + 1;
+	const size_t diff = index - this->tracks.size() + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
@@ -66,7 +66,7 @@ Marker *Model::GetMarker(const int index)
 Marker *Model::GetRegion(const int index)
 {
 	this->regionlock.lock();
-	const int diff = index - (int)this->regions.size() + 1;
+	const size_t diff = index - this->regions.size() + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
@@ -87,7 +87,7 @@ Marker *Model::GetRegion(const int index)
 Parameter *Model::GetParameter(const int index)
 {
 	this->parameterlock.lock();
-	const int diff = index - (int)this->parameters.size() + 1;
+	const size_t diff = index - this->parameters.size() + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
