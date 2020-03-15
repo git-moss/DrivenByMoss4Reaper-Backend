@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_CLIPPROCESSOR_H_
+#define _DBM_CLIPPROCESSOR_H_
 
 #include "OscProcessor.h"
 
@@ -31,3 +32,5 @@ private:
 	void ClearNotes(ReaProject *project, MediaItem *item, int channel, int pitch);
 	bool ClearNote(ReaProject *project, MediaItem *item, int channel, int pitch, double position);
 };
+
+#endif /* _DBM_CLIPPROCESSOR_H_ */

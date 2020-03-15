@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_DRIVENBYMOSSSURFACE_H_
+#define _DBM_DRIVENBYMOSSSURFACE_H_
 
 #include "FunctionExecutor.h"
 #include "OscParser.h"
@@ -76,3 +77,5 @@ private:
 		return this->dataCollector.CollectData(dump);
 	};
 };
+
+#endif /* _DBM_DRIVENBYMOSSSURFACE_H_ */

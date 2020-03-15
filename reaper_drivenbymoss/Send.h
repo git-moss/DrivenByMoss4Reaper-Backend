@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_SEND_H_
+#define _DBM_SEND_H_
 
 #include <string>
 
@@ -23,8 +24,10 @@ public:
 	Send();
 	virtual ~Send();
 
-	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int sendIndex, std::string& trackAddress, const bool& dump);
+	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int sendIndex, const std::string& trackAddress, const bool& dump);
 
 private:
 	double GetSendVolume(MediaTrack* track, int sendCounter, double position) const;
 };
+
+#endif /* _DBM_SEND_H_ */

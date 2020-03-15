@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_FUNCTIONEXECUTOR_H_
+#define _DBM_FUNCTIONEXECUTOR_H_
 
 #include <mutex>
 #include <vector>
@@ -22,3 +23,5 @@ private:
 	std::mutex execMutex;
 	std::vector<std::function<void(void)>> tasks;
 };
+
+#endif /* _DBM_FUNCTIONEXECUTOR_H_ */

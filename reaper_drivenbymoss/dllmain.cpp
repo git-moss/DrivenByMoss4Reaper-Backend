@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "stdafx.h"
@@ -22,9 +22,9 @@
 // Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
 // to be connected on port 8989, only then the start continues!
 #ifdef _DEBUG
-const bool DEBUG_JAVA{ true };
+constexpr bool DEBUG_JAVA{ true };
 #else
-const bool DEBUG_JAVA{ false };
+constexpr bool DEBUG_JAVA{ false };
 #endif
 
 

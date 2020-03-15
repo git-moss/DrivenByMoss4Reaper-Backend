@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_MODEL_H_
+#define _DBM_MODEL_H_
 
 #include <vector>
 #include <mutex>
@@ -81,3 +82,5 @@ private:
 	std::mutex dumplock;
 	bool dump{false};
 };
+
+#endif /* _DBM_MODEL_H_ */

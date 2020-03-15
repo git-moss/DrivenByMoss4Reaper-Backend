@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "Collectors.h"
@@ -41,7 +41,7 @@ void Parameter::CollectData(std::stringstream &ss, const char *oscPath, MediaTra
 	das << oscPath << parameterIndex << "/";
 	std::string paramAddress = das.str();
 
-	const int LENGTH = 20;
+    constexpr int LENGTH = 20;
 	char name[LENGTH];
 	bool result = TrackFX_GetParamName(track, deviceIndex, parameterIndex, name, LENGTH);
 	this->name = Collectors::CollectStringValue(ss, (paramAddress + "name").c_str(), this->name, result ? name : "", dump);

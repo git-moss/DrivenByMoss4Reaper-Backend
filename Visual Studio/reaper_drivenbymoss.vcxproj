@@ -75,13 +75,16 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -152,6 +155,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\dllmain.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossSurface.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\FunctionExecutor.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\IniFileProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\JvmManager.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Marker.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\MarkerProcessor.cpp" />
@@ -175,9 +179,9 @@
     <ClInclude Include="..\reaper_drivenbymoss\DataCollector.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DeviceProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_reaper_MainApp.h" />
-    <ClInclude Include="..\reaper_drivenbymoss\dllmain.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossSurface.h" />
     <ClInclude Include="..\reaper_drivenbymoss\FunctionExecutor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\IniFileProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\JvmManager.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Marker.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MarkerProcessor.h" />

@@ -78,6 +78,9 @@
     <ClCompile Include="..\reaper_drivenbymoss\NoteRepeatProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\reaper_drivenbymoss\IniFileProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h">
@@ -161,9 +164,6 @@
     <ClInclude Include="..\reaper_drivenbymoss\StringUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\reaper_drivenbymoss\dllmain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\Send.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -171,6 +171,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\reaper_drivenbymoss\NoteRepeatProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\IniFileProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

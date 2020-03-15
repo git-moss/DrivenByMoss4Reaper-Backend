@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_DATACOLLECTOR_H_
+#define _DBM_DATACOLLECTOR_H_
 
 #include <chrono>
 #include <map>
@@ -147,3 +148,5 @@ private:
 	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const;
 	void LoadDevicePresetFile(std::stringstream& ss, MediaTrack* track, int fx, const bool& dump);
 };
+
+#endif /* _DBM_DATACOLLECTOR_H_ */

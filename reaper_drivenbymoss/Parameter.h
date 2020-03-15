@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_PARAMETER_H_
+#define _DBM_PARAMETER_H_
 
 #include <string>
 
@@ -26,3 +27,4 @@ public:
 	void CollectData(std::stringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump);
 };
 
+#endif /* _DBM_PARAMETER_H_ */

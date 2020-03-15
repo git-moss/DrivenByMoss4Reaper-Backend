@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_JVMMANAGER_H_
+#define _DBM_JVMMANAGER_H_
 
 #include <string>
 #include <memory>
@@ -70,3 +71,5 @@ private:
 	void HandleException(const char* message) const;
 	bool HasEnding(std::string const& fullString, std::string const& ending) const;
 };
+
+#endif /* _DBM_JVMMANAGER_H_ */

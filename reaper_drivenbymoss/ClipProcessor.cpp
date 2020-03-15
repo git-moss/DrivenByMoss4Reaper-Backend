@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "ClipProcessor.h"
@@ -62,7 +62,7 @@ void ClipProcessor::Process(std::deque<std::string> &path)
 	{
 		if (path.size() < 3)
 			return;
-		int pitch = std::atoi(path.at(1).c_str());
+		const int pitch = std::atoi(path.at(1).c_str());
 		const char *noteCmd = path.at(2).c_str();
 
 		// Clear all notes with a specific pitch
@@ -118,7 +118,7 @@ void ClipProcessor::Process(std::deque<std::string> &path, double value)
 
 	if (std::strcmp(cmd, "transpose") == 0)
 	{
-		this->TransposeClip(project, item, (int)value);
+		this->TransposeClip(project, item, static_cast<int>(value));
 		return;
 	}
 
@@ -126,7 +126,7 @@ void ClipProcessor::Process(std::deque<std::string> &path, double value)
 	{
 		if (path.size() < 3)
 			return;
-		int pitch = std::atoi(path.at(1).c_str());
+		const int pitch = std::atoi(path.at(1).c_str());
 		const char *noteCmd = path.at(2).c_str();
 
 		if (std::strcmp(noteCmd, "clear") == 0)
@@ -240,7 +240,7 @@ void ClipProcessor::SetColorOfClip(ReaProject *project, MediaItem *item, std::st
 
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
 
-	int takes = CountTakes(item);
+	const int takes = CountTakes(item);
 	for (int i = 0; i < takes; i++)
 	{
 		MediaItem_Take *take = GetTake(item, i);
@@ -262,13 +262,13 @@ void ClipProcessor::SetColorOfClip(ReaProject *project, MediaItem *item, std::st
  */
 void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *item, int transpose)
 {
-	int takes = CountTakes(item);
+	const int takes = CountTakes(item);
 	if (takes == 0)
 		return;
 
 	PreventUIRefresh(1);
 
-	int noteCount;
+	int noteCount{0};
 	for (int i = 0; i < takes; i++)
 	{
 		MediaItem_Take *take = GetTake(item, i);
@@ -310,8 +310,8 @@ void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int channel
 
 	PreventUIRefresh(1);
 
-	int midiChannel;
-	int notePitch;
+	int midiChannel{ 0 };
+	int notePitch{ 0 };
 	for (int id = 0; id < noteCount; id++)
 	{
 		MIDI_GetNote(take, id, nullptr, nullptr, nullptr, nullptr, &midiChannel, &notePitch, nullptr);

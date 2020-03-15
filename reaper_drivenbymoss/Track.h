@@ -1,9 +1,11 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_TRACK_H_
+#define _DBM_TRACK_H_
 
+#include <mutex>
 #include <string>
 #include <vector>
 #include <regex>
@@ -72,3 +74,5 @@ private:
 	int GetTrackLockState(char* chunk) const;
 	void ParseInputQuantize(std::stringstream& ss, std::string& trackAddress, const bool& dump, char* chunk);
 };
+
+#endif /* _DBM_TRACK_H_ */

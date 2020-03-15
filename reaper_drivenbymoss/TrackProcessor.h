@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_TRACKPROCESSOR_H_
+#define _DBM_TRACKPROCESSOR_H_
 
 #include <string>
 #include "OscProcessor.h"
@@ -25,10 +26,10 @@ private:
 	void CreateMidiClip(ReaProject *project, MediaTrack *track, int beats);
 	void RecordMidiClip(ReaProject* project, MediaTrack* track);
 
-	void EnableRepeatPlugin(ReaProject *project, MediaTrack *track, bool enable);
-	void SetRepeatLength(ReaProject *project, MediaTrack *track, double resolution);
 	void SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value);
 	void SetIsActivated(ReaProject *project, bool enable);
 	void DeleteAllAutomationEnvelopes(ReaProject *project, MediaTrack *track);
 	int GetTrackIndex(ReaProject *project, int dawTrackIndex) const;
 };
+
+#endif /* _DBM_TRACKPROCESSOR_H_ */

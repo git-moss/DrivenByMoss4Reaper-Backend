@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_OSCPARSER_H_
+#define _DBM_OSCPARSER_H_
 
 #include <string>
 #include <sstream>
@@ -21,6 +22,7 @@
 #include "MarkerProcessor.h"
 #include "SceneProcessor.h"
 #include "NoteRepeatProcessor.h"
+#include "IniFileProcessor.h"
 
 
 /**
@@ -67,3 +69,5 @@ private:
 	std::deque<std::string> Split(const std::string &path) const;
 	void LogError(const std::string command, const std::out_of_range &oor) const;
 };
+
+#endif /* _DBM_OSCPARSER_H_ */

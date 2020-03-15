@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_NOTEREPEATPROCESSOR_H_
+#define _DBM_NOTEREPEATPROCESSOR_H_
 
 #include <string>
 #include "OscProcessor.h"
@@ -29,3 +30,5 @@ private:
 	void EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const;
 	void SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const;
 };
+
+#endif /* _DBM_NOTEREPEATPROCESSOR_H_ */

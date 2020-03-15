@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_MARKER_H_
+#define _DBM_MARKER_H_
 
 #include <string>
 #include <vector>
@@ -30,3 +31,5 @@ public:
 	static std::vector<int> GetMarkers(ReaProject *project);
 	static std::vector<int> GetRegions(ReaProject *project);
 };
+
+#endif /* _DBM_MARKER_H_ */

@@ -1,8 +1,9 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#pragma once
+#ifndef _DBM_TRANSPORTPROCESSOR_H_
+#define _DBM_TRANSPORTPROCESSOR_H_
 
 #include <string>
 
@@ -228,51 +229,4 @@ public:
 	};
 };
 
-class IniFileProcessor : public OscProcessor
-{
-public:
-	IniFileProcessor(Model& aModel) : OscProcessor(aModel) {};
-
-	void Process(std::deque<std::string>& path, int value) override
-	{
-		if (path.size() != 2)
-			return;
-
-#ifdef _WIN32
-		const std::wstring category = stringToWs(path.at(0));
-		const std::wstring key = stringToWs(path.at(1));
-		const std::wstring iniPath = stringToWs(GetIniName());
-#else
-		const std::string category = path.at(0);
-		const std::string key = path.at(1);
-		const std::string iniPath = GetIniName();
-#endif			
-
-		int currValue = GetPrivateProfileInt(category.c_str(), key.c_str(), -1, iniPath.c_str());
-		if (currValue == value)
-			return;
-
-		std::stringstream valStream;
-		valStream << value;
-#ifdef _WIN32
-		const std::wstring v = stringToWs(valStream.str());
-#else
-		const std::string v = valStream.str();
-#endif
-		if (!WritePrivateProfileString(category.c_str(), key.c_str(), v.c_str(), iniPath.c_str()))
-			ReaDebug() << "ERROR: Could not store parameter in REAPER.ini";
-	};
-
-	const std::string GetIniName()
-	{
-		std::stringstream ss;
-		ss << GetResourcePath();
-#ifdef _WIN32
-		ss << "\\";
-#else
-		ss << "/";
-#endif			
-		ss << "REAPER.ini";
-		return ss.str();
-	};
-};
+#endif /* _DBM_TRANSPORTPROCESSOR_H_ */

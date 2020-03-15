@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2019
+// (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <fstream>
@@ -94,7 +94,7 @@ void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* proj
 	this->tempo = Collectors::CollectDoubleValue(ss, "/tempo", this->tempo, Master_GetTempo(), dump);
 
 	// Get the time signature at the current play position, if playback is active or never was read
-	double cursorPos = ReaperUtils::GetCursorPosition(project);
+	const double cursorPos = ReaperUtils::GetCursorPosition(project);
 	int timesig;
 	int denomOut;
 	double startBPM;
@@ -107,7 +107,7 @@ void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* proj
 	this->playPosition = Collectors::CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
 
 	// Add project offset, if configured in project settings
-	double timeOffset = GetProjectTimeOffset(project, false);
+	const double timeOffset = GetProjectTimeOffset(project, false);
 	char timeStr[20];
 	format_timestr(timeOffset + cursorPos, timeStr, 20);
 	this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
@@ -154,7 +154,7 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
 	this->deviceWindow = Collectors::CollectIntValue(ss, "/device/window", this->deviceWindow, TrackFX_GetOpen(track, deviceIndex), dump);
 	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpandedType == 1, dump);
 
-	const int LENGTH = 30;
+	constexpr int LENGTH = 30;
 	char name[LENGTH];
 
 	if (this->slowCounter == 0)
@@ -446,7 +446,7 @@ void DataCollector::CollectBrowserData(std::stringstream& ss, MediaTrack* track,
 
 	LoadDevicePresetFile(ss, track, sel, dump);
 
-	const int LENGTH = 20;
+	constexpr int LENGTH = 20;
 	char presetname[LENGTH];
 	TrackFX_GetPreset(track, sel, presetname, LENGTH);
 	this->devicePresetName = Collectors::CollectStringValue(ss, "/browser/selected/name", this->devicePresetName, presetname, dump);
@@ -693,7 +693,7 @@ MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, Me
 
 void DataCollector::LoadDevicePresetFile(std::stringstream& ss, MediaTrack* track, int fx, const bool& dump)
 {
-	const int LENGTH = 1024;
+	constexpr int LENGTH = 1024;
 	char filename[LENGTH];
 	TrackFX_GetUserPresetFilename(track, fx, filename, LENGTH);
 
