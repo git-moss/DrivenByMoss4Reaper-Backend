@@ -207,6 +207,9 @@
     <ClInclude Include="..\reaper_drivenbymoss\Track.h" />
     <ClInclude Include="..\reaper_drivenbymoss\TrackProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\TransportProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\WrapperGSL.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\WrapperJNI.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\WrapperReaperFunctions.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\reaper_drivenbymoss\res.rc" />

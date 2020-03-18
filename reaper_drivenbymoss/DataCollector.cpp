@@ -4,13 +4,8 @@
 
 #include <fstream>
 
-#include <codeanalysis\warnings.h>
-#pragma warning( push )
-#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
-#include "gsl.h"
-#pragma warning( pop )
-
-
+#include "WrapperGSL.h"
+#include "WrapperReaperFunctions.h"
 #include "DataCollector.h"
 #include "Collectors.h"
 #include "NoteRepeatProcessor.h"

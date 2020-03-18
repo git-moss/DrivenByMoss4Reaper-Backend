@@ -9,14 +9,7 @@
 #include <cmath>
 #include <vector>
 
-#include <codeanalysis\warnings.h>
-#pragma warning( push )
-#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
-#include "reaper_plugin_functions.h"
-#pragma warning( pop )
-
-#undef max
-#undef min
+#include "WrapperReaperFunctions.h"
 
 
 /**

@@ -179,6 +179,15 @@
     <ClInclude Include="..\reaper_drivenbymoss\dllmain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\WrapperJNI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\WrapperReaperFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\WrapperGSL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\reaper_drivenbymoss\res.rc">

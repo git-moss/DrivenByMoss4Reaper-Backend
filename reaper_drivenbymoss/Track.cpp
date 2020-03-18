@@ -2,12 +2,7 @@
 // (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-#include <codeanalysis\warnings.h>
-#pragma warning( push )
-#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
-#include "gsl.h"
-#pragma warning( pop )
-
+#include "WrapperGSL.h"
 #include "Collectors.h"
 #include "Track.h"
 

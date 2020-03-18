@@ -5,14 +5,10 @@
 #ifndef _DBM_JVMMANAGER_H_
 #define _DBM_JVMMANAGER_H_
 
-#include <codeanalysis\warnings.h>
-#pragma warning( push )
-#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
-#include <jni.h>
-#pragma warning( pop )
-
 #include <string>
 #include <memory>
+
+#include "WrapperJNI.h"
 
 
 /**
