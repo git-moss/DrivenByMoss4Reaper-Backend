@@ -11,7 +11,7 @@
 #pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
 #endif
 
-#include "gsl.h"
+#include <gsl.h>
 
 #ifdef _WIN32
 #pragma warning( pop )
