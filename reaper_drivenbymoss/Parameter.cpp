@@ -9,19 +9,11 @@
 /**
  * Constructor.
  */
-Parameter::Parameter()
+Parameter::Parameter() noexcept
 {
 	// Intentionally empty
 }
 
-
-/**
- * Destructor.
- */
-Parameter::~Parameter()
-{
-	// Intentionally empty
-}
 
 
 /**
@@ -35,18 +27,23 @@ Parameter::~Parameter()
  * @param parameterCount The number of all parameters
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Parameter::CollectData(std::stringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump)
+void Parameter::CollectData(std::stringstream& ss, const char* oscPath, MediaTrack* track, int deviceIndex, int parameterIndex, int parameterCount, const bool& dump)
 {
 	std::stringstream das;
 	das << oscPath << parameterIndex << "/";
-	std::string paramAddress = das.str();
+	const std::string paramAddress = das.str();
 
-    constexpr int LENGTH = 20;
-	char name[LENGTH];
-	bool result = TrackFX_GetParamName(track, deviceIndex, parameterIndex, name, LENGTH);
-	this->name = Collectors::CollectStringValue(ss, (paramAddress + "name").c_str(), this->name, result ? name : "", dump);
+	// The warning about array pointer decay is ignored because it cannot be fixed since we have to use the available Reaper function
+	constexpr int LENGTH = 20;
+	char nameBuf[LENGTH];
+#pragma warning(suppress: 26485)
+	bool result = TrackFX_GetParamName(track, deviceIndex, parameterIndex, nameBuf, LENGTH);
+#pragma warning(suppress: 26485)
+	this->name = Collectors::CollectStringValue(ss, (paramAddress + "name").c_str(), this->name, result ? nameBuf : "", dump);
 	const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, parameterIndex);
 	this->value = Collectors::CollectDoubleValue(ss, (paramAddress + "value").c_str(), this->value, paramValue, dump);
-	result = TrackFX_FormatParamValueNormalized(track, deviceIndex, parameterIndex, paramValue, name, LENGTH);
-	this->valueStr = Collectors::CollectStringValue(ss, (paramAddress + "value/str").c_str(), this->valueStr, result ? name : "", dump);
+#pragma warning(suppress: 26485)
+	result = TrackFX_FormatParamValueNormalized(track, deviceIndex, parameterIndex, paramValue, nameBuf, LENGTH);
+#pragma warning(suppress: 26485)
+	this->valueStr = Collectors::CollectStringValue(ss, (paramAddress + "value/str").c_str(), this->valueStr, result ? nameBuf : "", dump);
 }

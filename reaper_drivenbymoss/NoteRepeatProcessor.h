@@ -23,12 +23,12 @@ public:
 
 	NoteRepeatProcessor(Model& model);
 
-	void Process(std::deque<std::string>& path, int value) override;
-	void Process(std::deque<std::string>& path, double value) override;
+	void Process(std::deque<std::string>& path, int value) noexcept override;
+	void Process(std::deque<std::string>& path, double value) noexcept override;
 
 private:
-	void EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const;
-	void SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const;
+	void EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const noexcept;
+	void SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const noexcept;
 };
 
 #endif /* _DBM_NOTEREPEATPROCESSOR_H_ */

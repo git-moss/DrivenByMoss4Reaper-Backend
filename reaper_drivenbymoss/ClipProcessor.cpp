@@ -4,6 +4,7 @@
 
 #include "ClipProcessor.h"
 #include "ReaperUtils.h"
+#include "ReaDebug.h"
 
 
 /**
@@ -11,87 +12,94 @@
  *
  * @param aModel The model to share data
  */
-ClipProcessor::ClipProcessor(Model &aModel) : OscProcessor(aModel)
+ClipProcessor::ClipProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
 /** {@inheritDoc} */
-void ClipProcessor::Process(std::deque<std::string> &path)
+void ClipProcessor::Process(std::deque<std::string>& path) noexcept
 {
 	if (path.empty())
 		return;
 
-	ReaProject *project = ReaperUtils::GetProject();
+	ReaProject* project = ReaperUtils::GetProject();
 	if (CountSelectedMediaItems(project) == 0)
 		return;
-	MediaItem *item = GetSelectedMediaItem(project, 0);
+	MediaItem* item = GetSelectedMediaItem(project, 0);
 	if (item == nullptr)
 		return;
 
-	const char *cmd = path.at(0).c_str();
-
-	if (std::strcmp(cmd, "duplicate") == 0)
+	try
 	{
-		// Item: Duplicate items
-		Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
-		return;
-	}
+		const char* cmd = path.at(0).c_str();
 
-	if (std::strcmp(cmd, "duplicateContent") == 0)
-	{
-		Undo_BeginBlock2(project);
-
-		// Item: Duplicate items
-		Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
-
-		// SWS: Add item(s) to left of selected item(s) to selection
-		const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
-		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
-
-		// Item: Glue items
-		Main_OnCommandEx(GLUE_ITEMS, 0, project);
-
-		Undo_EndBlock2(project, "Duplicate content of clip", 0);
-		return;
-	}
-
-	if (std::strcmp(cmd, "note") == 0)
-	{
-		if (path.size() < 3)
-			return;
-		const int pitch = std::atoi(path.at(1).c_str());
-		const char *noteCmd = path.at(2).c_str();
-
-		// Clear all notes with a specific pitch
-		if (std::strcmp(noteCmd, "clear") == 0)
+		if (std::strcmp(cmd, "duplicate") == 0)
 		{
-			const int channel = atoi(path.at(3).c_str());
-			this->ClearNotes(project, item, channel, pitch);
+			// Item: Duplicate items
+			Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
 			return;
 		}
 
-		return;
+		if (std::strcmp(cmd, "duplicateContent") == 0)
+		{
+			Undo_BeginBlock2(project);
+
+			// Item: Duplicate items
+			Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
+
+			// SWS: Add item(s) to left of selected item(s) to selection
+			const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
+			if (actionID > 0)
+				Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
+
+			// Item: Glue items
+			Main_OnCommandEx(GLUE_ITEMS, 0, project);
+
+			Undo_EndBlock2(project, "Duplicate content of clip", 0);
+			return;
+		}
+
+		if (std::strcmp(cmd, "note") == 0)
+		{
+			if (path.size() < 3)
+				return;
+			const int pitch = std::atoi(path.at(1).c_str());
+			const char* noteCmd = path.at(2).c_str();
+
+			// Clear all notes with a specific pitch
+			if (std::strcmp(noteCmd, "clear") == 0)
+			{
+				const int channel = atoi(path.at(3).c_str());
+				this->ClearNotes(project, item, channel, pitch);
+				return;
+			}
+
+			return;
+		}
+	}
+	catch (const std::out_of_range & oor)
+	{
+		ReaDebug() << "Out of Range error: " << oor.what();
 	}
 }
 
 
 /** {@inheritDoc} */
-void ClipProcessor::Process(std::deque<std::string> &path, double value)
+void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcept
 {
 	if (path.empty())
 		return;
 
-	ReaProject *project = ReaperUtils::GetProject();
+	ReaProject* project = ReaperUtils::GetProject();
 	if (CountSelectedMediaItems(project) == 0)
 		return;
-	MediaItem *item = GetSelectedMediaItem(project, 0);
+	MediaItem* item = GetSelectedMediaItem(project, 0);
 	if (item == nullptr)
 		return;
 
-	const char *cmd = path.at(0).c_str();
+	const char* cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "start") == 0)
 	{
@@ -127,16 +135,16 @@ void ClipProcessor::Process(std::deque<std::string> &path, double value)
 		if (path.size() < 3)
 			return;
 		const int pitch = std::atoi(path.at(1).c_str());
-		const char *noteCmd = path.at(2).c_str();
+		const char* noteCmd = path.at(2).c_str();
 
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			MediaItem_Take *take = GetActiveTake(item);
+			MediaItem_Take* take = GetActiveTake(item);
 			if (take == nullptr)
 				return;
 			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
 			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
-			const int channel = atoi (path.at(3).c_str());
+			const int channel = atoi(path.at(3).c_str());
 			this->ClearNote(project, item, channel, pitch, ppqPosStart);
 			return;
 		}
@@ -152,19 +160,19 @@ void ClipProcessor::Process(std::deque<std::string> &path, double value)
 
 
 /** {@inheritDoc} */
-void ClipProcessor::Process(std::deque<std::string> &path, const std::string &value)
+void ClipProcessor::Process(std::deque<std::string>& path, const std::string& value) noexcept
 {
 	if (path.empty())
 		return;
 
-	ReaProject *project = ReaperUtils::GetProject();
+	ReaProject* project = ReaperUtils::GetProject();
 	if (CountSelectedMediaItems(project) == 0)
 		return;
-	MediaItem *item = GetSelectedMediaItem(project, 0);
+	MediaItem* item = GetSelectedMediaItem(project, 0);
 	if (item == nullptr)
 		return;
 
-	const char *cmd = path.at(0).c_str();
+	const char* cmd = path.at(0).c_str();
 
 	if (std::strcmp(cmd, "color") == 0)
 	{
@@ -177,12 +185,12 @@ void ClipProcessor::Process(std::deque<std::string> &path, const std::string &va
 		if (path.size() < 3)
 			return;
 
-		MediaItem_Take *take = GetActiveTake(item);
+		MediaItem_Take* take = GetActiveTake(item);
 		if (take == nullptr)
 			return;
 
 		const int pitch = std::atoi(path.at(1).c_str());
-		const char *noteCmd = path.at(2).c_str();
+		const char* noteCmd = path.at(2).c_str();
 
 		std::vector<std::string> parts = this->SplitString(value, ' ');
 		if (parts.size() != 4)
@@ -229,7 +237,7 @@ void ClipProcessor::Process(std::deque<std::string> &path, const std::string &va
  * @param item The media item
  * @param value The encoded RGB value, e.g. RGB(red,green,blue)
  */
-void ClipProcessor::SetColorOfClip(ReaProject *project, MediaItem *item, std::string value)
+void ClipProcessor::SetColorOfClip(ReaProject* project, MediaItem* item, std::string value)
 {
 	std::cmatch result{};
 	if (!std::regex_search(value.c_str(), result, colorPattern))
@@ -243,7 +251,7 @@ void ClipProcessor::SetColorOfClip(ReaProject *project, MediaItem *item, std::st
 	const int takes = CountTakes(item);
 	for (int i = 0; i < takes; i++)
 	{
-		MediaItem_Take *take = GetTake(item, i);
+		MediaItem_Take* take = GetTake(item, i);
 		if (take)
 			SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
 	}
@@ -260,7 +268,7 @@ void ClipProcessor::SetColorOfClip(ReaProject *project, MediaItem *item, std::st
  * @param item The media item
  * @param transpose The value to transpose up or down (negative)
  */
-void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *item, int transpose)
+void ClipProcessor::TransposeClip(ReaProject* project, MediaItem* item, int transpose) noexcept
 {
 	const int takes = CountTakes(item);
 	if (takes == 0)
@@ -268,10 +276,10 @@ void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *item, int tran
 
 	PreventUIRefresh(1);
 
-	int noteCount{0};
+	int noteCount{ 0 };
 	for (int i = 0; i < takes; i++)
 	{
-		MediaItem_Take *take = GetTake(item, i);
+		MediaItem_Take* take = GetTake(item, i);
 		if (take && TakeIsMIDI(take) && MIDI_CountEvts(take, &noteCount, nullptr, nullptr))
 		{
 			for (int n = 0; n < noteCount; n++)
@@ -298,9 +306,9 @@ void ClipProcessor::TransposeClip(ReaProject *project, MediaItem *item, int tran
  * @param channel The MIDI channel of the note to delete
  * @param pitch The pitch of the notes to delete
  */
-void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int channel, int pitch)
+void ClipProcessor::ClearNotes(ReaProject* project, MediaItem* item, int channel, int pitch) noexcept
 {
-	MediaItem_Take *take = GetActiveTake(item);
+	MediaItem_Take* take = GetActiveTake(item);
 	if (take == nullptr || !TakeIsMIDI(take))
 		return;
 
@@ -336,9 +344,9 @@ void ClipProcessor::ClearNotes(ReaProject *project, MediaItem *item, int channel
  * @param position The position of the note to delete
  * @return True if note was found and deleted
  */
-bool ClipProcessor::ClearNote(ReaProject *project, MediaItem *item, int channel, int pitch, double position)
+bool ClipProcessor::ClearNote(ReaProject* project, MediaItem* item, int channel, int pitch, double position) noexcept
 {
-	MediaItem_Take *take = GetActiveTake(item);
+	MediaItem_Take* take = GetActiveTake(item);
 	if (take == nullptr || !TakeIsMIDI(take))
 		return false;
 
@@ -347,8 +355,8 @@ bool ClipProcessor::ClearNote(ReaProject *project, MediaItem *item, int channel,
 		return false;
 
 	bool found{ false };
-	int midiChannel;
-	int notePitch;
+	int midiChannel{ 0 };
+	int notePitch{ 0 };
 	double startppqpos{ -1 };
 	for (int id = 0; id < noteCount; id++)
 	{

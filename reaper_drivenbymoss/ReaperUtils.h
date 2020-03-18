@@ -9,7 +9,12 @@
 #include <cmath>
 #include <vector>
 
+#include <codeanalysis\warnings.h>
+#pragma warning( push )
+#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
 #include "reaper_plugin_functions.h"
+#pragma warning( pop )
+
 #undef max
 #undef min
 
@@ -28,7 +33,7 @@ public:
 	static ReaProject* GetProject() noexcept
 	{
 		// Current project
-		const int projectID = -1;
+		constexpr int projectID = -1;
 		return EnumProjects(projectID, nullptr, 0);
 	};
 
@@ -78,7 +83,7 @@ public:
 	 * @param variableName The name of the variable
 	 * @return The pointer to the value
 	 */
-	static void* GetConfigValue(const char* variableName)
+	static void* GetConfigValue(const char* variableName) noexcept
 	{
 		int szOut;
 		void* resultPtr = nullptr;
@@ -146,7 +151,7 @@ public:
 	 * @param project A project
 	 * @return The position
 	 */
-	static double GetCursorPosition(ReaProject* project)
+	static double GetCursorPosition(ReaProject* project) noexcept
 	{
 		return (GetPlayStateEx(project) & 1) > 0 ? GetPlayPositionEx(project) : GetCursorPositionEx(project);
 	}

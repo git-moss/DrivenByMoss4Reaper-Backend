@@ -10,7 +10,6 @@
 #include <cstring>
 #include <cstdlib>
 #include <thread>
-#include <jni.h>
 
 #include "wdltypes.h"
 #include "resource.h"
@@ -28,13 +27,13 @@ constexpr bool DEBUG_JAVA{ false };
 #endif
 
 
-REAPER_PLUGIN_HINSTANCE g_hInst;
-
+// The global extension variables required to bridge from C to C++,
+// static keyword restricts the visibility of a function to the file
+REAPER_PLUGIN_HINSTANCE pluginInstanceHandle;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
+std::unique_ptr <DrivenByMossSurface> surface;
+std::unique_ptr <JvmManager> jvmManager;
 
-// The global extension variables required to bridge from C to C++
-DrivenByMossSurface* gSurface = nullptr;
-JvmManager* jvmManager = nullptr;
 
 /**
  * Java callback for an OSC style command to be executed in Reaper without a parameter.
@@ -46,15 +45,17 @@ JvmManager* jvmManager = nullptr;
  */
 void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command)
 {
-	if (env == nullptr || gSurface == nullptr)
+	if (env == nullptr || surface == nullptr)
 		return;
-	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	// Nullcheck above is not picked up
+#pragma warning(suppress: 26486)
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
-	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
-	gSurface->GetOscParser().Process(procstr, path);
+	surface->GetOscParser().Process(procstr, path);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -72,22 +73,24 @@ void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring com
  */
 void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jstring value)
 {
-	if (env == nullptr || gSurface == nullptr)
+	if (env == nullptr || surface == nullptr)
 		return;
-	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	// Nullcheck above is not picked up
+#pragma warning(suppress: 26486)
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
-	const char* val = env->GetStringUTFChars(value, JNI_FALSE);
+	const char* val = env->GetStringUTFChars(value, nullptr);
 	if (val == nullptr)
 	{
 		env->ReleaseStringUTFChars(command, proc);
 		return;
 	}
-	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
 	std::string valueString(val);
-	gSurface->GetOscParser().Process(procstr, path, valueString);
+	surface->GetOscParser().Process(procstr, path, valueString);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -106,15 +109,17 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
  */
 void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jint value)
 {
-	if (env == nullptr || gSurface == nullptr)
+	if (env == nullptr || surface == nullptr)
 		return;
-	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	// Nullcheck above is not picked up
+#pragma warning(suppress: 26486)
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
-	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
-	gSurface->GetOscParser().Process(procstr, path, value);
+	surface->GetOscParser().Process(procstr, path, value);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -132,15 +137,17 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
  */
 void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jdouble value)
 {
-	if (env == nullptr || gSurface == nullptr)
+	if (env == nullptr || surface == nullptr)
 		return;
-	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	// Nullcheck above is not picked up
+#pragma warning(suppress: 26486)
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
-	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, JNI_FALSE);
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
-	gSurface->GetOscParser().Process(procstr, path, value);
+	surface->GetOscParser().Process(procstr, path, value);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -157,13 +164,15 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
  */
 void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean enable)
 {
-	if (env == nullptr || gSurface == nullptr)
+	if (env == nullptr || surface == nullptr)
 		return;
-	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	// Nullcheck above is not picked up
+#pragma warning(suppress: 26486)
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
-	gSurface->GetDataCollector().EnableUpdate(procstr, enable);
+	surface->GetDataCollector().EnableUpdate(procstr, enable);
 	env->ReleaseStringUTFChars(processor, proc);
 }
 
@@ -178,13 +187,15 @@ void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean e
  */
 void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 {
-	if (env == nullptr || gSurface == nullptr)
+	if (env == nullptr || surface == nullptr)
 		return;
-	const char* proc = env->GetStringUTFChars(processor, JNI_FALSE);
+	// Nullcheck above is not picked up
+#pragma warning(suppress: 26486)
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
-	gSurface->GetDataCollector().DelayUpdate(procstr);
+	surface->GetDataCollector().DelayUpdate(procstr);
 	env->ReleaseStringUTFChars(processor, proc);
 }
 
@@ -198,29 +209,44 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
  * @param data1   MIDI data byte 1
  * @param data2   MIDI data byte 2
  */
-void processMidiArgCPP(JNIEnv* env, jobject object, jint status, jint data1, jint data2)
+void processMidiArgCPP(const JNIEnv* env, jobject object, jint status, jint data1, jint data2) noexcept
 {
-	if (env != nullptr && gSurface != nullptr)
+	if (env != nullptr && surface != nullptr)
 		StuffMIDIMessage(0, status, data1, data2);
 }
 
 
-static void createJVM()
+// Prevent a second instance and ensure that JVM has successfully started...
+void initSurface()
 {
-	if (jvmManager != nullptr)
+	if (surface != nullptr)
 		return;
-	jvmManager = new JvmManager(DEBUG_JAVA);
-	jvmManager->init((void*)& processNoArgCPP, (void*)& processStringArgCPP, (void*)& processIntArgCPP, (void*)& processDoubleArgCPP, (void*)& enableUpdatesCPP, (void*)& delayUpdatesCPP, (void*)& processMidiArgCPP);
+	jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
+	if (jvmManager.get() == nullptr)
+		return;
+
+#pragma warning(suppress: 26490)
+	void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
+#pragma warning(suppress: 26490)
+	void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
+#pragma warning(suppress: 26490)
+	void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
+#pragma warning(suppress: 26490)
+	void* processDoubleArgPtr = reinterpret_cast<void*>(&processDoubleArgCPP);
+#pragma warning(suppress: 26490)
+	void* enableUpdatesPtr = reinterpret_cast<void*>(&enableUpdatesCPP);
+#pragma warning(suppress: 26490)
+	void* delayUpdatesPtr = reinterpret_cast<void*>(&delayUpdatesCPP);
+#pragma warning(suppress: 26490)
+	void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
+	// Nullcheck above is not picked up
+#pragma warning(suppress: 26486)
+	jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
+#pragma warning(suppress: 26486)
+	if (jvmManager->isRunning())
+		surface = std::make_unique<DrivenByMossSurface>(jvmManager);
 }
 
-
-// Callback function for Reaper to create an instance of the extension
-static IReaperControlSurface* createFunc(const char* type_string, const char* configString, int* errStats)
-{
-	createJVM();
-	// Prevent a second instance and ensure that JVM has successfully started...
-	return gSurface == nullptr && jvmManager->isRunning() ? new DrivenByMossSurface() : nullptr;
-}
 
 // Callback for custom actions
 bool hookCommandProc(int command, int flag)
@@ -233,6 +259,7 @@ bool hookCommandProc(int command, int flag)
 	}
 	return false;
 }
+
 
 // Processing function for the configuration dialog
 static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -254,7 +281,7 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_COMMAND:
 	{
-		WORD value = LOWORD(wParam);
+		const WORD value = LOWORD(wParam);
 		switch (value)
 		{
 		case IDC_BUTTON_CONFIGURE:
@@ -268,10 +295,20 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-static HWND configFunc(const char* type_string, HWND parent, const char* initConfigString)
+
+// Callback function for Reaper to create an instance of the extension
+IReaperControlSurface* createFunc(const char* type_string, const char* configString, int* errStats)
 {
-	createJVM();
-	return CreateDialogParam(g_hInst, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, (LPARAM)initConfigString);
+	initSurface();
+	return surface.get();
+}
+
+// Callback function for Reaper to create the configuration dialog of the extension
+static HWND configFunc(const char* type_string, HWND parent, const char* initConfigString) noexcept
+{
+	// No way to prevent the LPARAM cast
+#pragma warning(suppress: 26490)
+	return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
 }
 
 
@@ -293,16 +330,19 @@ extern "C"
 	{
 		if (rec)
 		{
-			g_hInst = hInstance;
-
 			// On startup...
-			if (rec->caller_version != REAPER_PLUGIN_VERSION || !rec->GetFunc)
+
+			pluginInstanceHandle = hInstance;
+
+			if (rec->caller_version != REAPER_PLUGIN_VERSION || rec->GetFunc == nullptr)
 				return 0;
 
+			// False positive, null check above is not detected
+#pragma warning(suppress: 26486)
 			REAPERAPI_LoadAPI(rec->GetFunc);
 
 			// Register extension
-			int result = rec->Register("csurf", &drivenbymoss_reg);
+			const int result = rec->Register("csurf", &drivenbymoss_reg);
 			if (!result)
 			{
 				ReaDebug() << "Could not instantiate DrivenByMoss surface extension.";
@@ -310,7 +350,7 @@ extern "C"
 			}
 
 			// Register Open Window action
-			openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*) "DBM_OPEN_WINDOW_ACTION");
+			openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_WINDOW_ACTION");
 			if (!openDBMConfigureWindowAccel.accel.cmd)
 			{
 				ReaDebug() << "Could not register ID for DrivenByMoss open window action.";
@@ -333,7 +373,7 @@ extern "C"
 		{
 			// On shutdown...
 			if (jvmManager != nullptr)
-				delete jvmManager;
+				jvmManager.reset();
 			return 0;
 		}
 	}

@@ -11,7 +11,14 @@ Model *ReaDebug::model = nullptr;
 
 ReaDebug::ReaDebug() noexcept
 {
-	buffer.append("drivenbymoss: ");
+	try
+	{
+		buffer.append("drivenbymoss: ");
+	}
+	catch (...)
+	{
+		// Can never happen
+	}
 }
 
 
@@ -24,7 +31,7 @@ ReaDebug::~ReaDebug()
 	else
 	{
 		const std::string msg = buffer;
-		ReaDebug::model->AddFunction([=]()
+		ReaDebug::model->AddFunction([=]() noexcept
 		{
 			ShowConsoleMsg(msg.c_str());
 		});
@@ -61,7 +68,7 @@ ReaDebug &ReaDebug::operator << (double value)
 #else
     snprintf(buf, 64, "%.2f", value);
 #endif
-    buffer.append(buf);
+    buffer.append(buf, sizeof(buf));
 	return *this;
 }
 

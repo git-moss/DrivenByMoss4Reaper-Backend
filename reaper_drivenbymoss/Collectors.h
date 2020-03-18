@@ -18,11 +18,11 @@
 class Collectors
 {
 public:
-	static const char *CollectStringValue(std::stringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump)
+	static std::string CollectStringValue(std::stringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump)
 	{
 		if ((newValue && std::strcmp(currentValue.c_str(), newValue) != 0) || dump)
 			ss << command << " " << newValue << "\n";
-		return newValue;
+		return std::string{ newValue == nullptr ? "" : newValue };
 	}
 
 

@@ -2,6 +2,12 @@
 // (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
+#include <codeanalysis\warnings.h>
+#pragma warning( push )
+#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
+#include "gsl.h"
+#pragma warning( pop )
+
 #include "Collectors.h"
 #include "Track.h"
 
@@ -12,16 +18,7 @@ const std::regex Track::INPUT_QUANTIZE_PATTERN{ "INQ\\s+([0-9]+(\\.[0-9]+)?)\\s+
 /**
  * Constructor.
  */
-Track::Track()
-{
-	// Intentionally empty
-}
-
-
-/**
- * Destructor.
- */
-Track::~Track()
+Track::Track() noexcept
 {
 	// Intentionally empty
 }
@@ -123,7 +120,7 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
 Send* Track::GetSend(const int index)
 {
 	this->sendlock.lock();
-	const int diff = index - (int)this->sends.size() + 1;
+	const int diff = index - gsl::narrow_cast<int>(this->sends.size()) + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
@@ -182,7 +179,7 @@ void Track::ParseInputQuantize(std::stringstream& ss, std::string& trackAddress,
 
 	// "INQ 0 0 0 0.5 100 0 0 100" (Quantize Track Midi Recording (0/1), Positioning (-1/0/1), Quantize Note Offs (0/1), Period (double), ?, ?, ?, ?)
 	int isEnabled = std::atoi(result.str(1).c_str());
-	int isLengthEnabled = std::atoi(result.str(5).c_str());
+	const int isLengthEnabled = std::atoi(result.str(5).c_str());
 	double resolution = isEnabled == 0 ? 0 : std::atof(result.str(7).c_str());
 
 	this->inQuantLengthEnabled = Collectors::CollectIntValue(ss, (trackAddress + "inQuantLengthEnabled").c_str(), this->inQuantLengthEnabled, isLengthEnabled, dump);

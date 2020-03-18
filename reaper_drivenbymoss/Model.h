@@ -20,8 +20,8 @@
 class Model
 {
 public:
-	const int deviceBankSize{ 8 };
-	const int markerBankSize{ 8 };
+	static const int DEVICE_BANK_SIZE{ 8 };
+	static const int MARKER_BANK_SIZE{ 8 };
 
 	double masterVolume{ 0 };
 	double masterPan{ 0 };
@@ -37,17 +37,17 @@ public:
 	int deviceCount{ 0 };
 
 
-	Model(FunctionExecutor &functionExecutor);
+	Model(FunctionExecutor& functionExecutor);
 
 	void AddFunction(std::function<void(void)> f)
 	{
 		functionExecutor.AddFunction(f);
 	};
 
-	Track *GetTrack(const int index);
-	Marker *GetMarker(const int index);
-	Marker *GetRegion(const int index);
-	Parameter *GetParameter(const int index);
+	std::shared_ptr <Track> GetTrack(const int index);
+	std::shared_ptr <Marker> GetMarker(const int index);
+	std::shared_ptr <Marker> GetRegion(const int index);
+	std::shared_ptr <Parameter> GetParameter(const int index);
 
 	void SetDump()
 	{
@@ -70,17 +70,17 @@ public:
 	}
 
 private:
-	FunctionExecutor & functionExecutor;
-	std::vector<Track *> tracks;
-	std::vector<Marker *> markers;
-	std::vector<Marker *> regions;
-	std::vector<Parameter *> parameters;
+	FunctionExecutor& functionExecutor;
+	std::vector<std::shared_ptr<Track>> tracks;
+	std::vector<std::shared_ptr<Marker>> markers;
+	std::vector<std::shared_ptr<Marker>> regions;
+	std::vector<std::shared_ptr<Parameter>> parameters;
 	std::mutex tracklock;
 	std::mutex markerlock;
 	std::mutex regionlock;
 	std::mutex parameterlock;
 	std::mutex dumplock;
-	bool dump{false};
+	bool dump{ false };
 };
 
 #endif /* _DBM_MODEL_H_ */

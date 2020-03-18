@@ -54,8 +54,7 @@ public:
 	int autoMode{ 0 };
 
 
-	Track();
-	virtual ~Track();
+	Track() noexcept;
 
 	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool &slowUpdate, const bool& dump);
 

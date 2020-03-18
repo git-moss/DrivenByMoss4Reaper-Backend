@@ -21,8 +21,7 @@ public:
 	std::string valueStr;
 
 
-	Parameter();
-	virtual ~Parameter();
+	Parameter() noexcept;
 
 	void CollectData(std::stringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump);
 };

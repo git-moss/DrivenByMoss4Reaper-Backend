@@ -24,6 +24,10 @@ class DataCollector
 public:
 	DataCollector(Model& model);
 	virtual ~DataCollector();
+	DataCollector(const DataCollector&) = delete;
+	DataCollector& operator=(const DataCollector&) = delete;
+	DataCollector(DataCollector&&) = delete;
+	DataCollector& operator=(DataCollector&&) = delete;
 
 	std::string CollectData(const bool& dump);
 
@@ -145,7 +149,7 @@ private:
 	std::string CollectClipNotes(ReaProject* project, MediaItem* item);
 	std::string CollectPlayingNotes(ReaProject* project, MediaTrack* track);
 
-	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const;
+	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const noexcept;
 	void LoadDevicePresetFile(std::stringstream& ss, MediaTrack* track, int fx, const bool& dump);
 };
 

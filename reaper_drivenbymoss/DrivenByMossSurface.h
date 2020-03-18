@@ -10,8 +10,6 @@
 #include "JvmManager.h"
 #include "DataCollector.h"
 
-extern JvmManager* jvmManager;
-
 
 /**
  * Surface implementation.
@@ -19,7 +17,7 @@ extern JvmManager* jvmManager;
 class DrivenByMossSurface : public IReaperControlSurface
 {
 public:
-	DrivenByMossSurface() noexcept;
+	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) noexcept;
 	~DrivenByMossSurface();
 
 	OscParser& GetOscParser() noexcept
@@ -32,45 +30,35 @@ public:
 		return this->dataCollector;
 	}
 
-	const char* GetTypeString() override
-	{
-		return "DrivenByMoss4Reaper";
-	}
-
-	const char* GetDescString() override
-	{
-		return "DrivenByMoss4Reaper - Supports lot's of surfaces...";
-	}
-
-	const char* GetConfigString() override
-	{
-		// String must not be empty or otherwise the surface is not instantiated on startup
-		return "empty";
-	}
+	const char* GetTypeString() noexcept override;
+	const char* GetDescString() noexcept override;
+	const char* GetConfigString() noexcept override;
 
 	void Run() override;
-	void SetTrackListChange() override;
-	void SetSurfaceVolume(MediaTrack* trackid, double volume) override;
-	void SetSurfacePan(MediaTrack* trackid, double pan) override;
-	void SetSurfaceMute(MediaTrack* trackid, bool mute) override;
-	void SetSurfaceSelected(MediaTrack* trackid, bool selected) override;
-	void SetSurfaceSolo(MediaTrack* trackid, bool solo) override;
-	void SetSurfaceRecArm(MediaTrack* trackid, bool recarm) override;
-	void SetPlayState(bool play, bool pause, bool rec) override;
-	void SetRepeatState(bool rep) override;
-	void SetTrackTitle(MediaTrack* trackid, const char* title) override;
-	bool GetTouchState(MediaTrack* trackid, int isPan) override;
-	void SetAutoMode(int mode) override;
-	void ResetCachedVolPanStates() override;
-	void OnTrackSelection(MediaTrack* trackid) override;
+
+	void SetTrackListChange() noexcept override;
+	void SetSurfaceVolume(MediaTrack* trackid, double volume) noexcept override;
+	void SetSurfacePan(MediaTrack* trackid, double pan) noexcept override;
+	void SetSurfaceMute(MediaTrack* trackid, bool mute) noexcept override;
+	void SetSurfaceSelected(MediaTrack* trackid, bool selected) noexcept override;
+	void SetSurfaceSolo(MediaTrack* trackid, bool solo) noexcept override;
+	void SetSurfaceRecArm(MediaTrack* trackid, bool recarm) noexcept override;
+	void SetPlayState(bool play, bool pause, bool rec) noexcept override;
+	void SetRepeatState(bool rep) noexcept override;
+	void SetTrackTitle(MediaTrack* trackid, const char* title) noexcept override;
+	bool GetTouchState(MediaTrack* trackid, int isPan) noexcept override;
+	void SetAutoMode(int mode) noexcept override;
+	void ResetCachedVolPanStates() noexcept override;
+	void OnTrackSelection(MediaTrack* trackid) noexcept override;
 
 private:
+	std::unique_ptr<JvmManager>& jvmManager;
 	FunctionExecutor functionExecutor;
 	Model model;
 	OscParser oscParser{ model };
 	DataCollector dataCollector{ model };
-	bool updateModel = false;
-
+	bool updateModel;
+	bool isShutdown;
 
 	std::string CollectData(bool dump)
 	{

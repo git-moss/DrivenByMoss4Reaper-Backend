@@ -22,7 +22,7 @@ NoteRepeatProcessor::NoteRepeatProcessor(Model& aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void NoteRepeatProcessor::Process(std::deque<std::string>& path, int value)
+void NoteRepeatProcessor::Process(std::deque<std::string>& path, int value) noexcept
 {
 	if (path.empty())
 		return;
@@ -45,7 +45,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, int value)
 
 
 /** {@inheritDoc} */
-void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value)
+void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value) noexcept
 {
 	if (path.empty())
 		return;
@@ -83,7 +83,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value)
 }
 
 
-void NoteRepeatProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const
+void NoteRepeatProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const noexcept
 {
 	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 1);
 	if (position > -1)
@@ -94,7 +94,7 @@ void NoteRepeatProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* tr
 }
 
 
-void NoteRepeatProcessor::SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const
+void NoteRepeatProcessor::SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const noexcept
 {
 	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 1);
 	if (position > -1)

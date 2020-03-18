@@ -20,7 +20,7 @@ SceneProcessor::SceneProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void SceneProcessor::Process(std::deque<std::string> &path)
+void SceneProcessor::Process(std::deque<std::string> &path) noexcept
 {
 	if (path.empty())
 		return;
@@ -43,7 +43,7 @@ void SceneProcessor::Process(std::deque<std::string> &path)
 	if (std::strcmp(cmd, "select") == 0 || isLaunch)
 	{
 		double position, endPosition;
-		int result = EnumProjectMarkers2(project, sceneID, nullptr, &position, &endPosition, nullptr, nullptr);
+		const int result = EnumProjectMarkers2(project, sceneID, nullptr, &position, &endPosition, nullptr, nullptr);
 		if (result)
 		{
 			SetEditCurPos2(project, position, true, true);

@@ -15,15 +15,15 @@
 class DeviceProcessor : public OscProcessor
 {
 public:
-	DeviceProcessor(Model &model);
+	DeviceProcessor(Model& model);
 
-	void Process(std::deque<std::string> &path) override;
-	void Process(std::deque<std::string> &path, int value) override;
-	void Process(std::deque<std::string> &path, double value) override;
-	void Process(std::deque<std::string> &path, const std::string &value) override;
+	void Process(std::deque<std::string>& path) noexcept override;
+	void Process(std::deque<std::string>& path, int value) noexcept override;
+	void Process(std::deque<std::string>& path, double value) noexcept override;
+	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
 
 private:
-	void SetDeviceSelection(int position);
+	void SetDeviceSelection(int position) noexcept;
 };
 
 #endif /* _DBM_DEVICEPROCESSOR_H_ */

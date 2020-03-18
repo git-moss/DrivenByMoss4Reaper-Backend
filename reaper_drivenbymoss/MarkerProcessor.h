@@ -18,7 +18,7 @@ class MarkerProcessor : public OscProcessor
 public:
 	MarkerProcessor(Model &model);
 
-	void Process(std::deque<std::string> &path) override;
+	void Process(std::deque<std::string> &path) noexcept override;
 };
 
 #endif /* _DBM_MARKERPROCESSOR_H_ */

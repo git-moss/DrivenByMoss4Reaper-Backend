@@ -18,7 +18,7 @@ MastertrackProcessor::MastertrackProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void MastertrackProcessor::Process(std::deque<std::string> &path, int value)
+void MastertrackProcessor::Process(std::deque<std::string> &path, int value) noexcept
 {
 	if (path.empty())
 		return;
@@ -85,7 +85,7 @@ void MastertrackProcessor::Process(std::deque<std::string> &path, int value)
 
 
 /** {@inheritDoc} */
-void MastertrackProcessor::Process(std::deque<std::string> &path, double value)
+void MastertrackProcessor::Process(std::deque<std::string> &path, double value) noexcept
 {
 	if (path.empty())
 		return;
@@ -116,7 +116,7 @@ void MastertrackProcessor::Process(std::deque<std::string> &path, double value)
 }
 
 /** {@inheritDoc} */
-void MastertrackProcessor::Process(std::deque<std::string>& path, const std::string& value)
+void MastertrackProcessor::Process(std::deque<std::string>& path, const std::string& value) noexcept
 {
 	if (path.empty())
 		return;

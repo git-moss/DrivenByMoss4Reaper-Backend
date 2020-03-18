@@ -18,7 +18,7 @@ DeviceProcessor::DeviceProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::deque<std::string> &path)
+void DeviceProcessor::Process(std::deque<std::string> &path) noexcept
 {
 	if (path.empty())
 		return;
@@ -29,11 +29,11 @@ void DeviceProcessor::Process(std::deque<std::string> &path)
 		part = path.at(1).c_str();
 		if (std::strcmp(part, "+") == 0)
 		{
-			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + this->model.deviceBankSize);
+			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + this->model.DEVICE_BANK_SIZE);
 		}
 		else if (std::strcmp(part, "-") == 0)
 		{
-			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - this->model.deviceBankSize);
+			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - this->model.DEVICE_BANK_SIZE);
 		}
 		return;
 	}
@@ -51,7 +51,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path)
 	}
 
 	ReaProject *project = ReaperUtils::GetProject();
-	int fx = atoi(part) - 1;
+	const int fx = atoi(part) - 1;
 
 	MediaTrack *track = GetSelectedTrack(project, 0);
 	if (track == nullptr)
@@ -79,7 +79,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path)
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::deque<std::string> &path, int value)
+void DeviceProcessor::Process(std::deque<std::string> &path, int value) noexcept
 {
 	if (path.empty())
 		return;
@@ -109,7 +109,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path, int value)
 	{
 		if (selDevice < 0)
 			return;
-		bool open = value > 0;
+		const bool open = value > 0;
 		if (open)
 			TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
 		TrackFX_SetOpen(track, selDevice, open);
@@ -121,7 +121,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path, int value)
 		if (selDevice < 0)
 			return;
 		const bool isOpen = TrackFX_GetOpen(track, selDevice);
-		int expandedType = value > 0 ? 1 : 3;
+		const int expandedType = value > 0 ? 1 : 3;
 		this->model.deviceExpandedType = expandedType;
 		if (!isOpen)
 			return;
@@ -135,7 +135,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path, int value)
 		part = path.at(1).c_str();
 		if (std::strcmp(part, "selected") == 0)
 		{
-			this->model.deviceSelected = (value - 1) * this->model.deviceBankSize;
+			this->model.deviceSelected = (value - 1) * this->model.DEVICE_BANK_SIZE;
 		}
 		return;
 	}
@@ -155,7 +155,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path, int value)
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::deque<std::string> &path, double value)
+void DeviceProcessor::Process(std::deque<std::string> &path, double value) noexcept
 {
 	if (path.empty())
 		return;
@@ -178,7 +178,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path, double value)
 
 
 /** {@inheritDoc} */
-void DeviceProcessor::Process(std::deque<std::string> &path, const std::string &value)
+void DeviceProcessor::Process(std::deque<std::string> &path, const std::string &value) noexcept
 {
 	if (path.empty())
 		return;
@@ -189,7 +189,7 @@ void DeviceProcessor::Process(std::deque<std::string> &path, const std::string &
 
 	if (std::strcmp(part, "add") == 0)
 	{
-		int position = TrackFX_AddByName(track, value.c_str(), false, -1);
+		const int position = TrackFX_AddByName(track, value.c_str(), false, -1);
 		if (position < 0)
 			return;
 		const int insert = atoi(path.at(1).c_str());
@@ -198,9 +198,9 @@ void DeviceProcessor::Process(std::deque<std::string> &path, const std::string &
 }
 
 
-void DeviceProcessor::SetDeviceSelection(int position)
+void DeviceProcessor::SetDeviceSelection(int position) noexcept
 {
 	const int pos = (std::min)((std::max)(0, position), this->model.deviceCount - 1);
-	this->model.deviceSelected = pos % this->model.deviceBankSize;
-	this->model.deviceBankOffset = static_cast<int>(std::floor(pos / this->model.deviceBankSize) * this->model.deviceBankSize);
+	this->model.deviceSelected = pos % this->model.DEVICE_BANK_SIZE;
+	this->model.deviceBankOffset = static_cast<int>(std::floor(pos / this->model.DEVICE_BANK_SIZE) * this->model.DEVICE_BANK_SIZE);
 }

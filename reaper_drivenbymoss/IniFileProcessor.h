@@ -18,7 +18,7 @@ class IniFileProcessor : public OscProcessor
 public:
 	IniFileProcessor(Model& aModel);
 
-	void Process(std::deque<std::string>& path, int value) override;
+	void Process(std::deque<std::string>& path, int value) noexcept override;
 
 private:
 	const std::string GetIniName() const;

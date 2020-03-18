@@ -4,6 +4,13 @@
 
 #include <fstream>
 
+#include <codeanalysis\warnings.h>
+#pragma warning( push )
+#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
+#include "gsl.h"
+#pragma warning( pop )
+
+
 #include "DataCollector.h"
 #include "Collectors.h"
 #include "NoteRepeatProcessor.h"
@@ -18,7 +25,7 @@
  */
 DataCollector::DataCollector(Model& aModel) :
 	model(aModel),
-	deviceSiblings(aModel.deviceBankSize, ""),
+	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	devicePresetsStr(128, "")
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
@@ -163,11 +170,11 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
 		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
 		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
 
-		for (int index = 0; index < this->model.deviceBankSize; index++)
+		for (int index = 0; index < this->model.DEVICE_BANK_SIZE; index++)
 		{
 			std::stringstream das;
 			das << "/device/sibling/" << bankDeviceIndex << "/name";
-			std::string deviceAddress = das.str();
+			const std::string deviceAddress = das.str();
 			result = TrackFX_GetFXName(track, this->model.deviceBankOffset + index, name, LENGTH);
 			Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? name : "", dump);
 			bankDeviceIndex++;
@@ -178,7 +185,7 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
 	this->model.deviceParamCount = Collectors::CollectIntValue(ss, "/device/param/count", this->model.deviceParamCount, paramCount, dump);
 	for (int index = 0; index < paramCount; index++)
 	{
-		Parameter* parameter = this->model.GetParameter(index);
+		std::shared_ptr<Parameter> parameter = this->model.GetParameter(index);
 		parameter->CollectData(ss, "/device/param/", track, deviceIndex, index, paramCount, dump);
 	}
 
@@ -186,10 +193,10 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
 
 	if (this->slowCounter == 0)
 	{
-		int instrumentIndex = TrackFX_GetInstrument(track);
+		const int instrumentIndex = TrackFX_GetInstrument(track);
 		this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentIndex >= 0, dump);
 		this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
-		bool result = TrackFX_GetFXName(track, instrumentIndex, name, LENGTH);
+		const bool result = TrackFX_GetFXName(track, instrumentIndex, name, LENGTH);
 		this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? name : "", dump);
 
 		// Currently, we only need 1 parameter for the Kontrol OSC ID
@@ -208,7 +215,7 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
  */
 void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project, const bool& dump)
 {
-	int count = CountTracks(project);
+	const int count = CountTracks(project);
 	int trackIndex{ 0 };
 	int trackState{};
 	std::string playingNotes{ "" };
@@ -225,7 +232,7 @@ void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project,
 		GetTrackState(mediaTrack, &trackState);
 		if ((trackState & 1024) > 0)
 			continue;
-		Track* track = this->model.GetTrack(trackIndex);
+		std::shared_ptr <Track> track = this->model.GetTrack(trackIndex);
 		track->CollectData(ss, project, mediaTrack, trackIndex, this->slowCounter == 0, dump);
 
 		// Only collect note information, if enabled, track is active and playback is on
@@ -254,7 +261,7 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return notesStrNew;
 
-	int channel, pitch, velocity;
+	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 
 	std::stringstream notes;
@@ -307,7 +314,7 @@ void DataCollector::CollectMasterTrackData(std::stringstream& ss, ReaProject* pr
 		// Track color
 		int red = -1, green = -1, blue = -1;
 		// Note: GetTrackColor is not working for the master track
-		int nativeColor = (int)GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR");
+		const int nativeColor = gsl::narrow_cast<int> (GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR"));
 		if (nativeColor != 0)
 			ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
 		this->masterColor = Collectors::CollectStringValue(ss, "/master/color", this->masterColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
@@ -354,7 +361,7 @@ void DataCollector::CollectClipData(std::stringstream& ss, ReaProject* project, 
 			musicalPlayPosition = bpm * this->playPosition / 60;
 		}
 
-		int clipColor = (int)GetDisplayedMediaItemColor(item);
+		const int clipColor = (int)GetDisplayedMediaItemColor(item);
 		ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
 
 		loopIsEnabled = GetMediaItemInfo_Value(item, "B_LOOPSRC") > 0 ? 1 : 0;
@@ -405,11 +412,11 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return notesStrNew;
 
-	int channel, pitch, velocity;
+	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 	double bpm{};
 	std::stringstream notes;
-	double pos = GetMediaItemInfo_Value(item, "D_POSITION");
+	const double pos = GetMediaItemInfo_Value(item, "D_POSITION");
 
 	for (int i = 0; i < noteCount; ++i)
 	{
@@ -472,7 +479,7 @@ void DataCollector::CollectMarkerData(std::stringstream& ss, ReaProject* project
 		this->model.markerCount = Collectors::CollectIntValue(ss, "/marker/count", this->model.markerCount, count, dump);
 		for (int index = 0; index < count; index++)
 		{
-			Marker* marker = this->model.GetMarker(markers.at(index));
+			std::shared_ptr <Marker> marker = this->model.GetMarker(markers.at(index));
 			marker->CollectData(ss, project, "marker", index, markers.at(index), dump);
 		}
 	}
@@ -557,7 +564,7 @@ void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* projec
 	this->model.sceneCount = Collectors::CollectIntValue(ss, "/scene/count", this->model.sceneCount, count, dump);
 	for (int index = 0; index < count; index++)
 	{
-		Marker* const scene = this->model.GetRegion(regions.at(index));
+		std::shared_ptr <Marker> scene = this->model.GetRegion(regions.at(index));
 		scene->CollectData(ss, project, "scene", index, regions.at(index), dump);
 	}
 }
@@ -669,7 +676,7 @@ bool DataCollector::CheckDelay(std::string processor)
  * @param track The track on which to find the take
  * @return The active take of the media item at the play position
  */
-MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const
+MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const noexcept
 {
 	for (int i = 0; i < CountTrackMediaItems(track); i++)
 	{
@@ -730,7 +737,7 @@ void DataCollector::LoadDevicePresetFile(std::stringstream& ss, MediaTrack* trac
 			counter += 1;
 		}
 	}
-	catch (std::ios_base::failure & ex)
+	catch (const std::ios_base::failure & ex)
 	{
 		(void)ex;
 		// File does not exist

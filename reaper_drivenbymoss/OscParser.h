@@ -32,7 +32,6 @@ class OscParser
 {
 public:
 	OscParser(Model &model);
-	virtual ~OscParser() {};
 
 	virtual void Process(const std::string processor, const std::string path) const;
 	virtual void Process(const std::string processor, const std::string path, const std::string value) const;

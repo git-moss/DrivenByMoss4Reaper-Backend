@@ -20,7 +20,7 @@ MarkerProcessor::MarkerProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void MarkerProcessor::Process(std::deque<std::string> &path)
+void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 {
 	if (path.empty())
 		return;

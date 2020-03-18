@@ -20,7 +20,7 @@ IniFileProcessor::IniFileProcessor(Model &aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void IniFileProcessor::Process(std::deque<std::string>& path, int value)
+void IniFileProcessor::Process(std::deque<std::string>& path, int value) noexcept
 {
 	if (path.size() != 2)
 		return;
@@ -35,7 +35,7 @@ void IniFileProcessor::Process(std::deque<std::string>& path, int value)
 	const std::string iniPath = GetIniName();
 #endif			
 
-	int currValue = GetPrivateProfileInt(category.c_str(), key.c_str(), -1, iniPath.c_str());
+	const int currValue = GetPrivateProfileInt(category.c_str(), key.c_str(), -1, iniPath.c_str());
 	if (currValue == value)
 		return;
 

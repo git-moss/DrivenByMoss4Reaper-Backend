@@ -5,9 +5,14 @@
 #ifndef _DBM_JVMMANAGER_H_
 #define _DBM_JVMMANAGER_H_
 
+#include <codeanalysis\warnings.h>
+#pragma warning( push )
+#pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
+#include <jni.h>
+#pragma warning( pop )
+
 #include <string>
 #include <memory>
-#include <jni.h>
 
 
 /**
@@ -21,12 +26,12 @@ public:
 
 	void init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
 
-	bool isRunning() const
+	bool isRunning() const noexcept
 	{
 		return this->isInitialised && this->jvm != nullptr;
 	}
 
-	const std::string& GetJavaHomePath() const
+	const std::string& GetJavaHomePath() const noexcept
 	{
 		return this->javaHomePath;
 	}

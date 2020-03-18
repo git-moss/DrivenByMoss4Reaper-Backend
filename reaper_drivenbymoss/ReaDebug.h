@@ -15,12 +15,16 @@
 class ReaDebug
 {
 public:
-	static void init(Model *aModel)
+	static void init(Model *aModel) noexcept
 	{
 		model = aModel;
 	}
 
 	ReaDebug() noexcept;
+	ReaDebug(const ReaDebug&) = delete;
+	ReaDebug& operator=(const ReaDebug&) = delete;
+	ReaDebug(ReaDebug&&) = delete;
+	ReaDebug& operator=(ReaDebug&&) = delete;
 	~ReaDebug();
 
 	ReaDebug &operator << (const char *value);

@@ -22,7 +22,7 @@ TrackProcessor::TrackProcessor(Model& aModel) : OscProcessor(aModel)
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string>& path)
+void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 {
 	if (path.empty())
 		return;
@@ -139,7 +139,7 @@ void TrackProcessor::Process(std::deque<std::string>& path)
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string>& path, int value)
+void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 {
 	if (path.empty())
 		return;
@@ -251,7 +251,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string>& path, double value)
+void TrackProcessor::Process(std::deque<std::string>& path, double value) noexcept
 {
 	if (path.empty())
 		return;
@@ -264,7 +264,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 	if (!track)
 		return;
 
-	Track* trackData = this->model.GetTrack(trackIndex);
+	std::shared_ptr <Track> trackData = this->model.GetTrack(trackIndex);
 	const char* cmd = path.at(1).c_str();
 
 	if (std::strcmp(cmd, "volume") == 0)
@@ -331,7 +331,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 }
 
 
-void TrackProcessor::Process(std::deque<std::string>& path, const std::string& value)
+void TrackProcessor::Process(std::deque<std::string>& path, const std::string& value) noexcept
 {
 	if (path.empty())
 		return;
@@ -353,7 +353,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 }
 
 
-void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int beats)
+void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int beats) noexcept
 {
 	Undo_BeginBlock2(project);
 
@@ -396,7 +396,7 @@ void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int 
 }
 
 
-void TrackProcessor::RecordMidiClip(ReaProject* project, MediaTrack* track)
+void TrackProcessor::RecordMidiClip(ReaProject* project, MediaTrack* track) noexcept
 {
 	Undo_BeginBlock2(project);
 
@@ -462,9 +462,9 @@ void TrackProcessor::SetIsActivated(ReaProject* project, bool enable)
 }
 
 
-int TrackProcessor::GetTrackIndex(ReaProject* project, int dawTrackIndex) const
+int TrackProcessor::GetTrackIndex(ReaProject* project, int dawTrackIndex) const noexcept
 {
-	int count = CountTracks(project);
+	const int count = CountTracks(project);
 	if (dawTrackIndex < 0 || dawTrackIndex >= count)
 		return -1;
 
@@ -487,14 +487,14 @@ int TrackProcessor::GetTrackIndex(ReaProject* project, int dawTrackIndex) const
 }
 
 
-void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject* project, MediaTrack* track)
+void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject* project, MediaTrack* track) noexcept
 {
 	PreventUIRefresh(1);
 	Undo_BeginBlock2(project);
 
 	const double end = GetProjectLength(project);
 
-	int count = CountTrackEnvelopes(track);
+	const int count = CountTrackEnvelopes(track);
 	for (int i = 0; i < count; i++)
 	{
 		TrackEnvelope* envelope = GetTrackEnvelope(track, i);

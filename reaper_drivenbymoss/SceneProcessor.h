@@ -18,7 +18,7 @@ class SceneProcessor : public OscProcessor
 public:
 	SceneProcessor(Model &model);
 
-	void Process(std::deque<std::string> &path) override;
+	void Process(std::deque<std::string> &path) noexcept override;
 };
 
 #endif /* _DBM_SCENEPROCESSOR_H_ */
