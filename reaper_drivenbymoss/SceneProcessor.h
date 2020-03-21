@@ -16,7 +16,7 @@
 class SceneProcessor : public OscProcessor
 {
 public:
-	SceneProcessor(Model &model);
+	SceneProcessor(Model &model) noexcept;
 
 	void Process(std::deque<std::string> &path) noexcept override;
 };

@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+#include "WrapperGSL.h"
 #include "MarkerProcessor.h"
 #include "ReaperUtils.h"
 
@@ -13,7 +14,7 @@
  *
  * @param aModel The model to share data
  */
-MarkerProcessor::MarkerProcessor(Model &aModel) : OscProcessor(aModel)
+MarkerProcessor::MarkerProcessor(Model &aModel) noexcept : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
@@ -24,14 +25,14 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 {
 	if (path.empty())
 		return;
-	const char *part = path.at(0).c_str();
+	const char *part = safeGet(path, 0);
 
 	ReaProject *project = ReaperUtils::GetProject();
 
 	if (std::strcmp(part, "add") == 0)
 	{
 		const double position = GetPlayPosition2Ex(project);
-		std::stringstream markerName;
+		std::ostringstream markerName;
 		markerName << "Marker " << (this->model.markerCount + 1);
 		AddProjectMarker(project, false, position, 0, markerName.str().c_str(), 0);
 		return;
@@ -41,10 +42,10 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 		return;
 
 	const int index = atoi(part);
-	const char *cmd = path.at(1).c_str();
+	const char *cmd = safeGet(path, 1);
 
 	const std::vector<int> markers = Marker::GetMarkers(project);
-	if (index < 0 || index >= (int)markers.size())
+	if (index < 0 || index >= gsl::narrow_cast<int> (markers.size()))
 		return;
 	const int markerID = markers.at(index);
 
@@ -52,7 +53,7 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 	if (std::strcmp(cmd, "select") == 0 || isLaunch)
 	{
 		double position;
-		int result = EnumProjectMarkers2(project, markerID, nullptr, &position, nullptr, nullptr, nullptr);
+		const int result = EnumProjectMarkers2(project, markerID, nullptr, &position, nullptr, nullptr, nullptr);
 		if (result)
 		{
 			SetEditCurPos2(project, position, true, true);

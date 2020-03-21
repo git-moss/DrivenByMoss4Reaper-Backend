@@ -16,7 +16,7 @@
 class MarkerProcessor : public OscProcessor
 {
 public:
-	MarkerProcessor(Model &model);
+	MarkerProcessor(Model &model) noexcept;
 
 	void Process(std::deque<std::string> &path) noexcept override;
 };

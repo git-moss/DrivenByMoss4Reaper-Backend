@@ -11,19 +11,19 @@
 *
 * @param aModel The model
 */
-MastertrackProcessor::MastertrackProcessor(Model &aModel) : OscProcessor(aModel)
+MastertrackProcessor::MastertrackProcessor(Model& aModel) noexcept : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
 /** {@inheritDoc} */
-void MastertrackProcessor::Process(std::deque<std::string> &path, int value) noexcept
+void MastertrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 {
 	if (path.empty())
 		return;
-	const char *cmd = path.at(0).c_str();
-	MediaTrack *track = GetMasterTrack(ReaperUtils::GetProject());
+	const char* cmd = safeGet(path, 0);
+	MediaTrack* track = GetMasterTrack(ReaperUtils::GetProject());
 
 	if (std::strcmp(cmd, "select") == 0)
 	{
@@ -32,13 +32,13 @@ void MastertrackProcessor::Process(std::deque<std::string> &path, int value) noe
 		this->model.deviceSelected = 0;
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "solo") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_SOLO", value);
 		return;
 	}
-	
+
 	if (std::strcmp(cmd, "mute") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "B_MUTE", value);
@@ -85,12 +85,12 @@ void MastertrackProcessor::Process(std::deque<std::string> &path, int value) noe
 
 
 /** {@inheritDoc} */
-void MastertrackProcessor::Process(std::deque<std::string> &path, double value) noexcept
+void MastertrackProcessor::Process(std::deque<std::string>& path, double value) noexcept
 {
 	if (path.empty())
 		return;
-	const char *cmd = path.at(0).c_str();
-	MediaTrack *track = GetMasterTrack(ReaperUtils::GetProject());
+	const char* cmd = safeGet(path, 0);
+	MediaTrack* track = GetMasterTrack(ReaperUtils::GetProject());
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
@@ -102,7 +102,7 @@ void MastertrackProcessor::Process(std::deque<std::string> &path, double value) 
 		}
 		return;
 	}
-	
+
 	if (strcmp(cmd, "pan") == 0)
 	{
 		// Touch not supported            
@@ -120,7 +120,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, const std::str
 {
 	if (path.empty())
 		return;
-	const char* cmd = path.at(0).c_str();
+	const char* cmd = safeGet(path, 0);
 	MediaTrack* track = GetMasterTrack(ReaperUtils::GetProject());
 	ReaProject* project = ReaperUtils::GetProject();
 
@@ -131,17 +131,27 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, const std::str
 	}
 }
 
-void MastertrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, std::string value)
+void MastertrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, const std::string& value) noexcept
 {
 	if (track == nullptr)
 		return;
 
-	std::cmatch result;
-	if (!std::regex_search(value.c_str(), result, colorPattern))
+	int red{ 0 };
+	int green{ 0 };
+	int blue{ 0 };
+	try
+	{
+		std::cmatch result;
+		if (!std::regex_search(value.c_str(), result, colorPattern))
+			return;
+		red = std::atoi(result.str(1).c_str());
+		green = std::atoi(result.str(2).c_str());
+		blue = std::atoi(result.str(3).c_str());
+	}
+	catch (...)
+	{
 		return;
-	int red = std::atoi(result.str(1).c_str());
-	int green = std::atoi(result.str(2).c_str());
-	int blue = std::atoi(result.str(3).c_str());
+	}
 
 	Undo_BeginBlock2(project);
 	// Note: SetTrackColor is not working for the master track

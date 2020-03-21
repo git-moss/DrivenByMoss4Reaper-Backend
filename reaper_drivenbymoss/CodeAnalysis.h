@@ -1,0 +1,33 @@
+#ifdef _WIN32
+#define DISABLE_WARNING_PUSH           __pragma(warning( push ))
+#define DISABLE_WARNING_POP            __pragma(warning( pop )) 
+#define DISABLE_WARNING(warningNumber) __pragma(warning( disable : warningNumber ))
+
+#define DISABLE_WARNING_DONT_USE_NEW           DISABLE_WARNING(26409)
+#define DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR   DISABLE_WARNING(26411)
+#define DISABLE_WARNING_USE_GSL_AT             DISABLE_WARNING(26446)
+#define DISABLE_WARNING_NO_POINTER_ARITHMETIC  DISABLE_WARNING(26481)
+#define DISABLE_WARNING_ARRAY_POINTER_DECAY    DISABLE_WARNING(26485)
+#define DISABLE_WARNING_DANGLING_POINTER       DISABLE_WARNING(26486)
+#define DISABLE_WARNING_DEREF_INVALID_POINTER  DISABLE_WARNING(26489)
+#define DISABLE_WARNING_REINTERPRET_CAST       DISABLE_WARNING(26490)
+#define DISABLE_WARNING_NO_STATIC_DOWNCAST     DISABLE_WARNING(26491)
+#define DISABLE_WARNING_NO_C_STYLE_CONVERSION  DISABLE_WARNING(26493)
+// other warnings you want to deactivate...
+
+#elif defined(__GNUC__) || defined(__clang__)
+#define DO_PRAGMA(X) _Pragma(#X)
+#define DISABLE_WARNING_PUSH           DO_PRAGMA(GCC diagnostic push)
+#define DISABLE_WARNING_POP            DO_PRAGMA(GCC diagnostic pop) 
+#define DISABLE_WARNING(warningName)   DO_PRAGMA(GCC diagnostic ignored #warningName)
+
+#define DISABLE_WARNING_DANGLING_POINTER    DISABLE_WARNING(-Wunused-parameter)
+// other warnings you want to deactivate... 
+
+#else
+#define DISABLE_WARNING_PUSH
+#define DISABLE_WARNING_POP
+#define DISABLE_WARNING_DANGLING_POINTER
+// other warnings you want to deactivate... 
+
+#endif

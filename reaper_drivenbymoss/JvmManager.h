@@ -7,6 +7,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "WrapperJNI.h"
 
@@ -18,6 +19,10 @@ class JvmManager
 {
 public:
 	JvmManager(bool enableDebug);
+	JvmManager(const JvmManager&) = delete;
+	JvmManager& operator=(const JvmManager&) = delete;
+	JvmManager(JvmManager&&) = delete;
+	JvmManager& operator=(JvmManager&&) = delete;
 	~JvmManager();
 
 	void init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
@@ -37,6 +42,8 @@ public:
 
 private:
 	std::string javaHomePath;
+	std::string jvmCmdOptions;
+	std::string classpath;
 
 	// Pointer to the JVM (Java Virtual Machine)
 	JavaVM* jvm;
@@ -68,7 +75,7 @@ private:
 	std::vector<std::string> GetDirectoryFiles(const std::string& dir) const;
 	std::string GetLibraryPath() const;
 
-	jclass GetControllerClass();
+	jclass GetControllerClass() noexcept;
 	void HandleException(const char* message) const;
 	bool HasEnding(std::string const& fullString, std::string const& ending) const;
 };

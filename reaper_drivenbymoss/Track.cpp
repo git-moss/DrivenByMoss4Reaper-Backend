@@ -29,9 +29,9 @@ Track::Track() noexcept
  * @param slowUpdate If true, also update the data on the slow thread
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& dump)
+void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& dump)
 {
-	std::stringstream das;
+	std::ostringstream das;
 	das << "/track/" << trackIndex << "/";
 	std::string trackAddress = das.str();
 
@@ -112,18 +112,17 @@ void Track::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* 
  * @param index The index of the send.
  * @return The send, if none exists at the index a new instance is created automatically
  */
-Send* Track::GetSend(const int index)
+Send* Track::GetSend(const int index) noexcept
 {
-	this->sendlock.lock();
+	const std::lock_guard<std::mutex> lock(this->sendlock);
+
 	const int diff = index - gsl::narrow_cast<int>(this->sends.size()) + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
 			this->sends.push_back(new Send());
 	}
-	Send* send = this->sends.at(index);
-	this->sendlock.unlock();
-	return send;
+	return this->sends.at(index);
 }
 
 
@@ -166,7 +165,7 @@ int Track::GetTrackLockState(char* chunk) const
 }
 
 
-void Track::ParseInputQuantize(std::stringstream& ss, std::string& trackAddress, const bool& dump, char* chunk)
+void Track::ParseInputQuantize(std::ostringstream& ss, std::string& trackAddress, const bool& dump, char* chunk)
 {
 	std::cmatch result{};
 	if (!std::regex_search(chunk, result, INPUT_QUANTIZE_PATTERN))

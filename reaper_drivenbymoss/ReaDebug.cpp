@@ -5,87 +5,160 @@
 #include "Model.h"
 #include "ReaDebug.h"
 #include "ReaperUtils.h"
+#include "StringUtils.h"
 
-Model *ReaDebug::model = nullptr;
+Model* ReaDebug::model = nullptr;
+
+constexpr const char* DISPLAY_ERROR = "Could not display error message in Reaper.";
 
 
+/**
+ * Constructor.
+ */
 ReaDebug::ReaDebug() noexcept
+{
+	// Intentionally empty
+}
+
+
+/**
+ * Destructor.
+ */
+ReaDebug::~ReaDebug()
 {
 	try
 	{
-		buffer.append("drivenbymoss: ");
+		const std::string bufferStr = buffer.str();
+		if (bufferStr.empty())
+			return;
+
+		std::ostringstream out;
+		out << "drivenbymoss: " << bufferStr << "\n";
+		const std::string msg = out.str();
+
+		if (ReaDebug::model == nullptr)
+		{
+			ShowConsoleMsg(msg.c_str());
+			return;
+		}
+
+		ReaDebug::model->AddFunction([msg]() noexcept
+			{
+				ShowConsoleMsg(msg.c_str());
+			});
 	}
 	catch (...)
 	{
-		// Can never happen
+		Log(DISPLAY_ERROR);
 	}
 }
 
 
-ReaDebug::~ReaDebug()
+ReaDebug& ReaDebug::operator << (const char* value) noexcept
 {
-	buffer.append("\n");
-	
-	if (ReaDebug::model == nullptr)
-		ShowConsoleMsg(buffer.c_str());
-	else
+	try
 	{
-		const std::string msg = buffer;
-		ReaDebug::model->AddFunction([=]() noexcept
-		{
-			ShowConsoleMsg(msg.c_str());
-		});
+		this->buffer << value;
+	}
+	catch (...)
+	{
+		// Ignore
+	}
+	return *this;
+}
+
+
+ReaDebug& ReaDebug::operator << (int value)
+{
+	buffer << value;
+	return *this;
+}
+
+
+ReaDebug& ReaDebug::operator << (size_t value)
+{
+	buffer << value;
+	return *this;
+}
+
+
+ReaDebug& ReaDebug::operator << (int64_t value)
+{
+	buffer << value;
+	return *this;
+}
+
+
+ReaDebug& ReaDebug::operator << (double value)
+{
+	buffer << value;
+	return *this;
+}
+
+
+ReaDebug& ReaDebug::operator << (void* value)
+{
+	buffer << value;
+	return *this;
+}
+
+
+ReaDebug& ReaDebug::operator << (const std::string& value)
+{
+	buffer << value;
+	return *this;
+}
+
+
+void ReaDebug::Log(const std::string& msg) noexcept
+{
+	try
+	{
+#ifdef _WIN32
+		OutputDebugString(stringToWs(msg).c_str());
+#else
+		// TODO
+#endif
+	}
+	catch (...)
+	{
+		// Nothing we can do about it ...
 	}
 }
 
-ReaDebug &ReaDebug::operator << (const char *value)
-{
-	buffer.append(value);
-	return *this;
-}
 
-ReaDebug &ReaDebug::operator << (int value)
+void ReaDebug::Log(const char* msg) noexcept
 {
-	buffer.append(std::to_string(value));
-	return *this;
-}
-
-ReaDebug &ReaDebug::operator << (size_t value)
-{
-	buffer.append(std::to_string(value));
-	return *this;
-}
-ReaDebug &ReaDebug::operator << (int64_t value)
-{
-	buffer.append(std::to_string(value));
-	return *this;
-}
-ReaDebug &ReaDebug::operator << (double value)
-{
-	char buf[64];
+	try
+	{
 #ifdef _WIN32
-	sprintf_s(buf, "%.2f", value);
+		OutputDebugString(stringToWs(msg).c_str());
 #else
-    snprintf(buf, 64, "%.2f", value);
+		// TODO
 #endif
-    buffer.append(buf, sizeof(buf));
-	return *this;
+	}
+	catch (...)
+	{
+		// Nothing we can do about it ...
+	}
 }
 
-ReaDebug &ReaDebug::operator << (void *value)
-{
-	char buf[32];
-#ifdef _WIN32
-	sprintf_s(buf, "%p", value);
-#else
-    snprintf(buf, 32, "%p", value);
-#endif
-	buffer.append(buf);
-	return *this;
-}
 
-ReaDebug &ReaDebug::operator << (const std::string &value)
+void ReaDebug::Measure() noexcept
 {
-	buffer.append(value);
-	return *this;
+	try
+	{
+		auto end = std::chrono::steady_clock::now();
+		auto diff = end - start;
+
+		std::ostringstream stringStream;
+		stringStream << std::chrono::duration <double, std::milli>(diff).count() << " ms" << std::endl;
+		Log(stringStream.str());
+
+		start = end;
+	}
+	catch (...)
+	{
+		Log("Crash in measure.");
+	}
 }

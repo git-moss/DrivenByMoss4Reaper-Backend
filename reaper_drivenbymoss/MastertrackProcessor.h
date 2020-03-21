@@ -17,14 +17,14 @@
 class MastertrackProcessor : public OscProcessor
 {
 public:
-	MastertrackProcessor(Model &model);
+	MastertrackProcessor(Model &model) noexcept;
 
 	void Process(std::deque<std::string> &path, int value) noexcept override;
 	void Process(std::deque<std::string> &path, double value) noexcept override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
 
 private:
-	void SetColorOfTrack(ReaProject* project, MediaTrack* track, std::string value);
+	void SetColorOfTrack(ReaProject* project, MediaTrack* track, const std::string& value) noexcept;
 };
 
 #endif /* _DBM_MASTERTRACKPROCESSOR_H_ */

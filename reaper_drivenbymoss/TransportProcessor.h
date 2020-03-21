@@ -15,7 +15,12 @@
 class PlayProcessor : public OscProcessor
 {
 public:
-	PlayProcessor(Model& aModel) : OscProcessor(aModel) {};
+	PlayProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
+	PlayProcessor(const PlayProcessor&) = delete;
+	PlayProcessor& operator=(const PlayProcessor&) = delete;
+	PlayProcessor(PlayProcessor&&) = delete;
+	PlayProcessor& operator=(PlayProcessor&&) = delete;
+	~PlayProcessor() {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
@@ -34,7 +39,12 @@ public:
 class StopProcessor : public OscProcessor
 {
 public:
-	StopProcessor(Model& aModel) : OscProcessor(aModel) {};
+	StopProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
+	StopProcessor(const StopProcessor&) = delete;
+	StopProcessor& operator=(const StopProcessor&) = delete;
+	StopProcessor(StopProcessor&&) = delete;
+	StopProcessor& operator=(StopProcessor&&) = delete;
+	~StopProcessor() {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
@@ -45,7 +55,7 @@ public:
 class RecordProcessor : public OscProcessor
 {
 public:
-	RecordProcessor(Model& aModel) : OscProcessor(aModel) {};
+	RecordProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
@@ -56,7 +66,7 @@ public:
 class RepeatProcessor : public OscProcessor
 {
 public:
-	RepeatProcessor(Model& aModel) : OscProcessor(aModel) {};
+	RepeatProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
@@ -67,7 +77,7 @@ public:
 class TimeProcessor : public OscProcessor
 {
 public:
-	TimeProcessor(Model& aModel) : OscProcessor(aModel) {};
+	TimeProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path, int value) noexcept override
 	{
@@ -85,14 +95,14 @@ public:
 class TempoProcessor : public OscProcessor
 {
 public:
-	TempoProcessor(Model& aModel) : OscProcessor(aModel) {};
+	TempoProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
 		if (path.empty())
 			return;
 		ReaProject* project = ReaperUtils::GetProject();
-		const char* direction = path.at(0).c_str();
+		const char* direction = safeGet(path, 0);
 		if (strcmp(direction, "+") == 0)
 			Main_OnCommandEx(TEMPO_INC_SLOW, 0, project);
 		else if (strcmp(direction, "++") == 0)
@@ -117,7 +127,7 @@ public:
 class ActionProcessor : public OscProcessor
 {
 public:
-	ActionProcessor(Model& aModel) : OscProcessor(aModel) {};
+	ActionProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path, int value) noexcept override
 	{
@@ -128,7 +138,7 @@ public:
 class QuantizeProcessor : public OscProcessor
 {
 public:
-	QuantizeProcessor(Model& aModel) : OscProcessor(aModel) {};
+	QuantizeProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path, double value) noexcept override
 	{
@@ -156,13 +166,13 @@ public:
 class MetronomeVolumeProcessor : public OscProcessor
 {
 public:
-	MetronomeVolumeProcessor(Model& aModel) : OscProcessor(aModel) {};
+	MetronomeVolumeProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
 		if (path.empty())
 			return;
-		const char* direction = path.at(0).c_str();
+		const char* direction = safeGet(path, 0);
 		const int actionID = NamedCommandLookup(strcmp(direction, "+") == 0 ? "_S&M_METRO_VOL_UP" : "_S&M_METRO_VOL_DOWN");
 		if (actionID > 0)
 			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
@@ -172,7 +182,7 @@ public:
 class UndoProcessor : public OscProcessor
 {
 public:
-	UndoProcessor(Model& aModel) : OscProcessor(aModel) {};
+	UndoProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
@@ -183,7 +193,7 @@ public:
 class RedoProcessor : public OscProcessor
 {
 public:
-	RedoProcessor(Model& aModel) : OscProcessor(aModel) {};
+	RedoProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
@@ -194,7 +204,7 @@ public:
 class CursorProcessor : public OscProcessor
 {
 public:
-	CursorProcessor(Model& aModel) : OscProcessor(aModel) {};
+	CursorProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path, int value) noexcept override
 	{
@@ -205,11 +215,11 @@ public:
 class ProjectProcessor : public OscProcessor
 {
 public:
-	ProjectProcessor(Model& aModel) : OscProcessor(aModel) {};
+	ProjectProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path, int value) noexcept override
 	{
-		if (path.empty() || std::strcmp(path.at(0).c_str(), "engine") != 0)
+		if (path.empty() || std::strcmp(safeGet(path, 0), "engine") != 0)
 			return;
 		if (value > 0)
 			Audio_Init();
@@ -221,11 +231,18 @@ public:
 class RefreshProcessor : public OscProcessor
 {
 public:
-	RefreshProcessor(Model& aModel) : OscProcessor(aModel) {};
+	RefreshProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
 
 	void Process(std::deque<std::string>& path) noexcept override
 	{
-		this->model.SetDump();
+		try
+		{
+			this->model.SetDump();
+		}
+		catch (...)
+		{
+			// Ignore
+		}
 	};
 };
 

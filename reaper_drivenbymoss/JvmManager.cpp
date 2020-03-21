@@ -13,9 +13,11 @@
 
 #include <vector>
 #include <sstream>
+#include <iostream>
 #include <fstream>
 #include <codecvt>
 
+#include "CodeAnalysis.h"
 #include "JvmManager.h"
 #include "ReaDebug.h"
 #include "ReaperUtils.h"
@@ -26,7 +28,7 @@
  *
  * @param enableDebug True to enable debugging
  */
-JvmManager::JvmManager(bool enableDebug) : jvm(nullptr), env(nullptr), jvmLibHandle(nullptr)
+JvmManager::JvmManager(bool enableDebug) : jvmCmdOptions("-agentlib:jdwp=transport=dt_socket,address=8989,server=y,suspend=y"), jvm(nullptr), env(nullptr), jvmLibHandle(nullptr)
 {
 	this->debug = enableDebug;
 	this->options = std::make_unique<JavaVMOption[]>(this->debug ? 2 : 1);
@@ -43,11 +45,18 @@ JvmManager::~JvmManager()
 		jclass clazz = this->GetControllerClass();
 		if (clazz != nullptr)
 		{
-			jmethodID mid = env->GetStaticMethodID(clazz, "shutdown", "()V");
-			if (mid != nullptr)
+			try
 			{
-				env->CallStaticVoidMethod(clazz, mid);
-				this->HandleException("Could not call shutdown.");
+				jmethodID mid = env->GetStaticMethodID(clazz, "shutdown", "()V");
+				if (mid != nullptr)
+				{
+					env->CallStaticVoidMethod(clazz, mid);
+					this->HandleException("Could not call shutdown.");
+				}
+			}
+			catch (...)
+			{
+				ReaDebug::Log("Could not call shutdown.");
 			}
 		}
 		this->jvm = nullptr;
@@ -86,7 +95,8 @@ void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* pr
 	if (this->jvm == nullptr)
 		return;
 	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
-	this->StartApp();
+	if (ENABLE_JAVA_START)
+		this->StartApp();
 }
 
 
@@ -103,14 +113,22 @@ void JvmManager::Create()
 	if (!LoadJvmLibrary())
 		return;
 
-	std::string classpath = this->CreateClasspath(libDir);
-	if (classpath.empty())
+	this->classpath = this->CreateClasspath(libDir);
+	if (this->classpath.empty())
 		return;
 
 	JavaVMOption* const  opts = this->options.get();
-	opts[0].optionString = (char*)classpath.c_str();
+	if (opts == nullptr)
+		return;
+	DISABLE_WARNING_NO_POINTER_ARITHMETIC
+	DISABLE_WARNING_USE_GSL_AT
+	opts[0].optionString = &this->classpath[0];
 	if (this->debug)
-		opts[1].optionString = (char*) "-agentlib:jdwp=transport=dt_socket,address=8989,server=y,suspend=y";
+	{
+		DISABLE_WARNING_NO_POINTER_ARITHMETIC
+		DISABLE_WARNING_USE_GSL_AT
+		opts[1].optionString = &this->jvmCmdOptions[0];
+	}
 
 	// Minimum required Java version
 	JavaVMInitArgs vm_args{};
@@ -125,18 +143,21 @@ void JvmManager::Create()
 	// to verify certain CPU/OS features! Advice debugger to skip it.
 	// In Xcode: Create a breakpoint, edit it, add action, enter the line: pro hand -p true -s false SIGSEGV
 	// Check option: Automatically continue...
-	jint(*JNI_CreateJavaVM)(JavaVM * *, void**, void*) = (jint(*)(JavaVM * *, void**, void*))
+	DISABLE_WARNING_NO_C_STYLE_CONVERSION
+		jint(*JNI_CreateJavaVM)(JavaVM**, void**, void*) = (jint(*)(JavaVM**, void**, void*))
 #ifdef _WIN32
-		GetProcAddress(this->jvmLibHandle, "JNI_CreateJavaVM");
+		GetProcAddress
 #else
-		dlsym(this->jvmLibHandle, "JNI_CreateJavaVM");
+		dlsym
 #endif
+		(this->jvmLibHandle, "JNI_CreateJavaVM");
 	if (JNI_CreateJavaVM == nullptr)
 	{
 		ReaDebug() << "ERROR: Could not lookup CreateJavaVm function in library with " << classpath;
 		return;
 	}
-	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
+	DISABLE_WARNING_REINTERPRET_CAST
+		const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
 		ReaDebug() << "ERROR: Could not start Java Virtual Machine with " << classpath;
@@ -207,17 +228,17 @@ std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePath) const
  * @param delayUpdatesCPP Delay processor updates
  * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void *delayUpdatesCPP, void* processMidiArgCPP)
+void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
 {
 	const JNINativeMethod methods[]
 	{
-		{ (char*) "processNoArg", (char*) "(Ljava/lang/String;Ljava/lang/String;)V", processNoArgCPP },
-		{ (char*) "processStringArg", (char*) "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
-		{ (char*) "processIntArg", (char*) "(Ljava/lang/String;Ljava/lang/String;I)V", processIntArgCPP },
-		{ (char*) "processDoubleArg", (char*) "(Ljava/lang/String;Ljava/lang/String;D)V", processDoubleArgCPP },
-		{ (char*) "enableUpdates", (char*) "(Ljava/lang/String;Z)V", enableUpdatesCPP },
-		{ (char*) "delayUpdates", (char*) "(Ljava/lang/String;)V", delayUpdatesCPP },
-		{ (char*) "processMidiArg", (char*) "(III)V", processMidiArgCPP }
+		{ (char*)"processNoArg", (char*)"(Ljava/lang/String;Ljava/lang/String;)V", processNoArgCPP },
+		{ (char*)"processStringArg", (char*)"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
+		{ (char*)"processIntArg", (char*)"(Ljava/lang/String;Ljava/lang/String;I)V", processIntArgCPP },
+		{ (char*)"processDoubleArg", (char*)"(Ljava/lang/String;Ljava/lang/String;D)V", processDoubleArgCPP },
+		{ (char*)"enableUpdates", (char*)"(Ljava/lang/String;Z)V", enableUpdatesCPP },
+		{ (char*)"delayUpdates", (char*)"(Ljava/lang/String;)V", delayUpdatesCPP },
+		{ (char*)"processMidiArg", (char*)"(III)V", processMidiArgCPP }
 	};
 
 	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/MainApp");
@@ -226,7 +247,8 @@ void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCP
 		ReaDebug() << "MainFrame.class could not be retrieved.";
 		return;
 	}
-	const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
+	DISABLE_WARNING_ARRAY_POINTER_DECAY
+		const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
 	if (result != 0)
 		this->HandleException("ERROR: Could not register native functions");
 }
@@ -298,9 +320,9 @@ std::string getDylibPath()
 {
 #ifdef _WIN32
 	// Long paths might be 65K on Window 10 but the path we are after should never be longer than 260
-	wchar_t path[MAX_PATH + 1];
+	wchar_t path[MAX_PATH + 1] = {};
 	HMODULE hm = NULL;
-	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)& getDylibPath, &hm))
+	if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&getDylibPath, &hm))
 		return std::string{};
 	GetModuleFileName(hm, path, MAX_PATH);
 	return wstringToDefaultPlatformEncoding(path);
@@ -336,7 +358,7 @@ std::string JvmManager::CreateClasspath(std::string libDir) const
 	}
 
 	const std::string path = libDir + "drivenbymoss-libs";
-	std::stringstream stream;
+	std::ostringstream stream;
 	for (const std::string& file : this->GetDirectoryFiles(path))
 	{
 		if (this->HasEnding(file, ".jar"))
@@ -386,8 +408,8 @@ std::string JvmManager::GetLibraryPath() const
 #else
 	const std::string dylibName{ "reaper_drivenbymoss.dylib" };
 #endif
-	size_t pathLength = fullLibPath.size();
-	size_t libLength = dylibName.size();
+	const size_t pathLength = fullLibPath.size();
+	const size_t libLength = dylibName.size();
 	return fullLibPath.substr(0, pathLength - libLength);
 }
 
@@ -459,7 +481,9 @@ void JvmManager::HandleException(const char* message) const
 	if (ex)
 	{
 		const jmethodID toString = this->env->GetMethodID(this->env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
-		const jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
+		// jstring is not a real subclass of jobject
+		DISABLE_WARNING_NO_STATIC_DOWNCAST
+			const jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
 		jboolean isCopy = false;
 		dbg << this->env->GetStringUTFChars(s, &isCopy);
 		this->env->ExceptionClear();
@@ -467,11 +491,18 @@ void JvmManager::HandleException(const char* message) const
 }
 
 
-jclass JvmManager::GetControllerClass()
+jclass JvmManager::GetControllerClass() noexcept
 {
 	if (this->controllerClass != nullptr)
 		return this->controllerClass;
-	this->controllerClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
+	try
+	{
+		this->controllerClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
+	}
+	catch (...)
+	{
+		// Ignore
+	}
 	if (this->controllerClass == nullptr)
 	{
 		ReaDebug() << "Controller.class could not be retrieved.";

@@ -18,7 +18,7 @@
 class Collectors
 {
 public:
-	static std::string CollectStringValue(std::stringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump)
+	static std::string CollectStringValue(std::ostringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump)
 	{
 		if ((newValue && std::strcmp(currentValue.c_str(), newValue) != 0) || dump)
 			ss << command << " " << newValue << "\n";
@@ -26,7 +26,7 @@ public:
 	}
 
 
-	static int CollectIntValue(std::stringstream &ss, const char *command, int currentValue, const int newValue, const bool &dump)
+	static int CollectIntValue(std::ostringstream &ss, const char *command, int currentValue, const int newValue, const bool &dump)
 	{
 		if (currentValue != newValue || dump)
 			ss << command << " " << newValue << "\n";
@@ -34,7 +34,7 @@ public:
 	}
 
 
-	static double CollectDoubleValue(std::stringstream &ss, const char *command, double currentValue, const double newValue, const bool &dump)
+	static double CollectDoubleValue(std::ostringstream &ss, const char *command, double currentValue, const double newValue, const bool &dump)
 	{
 		if (std::fabs(currentValue - newValue) > 0.0000000001 || dump)
 			ss << command << " " << newValue << "\n";
@@ -42,7 +42,7 @@ public:
 	}
 
 
-	static void CollectStringArrayValue(std::stringstream &ss, const char *command, int index, std::vector<std::string> &currentValues, const char *newValue, const bool &dump)
+	static void CollectStringArrayValue(std::ostringstream &ss, const char *command, int index, std::vector<std::string> &currentValues, const char *newValue, const bool &dump)
 	{
 		if ((newValue && std::strcmp(currentValues.at(index).c_str(), newValue) != 0) || dump)
 		{
@@ -65,7 +65,7 @@ public:
 	}
 
 
-	static void CollectDoubleArrayValue(std::stringstream &ss, const char *command, int index, std::vector<double> &currentValues, double newValue, const bool &dump)
+	static void CollectDoubleArrayValue(std::ostringstream &ss, const char *command, int index, std::vector<double> &currentValues, double newValue, const bool &dump)
 	{
 		try
 		{
@@ -82,7 +82,7 @@ public:
 	}
 
 
-	static void CollectIntArrayValue(std::stringstream &ss, const char *command, int index, std::vector<int> &currentValues, int newValue, const bool &dump)
+	static void CollectIntArrayValue(std::ostringstream &ss, const char *command, int index, std::vector<int> &currentValues, int newValue, const bool &dump)
 	{
 		try
 		{
@@ -101,7 +101,7 @@ public:
 
 	static std::string FormatColor(int red, int green, int blue)
 	{
-		std::stringstream ss;
+		std::ostringstream ss;
 		ss << red << " " << green << " " << blue;
 		return ss.str();
 	}
@@ -111,7 +111,7 @@ public:
 	{
 		if (value == -150)
 			return "-inf dB";
-		std::stringstream stream;
+		std::ostringstream stream;
 		stream << std::fixed << std::setprecision(1);
 		if (value >= 0)
 			stream << "+";
@@ -124,7 +124,7 @@ public:
 	{
 		if (std::abs(value) < 0.001)
 			return "C";
-		std::stringstream stream;
+		std::ostringstream stream;
 		if (value < 0)
 			stream << static_cast<int>(value * -100) << "L";
 		else

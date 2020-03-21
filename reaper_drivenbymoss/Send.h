@@ -21,13 +21,17 @@ public:
 	double volume{ 0 };
 	std::string volumeStr;
 
-	Send();
+	Send() noexcept;
+	Send(const Send&) = delete;
+	Send& operator=(const Send&) = delete;
+	Send(Send&&) = delete;
+	Send& operator=(Send&&) = delete;
 	virtual ~Send();
 
-	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int sendIndex, const std::string& trackAddress, const bool& dump);
+	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int sendIndex, const std::string& trackAddress, const bool& dump);
 
 private:
-	double GetSendVolume(MediaTrack* track, int sendCounter, double position) const;
+	double GetSendVolume(MediaTrack* track, int sendCounter, double position) const noexcept;
 };
 
 #endif /* _DBM_SEND_H_ */

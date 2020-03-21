@@ -5,6 +5,7 @@
 #include <cstring>
 #include <sstream>
 
+#include "CodeAnalysis.h"
 #include "TrackProcessor.h"
 #include "OscProcessor.h"
 #include "ReaperUtils.h"
@@ -15,7 +16,7 @@
  *
  * @param aModel The model to share data
  */
-TrackProcessor::TrackProcessor(Model& aModel) : OscProcessor(aModel)
+TrackProcessor::TrackProcessor(Model& aModel) noexcept : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
@@ -28,14 +29,14 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char* cmd = path.at(1).c_str();
+	const char* cmd = safeGet(path, 1);
 
 	if (std::strcmp(cmd, "scrollto") == 0)
 	{
@@ -82,12 +83,12 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 	{
 		if (path.size() < 4)
 			return;
-		const int clipIndex = atoi(path.at(2).c_str());
+		const int clipIndex = atoi(safeGet(path, 2));
 		MediaItem* item = GetTrackMediaItem(track, clipIndex);
 		if (item == nullptr)
 			return;
 
-		const char* subcmd = path.at(3).c_str();
+		const char* subcmd = safeGet(path, 3);
 
 		if (std::strcmp(subcmd, "select") == 0)
 		{
@@ -99,7 +100,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 
 		if (std::strcmp(subcmd, "launch") == 0)
 		{
-			double position = GetMediaItemInfo_Value(item, "D_POSITION");
+			const double position = GetMediaItemInfo_Value(item, "D_POSITION");
 			SetEditCurPos2(project, position, true, true);
 			if ((GetPlayStateEx(project) & 1) == 0)
 				CSurf_OnPlay();
@@ -108,7 +109,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 
 		if (std::strcmp(subcmd, "record") == 0)
 		{
-			double position = GetMediaItemInfo_Value(item, "D_POSITION");
+			const double position = GetMediaItemInfo_Value(item, "D_POSITION");
 			SetEditCurPos2(project, position, true, true);
 			if ((GetPlayStateEx(project) & 4) == 0)
 				CSurf_OnRecord();
@@ -145,14 +146,14 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	const int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char* cmd = path.at(1).c_str();
+	const char* cmd = safeGet(path, 1);
 
 	if (std::strcmp(cmd, "select") == 0)
 	{
@@ -257,7 +258,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	const int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
@@ -265,7 +266,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		return;
 
 	std::shared_ptr <Track> trackData = this->model.GetTrack(trackIndex);
-	const char* cmd = path.at(1).c_str();
+	const char* cmd = safeGet(path, 1);
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
@@ -291,10 +292,11 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 
 	if (std::strcmp(cmd, "send") == 0)
 	{
-		const int sendIndex = atoi(path.at(2).c_str());
-		const char* subcmd = path.at(3).c_str();
+		const int sendIndex = atoi(safeGet(path, 2));
+		const char* subcmd = safeGet(path, 3);
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
+			DISABLE_WARNING_DANGLING_POINTER
 			Send* send = trackData->GetSend(sendIndex);
 			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
@@ -307,8 +309,9 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		if (value < 0 || value > 1)
 			return;
 		char chunk[Track::CHUNK_LENGTH];
-		if (!GetTrackStateChunk(track, chunk, Track::CHUNK_LENGTH, false))
-			return;
+		DISABLE_WARNING_ARRAY_POINTER_DECAY
+			if (!GetTrackStateChunk(track, chunk, Track::CHUNK_LENGTH, false))
+				return;
 
 		if (value == 0)
 		{
@@ -337,14 +340,14 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int trackIndex = GetTrackIndex(project, atoi(path.at(0).c_str()));
+	const int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char* cmd = path.at(1).c_str();
+	const char* cmd = safeGet(path, 1);
 	if (std::strcmp(cmd, "color") == 0)
 	{
 		SetColorOfTrack(project, track, value);
@@ -417,17 +420,27 @@ void TrackProcessor::RecordMidiClip(ReaProject* project, MediaTrack* track) noex
 }
 
 
-void TrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, std::string value)
+void TrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, const std::string& value) noexcept
 {
 	if (track == nullptr)
 		return;
 
-	std::cmatch result;
-	if (!std::regex_search(value.c_str(), result, colorPattern))
+	int red{ 0 };
+	int green{ 0 };
+	int blue{ 0 };
+	try
+	{
+		std::cmatch result;
+		if (!std::regex_search(value.c_str(), result, colorPattern))
+			return;
+		red = std::atoi(result.str(1).c_str());
+		green = std::atoi(result.str(2).c_str());
+		blue = std::atoi(result.str(3).c_str());
+	}
+	catch (...)
+	{
 		return;
-	int red = std::atoi(result.str(1).c_str());
-	int green = std::atoi(result.str(2).c_str());
-	int blue = std::atoi(result.str(3).c_str());
+	}
 
 	Undo_BeginBlock2(project);
 	SetTrackColor(track, ColorToNative(red, green, blue));
@@ -435,7 +448,7 @@ void TrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, std
 }
 
 
-void TrackProcessor::SetIsActivated(ReaProject* project, bool enable)
+void TrackProcessor::SetIsActivated(ReaProject* project, bool enable) noexcept
 {
 	if (enable)
 	{

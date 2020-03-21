@@ -22,7 +22,7 @@
 class DataCollector
 {
 public:
-	DataCollector(Model& model);
+	DataCollector(Model& model) noexcept;
 	virtual ~DataCollector();
 	DataCollector(const DataCollector&) = delete;
 	DataCollector& operator=(const DataCollector&) = delete;
@@ -135,22 +135,22 @@ private:
 	bool IsActive(std::string processor);
 	bool CheckDelay(std::string processor);
 
-	void CollectProjectData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectTransportData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectDeviceData(std::stringstream& ss, MediaTrack* track, const bool& dump);
-	void CollectTrackData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectMasterTrackData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectBrowserData(std::stringstream& ss, MediaTrack* track, const bool& dump);
-	void CollectMarkerData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectClipData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectSessionData(std::stringstream& ss, ReaProject* project, const bool& dump);
-	void CollectNoteRepeatData(std::stringstream& ss, ReaProject* project, const bool& dump);
+	void CollectProjectData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectTransportData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectDeviceData(std::ostringstream& ss, MediaTrack* track, const bool& dump);
+	void CollectTrackData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectMasterTrackData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectBrowserData(std::ostringstream& ss, MediaTrack* track, const bool& dump);
+	void CollectMarkerData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectClipData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectSessionData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectNoteRepeatData(std::ostringstream& ss, ReaProject* project, const bool& dump);
 
 	std::string CollectClipNotes(ReaProject* project, MediaItem* item);
 	std::string CollectPlayingNotes(ReaProject* project, MediaTrack* track);
 
 	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const noexcept;
-	void LoadDevicePresetFile(std::stringstream& ss, MediaTrack* track, int fx, const bool& dump);
+	void LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* track, int fx, const bool& dump);
 };
 
 #endif /* _DBM_DATACOLLECTOR_H_ */

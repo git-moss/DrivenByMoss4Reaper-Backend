@@ -15,7 +15,7 @@
 class TrackProcessor : public OscProcessor
 {
 public:
-	TrackProcessor(Model &model);
+	TrackProcessor(Model &model) noexcept;
 
 	void Process(std::deque<std::string> &path) noexcept override;
 	void Process(std::deque<std::string> &path, int value) noexcept override;
@@ -26,8 +26,8 @@ private:
 	void CreateMidiClip(ReaProject *project, MediaTrack *track, int beats) noexcept;
 	void RecordMidiClip(ReaProject* project, MediaTrack* track) noexcept;
 
-	void SetColorOfTrack(ReaProject *project, MediaTrack *track, std::string value);
-	void SetIsActivated(ReaProject *project, bool enable);
+	void SetColorOfTrack(ReaProject *project, MediaTrack *track, const std::string& value) noexcept;
+	void SetIsActivated(ReaProject *project, bool enable) noexcept;
 	void DeleteAllAutomationEnvelopes(ReaProject *project, MediaTrack *track) noexcept;
 	int GetTrackIndex(ReaProject *project, int dawTrackIndex) const noexcept;
 };

@@ -15,7 +15,7 @@
  *
  * @param aModel The model to share data
  */
-NoteRepeatProcessor::NoteRepeatProcessor(Model& aModel) : OscProcessor(aModel)
+NoteRepeatProcessor::NoteRepeatProcessor(Model& aModel) noexcept : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
@@ -32,7 +32,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, int value) noex
 	if (!track)
 		return;
 
-	const char* cmd = path.at(0).c_str();
+	const char* cmd = safeGet(path, 0);
 
 	if (std::strcmp(cmd, "active") == 0)
 	{
@@ -55,7 +55,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value) n
 	if (!track)
 		return;
 
-	const char* cmd = path.at(0).c_str();
+	const char* cmd = safeGet(path, 0);
 
 	if (std::strcmp(cmd, "rate") == 0)
 	{

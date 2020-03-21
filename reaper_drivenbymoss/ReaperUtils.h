@@ -9,6 +9,7 @@
 #include <cmath>
 #include <vector>
 
+#include "CodeAnalysis.h"
 #include "WrapperReaperFunctions.h"
 
 
@@ -41,7 +42,7 @@ public:
 	 * @param variableName The name of the variable
 	 * @return The value, returns -1 if not present
 	 */
-	static int GetIntConfigValue(const char* variableName)
+	static int GetIntConfigValue(const char* variableName) noexcept
 	{
 		void* resultPtr = GetConfigValue(variableName);
 		return resultPtr == nullptr ? -1 : *((int*)resultPtr);
@@ -59,7 +60,7 @@ public:
 	 * @param defaultValue The value to return if the variable is not present
 	 * @return The value, returns the given defaultValue if not present
 	 */
-	static int GetIntConfigValue(const char* variableName, int defaultValue)
+	static int GetIntConfigValue(const char* variableName, int defaultValue) noexcept
 	{
 		void* resultPtr = GetConfigValue(variableName);
 		return resultPtr == nullptr ? defaultValue : *((int*)resultPtr);
@@ -78,7 +79,7 @@ public:
 	 */
 	static void* GetConfigValue(const char* variableName) noexcept
 	{
-		int szOut;
+		int szOut = 0;
 		void* resultPtr = nullptr;
 		// First check if the variable is present in the project settings
 		const int offset = projectconfig_var_getoffs(variableName, &szOut);
@@ -104,6 +105,7 @@ public:
 		if (x < 0.0000000298023223876953125)
 			return -150;
 		// Added extra parenthesis necessary to distinct from Windows define version 
+		DISABLE_WARNING_DEREF_INVALID_POINTER
 		return (std::max)(-150.0, std::log(x) * 8.6858896380650365530225783783321);
 	}
 
@@ -129,7 +131,7 @@ public:
 	 * @param position A position on the timeline
 	 * @return The calculated value
 	 */
-	static double GetEnvelopeValueAtPosition(TrackEnvelope* envelope, double position)
+	static double GetEnvelopeValueAtPosition(TrackEnvelope* envelope, double position) noexcept
 	{
 		const int sampleRate = ReaperUtils::GetIntConfigValue("projsrate");
 		double value;

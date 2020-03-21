@@ -177,6 +177,7 @@
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\afxres.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\CodeAnalysis.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Collectors.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DataCollector.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DeviceProcessor.h" />

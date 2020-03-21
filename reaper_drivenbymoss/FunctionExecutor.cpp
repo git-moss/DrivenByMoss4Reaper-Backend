@@ -12,9 +12,8 @@
  */
 void FunctionExecutor::AddFunction(std::function<void(void)> f)
 {
-	this->execMutex.lock();
+	const std::lock_guard<std::mutex> lock(this->execMutex);
 	this->tasks.push_back(f);
-	this->execMutex.unlock();
 }
 
 
@@ -23,9 +22,8 @@ void FunctionExecutor::AddFunction(std::function<void(void)> f)
  */
 void FunctionExecutor::ExecuteFunctions()
 {
-	this->execMutex.lock();
+	const std::lock_guard<std::mutex> lock(this->execMutex);
 	for (auto &task : this->tasks)
 		task();
 	this->tasks.clear();
-	this->execMutex.unlock();
 }

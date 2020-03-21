@@ -12,7 +12,7 @@
  *
  * @param aModel The model to share data
  */
-ClipProcessor::ClipProcessor(Model& aModel) : OscProcessor(aModel)
+ClipProcessor::ClipProcessor(Model& aModel) noexcept : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
@@ -31,57 +31,50 @@ void ClipProcessor::Process(std::deque<std::string>& path) noexcept
 	if (item == nullptr)
 		return;
 
-	try
+	const char* cmd = safeGet (path, 0);
+
+	if (std::strcmp(cmd, "duplicate") == 0)
 	{
-		const char* cmd = path.at(0).c_str();
-
-		if (std::strcmp(cmd, "duplicate") == 0)
-		{
-			// Item: Duplicate items
-			Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
-			return;
-		}
-
-		if (std::strcmp(cmd, "duplicateContent") == 0)
-		{
-			Undo_BeginBlock2(project);
-
-			// Item: Duplicate items
-			Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
-
-			// SWS: Add item(s) to left of selected item(s) to selection
-			const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
-			if (actionID > 0)
-				Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
-
-			// Item: Glue items
-			Main_OnCommandEx(GLUE_ITEMS, 0, project);
-
-			Undo_EndBlock2(project, "Duplicate content of clip", 0);
-			return;
-		}
-
-		if (std::strcmp(cmd, "note") == 0)
-		{
-			if (path.size() < 3)
-				return;
-			const int pitch = std::atoi(path.at(1).c_str());
-			const char* noteCmd = path.at(2).c_str();
-
-			// Clear all notes with a specific pitch
-			if (std::strcmp(noteCmd, "clear") == 0)
-			{
-				const int channel = atoi(path.at(3).c_str());
-				this->ClearNotes(project, item, channel, pitch);
-				return;
-			}
-
-			return;
-		}
+		// Item: Duplicate items
+		Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
+		return;
 	}
-	catch (const std::out_of_range & oor)
+
+	if (std::strcmp(cmd, "duplicateContent") == 0)
 	{
-		ReaDebug() << "Out of Range error: " << oor.what();
+		Undo_BeginBlock2(project);
+
+		// Item: Duplicate items
+		Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
+
+		// SWS: Add item(s) to left of selected item(s) to selection
+		const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
+		if (actionID > 0)
+			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
+
+		// Item: Glue items
+		Main_OnCommandEx(GLUE_ITEMS, 0, project);
+
+		Undo_EndBlock2(project, "Duplicate content of clip", 0);
+		return;
+	}
+
+	if (std::strcmp(cmd, "note") == 0)
+	{
+		if (path.size() < 3)
+			return;
+		const int pitch = std::atoi(safeGet(path, 1));
+		const char* noteCmd = safeGet(path, 2);
+
+		// Clear all notes with a specific pitch
+		if (std::strcmp(noteCmd, "clear") == 0)
+		{
+			const int channel = atoi(safeGet(path, 3));
+			this->ClearNotes(project, item, channel, pitch);
+			return;
+		}
+
+		return;
 	}
 }
 
@@ -99,7 +92,7 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 	if (item == nullptr)
 		return;
 
-	const char* cmd = path.at(0).c_str();
+	const char* cmd = safeGet(path, 0);
 
 	if (std::strcmp(cmd, "start") == 0)
 	{
@@ -134,8 +127,8 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 	{
 		if (path.size() < 3)
 			return;
-		const int pitch = std::atoi(path.at(1).c_str());
-		const char* noteCmd = path.at(2).c_str();
+		const int pitch = std::atoi(safeGet(path, 1));
+		const char* noteCmd = safeGet(path, 2);
 
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
@@ -144,7 +137,7 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 				return;
 			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
 			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
-			const int channel = atoi(path.at(3).c_str());
+			const int channel = atoi(safeGet(path, 3));
 			this->ClearNote(project, item, channel, pitch, ppqPosStart);
 			return;
 		}
@@ -172,7 +165,7 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 	if (item == nullptr)
 		return;
 
-	const char* cmd = path.at(0).c_str();
+	const char* cmd = safeGet(path, 0);
 
 	if (std::strcmp(cmd, "color") == 0)
 	{
@@ -189,17 +182,17 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 		if (take == nullptr)
 			return;
 
-		const int pitch = std::atoi(path.at(1).c_str());
-		const char* noteCmd = path.at(2).c_str();
+		const int pitch = std::atoi(safeGet(path, 1));
+		const char* noteCmd = safeGet(path, 2);
 
 		std::vector<std::string> parts = this->SplitString(value, ' ');
 		if (parts.size() != 4)
 			return;
 
-		const double pos = std::atof(parts.at(0).c_str());
-		const double length = std::atof(parts.at(1).c_str());
-		const int velocity = std::atoi(parts.at(2).c_str());
-		const int channel = std::atoi(parts.at(3).c_str());
+		const double pos = std::atof(safeGet(path, 0));
+		const double length = std::atof(safeGet(path, 1));
+		const int velocity = std::atoi(safeGet(path, 2));
+		const int channel = std::atoi(safeGet(path, 3));
 
 		// Subtract the start of the clip
 		const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
@@ -237,14 +230,24 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
  * @param item The media item
  * @param value The encoded RGB value, e.g. RGB(red,green,blue)
  */
-void ClipProcessor::SetColorOfClip(ReaProject* project, MediaItem* item, std::string value)
+void ClipProcessor::SetColorOfClip(ReaProject* project, MediaItem* item, const std::string& value) noexcept
 {
-	std::cmatch result{};
-	if (!std::regex_search(value.c_str(), result, colorPattern))
+	int red{ 0 };
+	int green{ 0 };
+	int blue{ 0 };
+	try
+	{
+		std::cmatch result{};
+		if (!std::regex_search(value.c_str(), result, colorPattern))
+			return;
+		red = std::atoi(result.str(1).c_str());
+		green = std::atoi(result.str(2).c_str());
+		blue = std::atoi(result.str(3).c_str());
+	}
+	catch (...)
+	{
 		return;
-	int red = std::atoi(result.str(1).c_str());
-	int green = std::atoi(result.str(2).c_str());
-	int blue = std::atoi(result.str(3).c_str());
+	}
 
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
 

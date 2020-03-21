@@ -9,7 +9,7 @@
 /**
  * Constructor.
  */
-Marker::Marker()
+Marker::Marker() noexcept
 {
 	// Intentionally empty
 }
@@ -34,11 +34,11 @@ Marker::~Marker()
  * @param markerID The ID of the marker
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Marker::CollectData(std::stringstream &ss, ReaProject *project, const char *tag, int markerIndex, int markerID, const bool &dump)
+void Marker::CollectData(std::ostringstream& ss, ReaProject* project, const char* tag, int markerIndex, int markerID, const bool& dump)
 {
-	std::stringstream das;
+	std::ostringstream das;
 	das << "/" << tag << "/" << markerIndex << "/";
-	std::string markerAddress = das.str();
+	const std::string markerAddress = das.str();
 
 	// Marker exists flag and number of markers
 	this->exists = Collectors::CollectIntValue(ss, (markerAddress + "exists").c_str(), this->exists, true, dump);
@@ -46,7 +46,7 @@ void Marker::CollectData(std::stringstream &ss, ReaProject *project, const char 
 
 	const char* name;
 	int markerColor;
-	int result = EnumProjectMarkers3(project, markerID, nullptr, nullptr, nullptr, &name, nullptr, &markerColor);
+	const int result = EnumProjectMarkers3(project, markerID, nullptr, nullptr, nullptr, &name, nullptr, &markerColor);
 
 	// Marker name
 	this->name = Collectors::CollectStringValue(ss, (markerAddress + "name").c_str(), this->name, result ? name : "", dump);
@@ -58,29 +58,47 @@ void Marker::CollectData(std::stringstream &ss, ReaProject *project, const char 
 }
 
 
-std::vector<int> Marker::GetMarkers(ReaProject *project)
+std::vector<int> Marker::GetMarkers(ReaProject* project) noexcept
 {
 	std::vector<int> markers;
-	int count = CountProjectMarkers(project, nullptr, nullptr);
-	bool isRegion;
+	const int count = CountProjectMarkers(project, nullptr, nullptr);
+	bool isRegion{ false };
 	for (int index = 0; index < count; index++)
 	{
 		if (EnumProjectMarkers2(project, index, &isRegion, nullptr, nullptr, nullptr, nullptr) && !isRegion)
-			markers.push_back(index);
+		{
+			try
+			{
+				markers.push_back(index);
+			}
+			catch (...)
+			{
+				// Ignore
+			}
+		}
 	}
 	return markers;
 }
 
 
-std::vector<int> Marker::GetRegions(ReaProject *project)
+std::vector<int> Marker::GetRegions(ReaProject* project) noexcept
 {
 	std::vector<int> regions;
-	int count = CountProjectMarkers(project, nullptr, nullptr);
-	bool isRegion;
+	const int count = CountProjectMarkers(project, nullptr, nullptr);
+	bool isRegion{ false };
 	for (int index = 0; index < count; index++)
 	{
 		if (EnumProjectMarkers2(project, index, &isRegion, nullptr, nullptr, nullptr, nullptr) && isRegion)
-			regions.push_back(index);
+		{
+			try
+			{
+				regions.push_back(index);
+			}
+			catch (...)
+			{
+				// Ignore
+			}
+		}
 	}
 	return regions;
 }

@@ -23,7 +23,7 @@ public:
 
 	Parameter() noexcept;
 
-	void CollectData(std::stringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump);
+	void CollectData(std::ostringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump);
 };
 
 #endif /* _DBM_PARAMETER_H_ */

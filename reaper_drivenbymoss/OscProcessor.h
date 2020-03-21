@@ -18,10 +18,15 @@
 class OscProcessor
 {
 public:
-	OscProcessor(Model& aModel) : model(aModel)
+	OscProcessor(Model& aModel) noexcept : model(aModel)
 	{
 		// Intentionally empty
 	}
+	OscProcessor(const OscProcessor&) = delete;
+	OscProcessor& operator=(const OscProcessor&) = delete;
+	OscProcessor(OscProcessor&&) = delete;
+	OscProcessor& operator=(OscProcessor&&) = delete;
+	virtual ~OscProcessor() {};
 
 	virtual void Process(std::deque<std::string>& path) noexcept {};
 
@@ -218,19 +223,39 @@ protected:
 	}
 
 
-	std::vector<std::string> SplitString(const std::string& value, char delimiter) const
+	const char* safeGet(std::deque<std::string>& path, const int index) noexcept
+	{
+		try
+		{
+			return path.at(index).c_str();
+		}
+		catch (...)
+		{
+			return "";
+		}
+	}
+
+
+	std::vector<std::string> SplitString(const std::string& value, char delimiter) const noexcept
 	{
 		std::vector<std::string> result{};
-		std::string str = value;
-		size_t index;
-		while ((index = str.find(delimiter)) != std::string::npos)
+		try
 		{
-			std::string part = str.substr(0, index);
-			result.push_back(part);
-			str = str.substr(index + 1, str.length() - index);
+			std::string str = value;
+			size_t index;
+			while ((index = str.find(delimiter)) != std::string::npos)
+			{
+				std::string part = str.substr(0, index);
+				result.push_back(part);
+				str = str.substr(index + 1, str.length() - index);
+			}
+			if (str.length() > 0)
+				result.push_back(str);
 		}
-		if (str.length() > 0)
-			result.push_back(str);
+		catch (...)
+		{
+			// Ignore
+		}
 		return result;
 	}
 };

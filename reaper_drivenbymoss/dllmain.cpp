@@ -14,24 +14,16 @@
 #include "wdltypes.h"
 #include "resource.h"
 
+#include "CodeAnalysis.h"
 #include "DrivenByMossSurface.h"
 #include "ReaDebug.h"
 #include "StringUtils.h"
-
-// Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
-// to be connected on port 8989, only then the start continues!
-#ifdef _DEBUG
-constexpr bool DEBUG_JAVA{ true };
-#else
-constexpr bool DEBUG_JAVA{ false };
-#endif
-
 
 // The global extension variables required to bridge from C to C++,
 // static keyword restricts the visibility of a function to the file
 REAPER_PLUGIN_HINSTANCE pluginInstanceHandle;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
-std::unique_ptr <DrivenByMossSurface> surface;
+DrivenByMossSurface* surface;
 std::unique_ptr <JvmManager> jvmManager;
 
 
@@ -48,8 +40,8 @@ void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring com
 	if (env == nullptr || surface == nullptr)
 		return;
 	// Nullcheck above is not picked up
-#pragma warning(suppress: 26486)
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+	DISABLE_WARNING_DANGLING_POINTER
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -76,8 +68,8 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 	if (env == nullptr || surface == nullptr)
 		return;
 	// Nullcheck above is not picked up
-#pragma warning(suppress: 26486)
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+	DISABLE_WARNING_DANGLING_POINTER
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* val = env->GetStringUTFChars(value, nullptr);
@@ -112,8 +104,8 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
 	if (env == nullptr || surface == nullptr)
 		return;
 	// Nullcheck above is not picked up
-#pragma warning(suppress: 26486)
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+	DISABLE_WARNING_DANGLING_POINTER
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -140,8 +132,8 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 	if (env == nullptr || surface == nullptr)
 		return;
 	// Nullcheck above is not picked up
-#pragma warning(suppress: 26486)
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+	DISABLE_WARNING_DANGLING_POINTER
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -167,8 +159,8 @@ void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean e
 	if (env == nullptr || surface == nullptr)
 		return;
 	// Nullcheck above is not picked up
-#pragma warning(suppress: 26486)
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+	DISABLE_WARNING_DANGLING_POINTER
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
@@ -190,8 +182,8 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 	if (env == nullptr || surface == nullptr)
 		return;
 	// Nullcheck above is not picked up
-#pragma warning(suppress: 26486)
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+	DISABLE_WARNING_DANGLING_POINTER
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
@@ -213,38 +205,6 @@ void processMidiArgCPP(const JNIEnv* env, jobject object, jint status, jint data
 {
 	if (env != nullptr && surface != nullptr)
 		StuffMIDIMessage(0, status, data1, data2);
-}
-
-
-// Prevent a second instance and ensure that JVM has successfully started...
-void initSurface()
-{
-	if (surface != nullptr)
-		return;
-	jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
-	if (jvmManager.get() == nullptr)
-		return;
-
-#pragma warning(suppress: 26490)
-	void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
-#pragma warning(suppress: 26490)
-	void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
-#pragma warning(suppress: 26490)
-	void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
-#pragma warning(suppress: 26490)
-	void* processDoubleArgPtr = reinterpret_cast<void*>(&processDoubleArgCPP);
-#pragma warning(suppress: 26490)
-	void* enableUpdatesPtr = reinterpret_cast<void*>(&enableUpdatesCPP);
-#pragma warning(suppress: 26490)
-	void* delayUpdatesPtr = reinterpret_cast<void*>(&delayUpdatesCPP);
-#pragma warning(suppress: 26490)
-	void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
-	// Nullcheck above is not picked up
-#pragma warning(suppress: 26486)
-	jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
-#pragma warning(suppress: 26486)
-	if (jvmManager->isRunning())
-		surface = std::make_unique<DrivenByMossSurface>(jvmManager);
 }
 
 
@@ -281,7 +241,8 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_COMMAND:
 	{
-		const WORD value = LOWORD(wParam);
+		DISABLE_WARNING_NO_C_STYLE_CONVERSION
+			const WORD value = LOWORD(wParam);
 		switch (value)
 		{
 		case IDC_BUTTON_CONFIGURE:
@@ -299,16 +260,48 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 // Callback function for Reaper to create an instance of the extension
 IReaperControlSurface* createFunc(const char* type_string, const char* configString, int* errStats)
 {
-	initSurface();
-	return surface.get();
+	if (!ENABLE_EXTENSION)
+		return nullptr;
+
+	if (surface != nullptr)
+		return nullptr;
+
+	if (ENABLE_JAVA)
+	{
+		jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
+		if (jvmManager.get() == nullptr)
+			return nullptr;
+
+		DISABLE_WARNING_PUSH
+		DISABLE_WARNING_REINTERPRET_CAST
+		void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
+		void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
+		void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
+		void* processDoubleArgPtr = reinterpret_cast<void*>(&processDoubleArgCPP);
+		void* enableUpdatesPtr = reinterpret_cast<void*>(&enableUpdatesCPP);
+		void* delayUpdatesPtr = reinterpret_cast<void*>(&delayUpdatesCPP);
+		void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
+		DISABLE_WARNING_POP
+
+		// Nullcheck above is not picked up
+		DISABLE_WARNING_PUSH
+		DISABLE_WARNING_DANGLING_POINTER
+		jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
+		DISABLE_WARNING_POP
+	}
+
+	// Note: delete is called from Reaper on shutdown, no need to do it ourselves
+	DISABLE_WARNING_DONT_USE_NEW
+	surface = new DrivenByMossSurface(jvmManager);
+	return surface;
 }
 
 // Callback function for Reaper to create the configuration dialog of the extension
 static HWND configFunc(const char* type_string, HWND parent, const char* initConfigString) noexcept
 {
 	// No way to prevent the LPARAM cast
-#pragma warning(suppress: 26490)
-	return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
+	DISABLE_WARNING_REINTERPRET_CAST
+		return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
 }
 
 
@@ -328,54 +321,47 @@ extern "C"
 	// Defines the entry point for the DLL application.
 	REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance, const reaper_plugin_info_t* rec)
 	{
-		if (rec)
+		if (rec == nullptr || !ENABLE_EXTENSION)
+			return 0;
+
+		// On startup...
+
+		pluginInstanceHandle = hInstance;
+
+		if (rec->caller_version != REAPER_PLUGIN_VERSION || rec->GetFunc == nullptr)
+			return 0;
+
+		// False positive, null check above is not detected
+		DISABLE_WARNING_DANGLING_POINTER
+		REAPERAPI_LoadAPI(rec->GetFunc);
+
+		// Register extension
+		const int result = rec->Register("csurf", &drivenbymoss_reg);
+		if (!result)
 		{
-			// On startup...
-
-			pluginInstanceHandle = hInstance;
-
-			if (rec->caller_version != REAPER_PLUGIN_VERSION || rec->GetFunc == nullptr)
-				return 0;
-
-			// False positive, null check above is not detected
-#pragma warning(suppress: 26486)
-			REAPERAPI_LoadAPI(rec->GetFunc);
-
-			// Register extension
-			const int result = rec->Register("csurf", &drivenbymoss_reg);
-			if (!result)
-			{
-				ReaDebug() << "Could not instantiate DrivenByMoss surface extension.";
-				return 0;
-			}
-
-			// Register Open Window action
-			openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_WINDOW_ACTION");
-			if (!openDBMConfigureWindowAccel.accel.cmd)
-			{
-				ReaDebug() << "Could not register ID for DrivenByMoss open window action.";
-				return 0;
-			}
-			if (!rec->Register("gaccel", &openDBMConfigureWindowAccel))
-			{
-				ReaDebug() << "Could not register DrivenByMoss open window action.";
-				return 0;
-			}
-			if (!rec->Register("hookcommand", (void*)hookCommandProc))
-			{
-				ReaDebug() << "Could not register DrivenByMoss open window action callback.";
-				return 0;
-			}
-
-			return 1;
-		}
-		else
-		{
-			// On shutdown...
-			if (jvmManager != nullptr)
-				jvmManager.reset();
+			ReaDebug() << "Could not instantiate DrivenByMoss surface extension.";
 			return 0;
 		}
+
+		// Register Open Window action
+		openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_WINDOW_ACTION");
+		if (!openDBMConfigureWindowAccel.accel.cmd)
+		{
+			ReaDebug() << "Could not register ID for DrivenByMoss open window action.";
+			return 0;
+		}
+		if (!rec->Register("gaccel", &openDBMConfigureWindowAccel))
+		{
+			ReaDebug() << "Could not register DrivenByMoss open window action.";
+			return 0;
+		}
+		if (!rec->Register("hookcommand", (void*)hookCommandProc))
+		{
+			ReaDebug() << "Could not register DrivenByMoss open window action callback.";
+			return 0;
+		}
+
+		return 1;
 	}
 };
 

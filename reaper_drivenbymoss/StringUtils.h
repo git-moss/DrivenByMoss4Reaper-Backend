@@ -7,7 +7,7 @@
 
 #include "ReaDebug.h"
 
-std::wstring stringToWs(const std::string &src);
+std::wstring stringToWs(const std::string &src) noexcept;
 
 /**
  * Convert a string to a wide string.

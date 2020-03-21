@@ -31,7 +31,12 @@
 class OscParser
 {
 public:
-	OscParser(Model &model);
+	OscParser(Model &model) noexcept;
+	OscParser(const OscParser&) = delete;
+	OscParser& operator=(const OscParser&) = delete;
+	OscParser(OscParser&&) = delete;
+	OscParser& operator=(OscParser&&) = delete;
+	virtual ~OscParser() {};
 
 	virtual void Process(const std::string processor, const std::string path) const;
 	virtual void Process(const std::string processor, const std::string path, const std::string value) const;

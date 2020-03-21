@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+#include "WrapperGSL.h"
 #include "SceneProcessor.h"
 #include "ReaperUtils.h"
 
@@ -13,7 +14,7 @@
  *
  * @param aModel The model to share data
  */
-SceneProcessor::SceneProcessor(Model &aModel) : OscProcessor(aModel)
+SceneProcessor::SceneProcessor(Model &aModel) noexcept : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
@@ -24,7 +25,7 @@ void SceneProcessor::Process(std::deque<std::string> &path) noexcept
 {
 	if (path.empty())
 		return;
-	const char *part = path.at(0).c_str();
+	const char *part = safeGet(path, 0);
 
 	ReaProject *project = ReaperUtils::GetProject();
 
@@ -32,10 +33,10 @@ void SceneProcessor::Process(std::deque<std::string> &path) noexcept
 		return;
 
 	const int index = atoi(part);
-	const char *cmd = path.at(1).c_str();
+	const char *cmd = safeGet(path, 1);
 
 	const std::vector<int> scenes = Marker::GetRegions(project);
-	if (index < 0 || index >= (int)scenes.size())
+	if (index < 0 || index >= gsl::narrow_cast<int>(scenes.size()))
 		return;
 	const int sceneID = scenes.at(index);
 

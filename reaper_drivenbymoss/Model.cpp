@@ -9,7 +9,7 @@
 /**
  * Constructor.
  */
-Model::Model(FunctionExecutor& aFunctionExecutor) :
+Model::Model(FunctionExecutor& aFunctionExecutor)  noexcept :
 	functionExecutor(aFunctionExecutor)
 {
 	// Intentionally empty
@@ -22,18 +22,17 @@ Model::Model(FunctionExecutor& aFunctionExecutor) :
  * @param index The index of the track.
  * @return The track, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Track> Model::GetTrack(const int index)
+std::shared_ptr <Track> Model::GetTrack(const int index) noexcept
 {
-	this->tracklock.lock();
+	const std::lock_guard<std::mutex> lock(this->tracklock);
+
 	const int diff = index - gsl::narrow_cast<int> (this->tracks.size()) + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
 			this->tracks.push_back(std::make_shared<Track>());
 	}
-	std::shared_ptr <Track> track = this->tracks.at(index);
-	this->tracklock.unlock();
-	return track;
+	return this->tracks.at(index);
 }
 
 
@@ -43,18 +42,17 @@ std::shared_ptr <Track> Model::GetTrack(const int index)
  * @param index The index of the marker.
  * @return The marker, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Marker> Model::GetMarker(const int index)
+std::shared_ptr <Marker> Model::GetMarker(const int index) noexcept
 {
-	this->markerlock.lock();
+	const std::lock_guard<std::mutex> lock(this->markerlock);
+
 	const int diff = index - gsl::narrow_cast<int> (this->markers.size()) + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
 			this->markers.push_back(std::make_shared<Marker>());
 	}
-	std::shared_ptr <Marker> marker = this->markers.at(index);
-	this->markerlock.unlock();
-	return marker;
+	return this->markers.at(index);
 }
 
 
@@ -64,18 +62,17 @@ std::shared_ptr <Marker> Model::GetMarker(const int index)
  * @param index The index of the region.
  * @return The region, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Marker> Model::GetRegion(const int index)
+std::shared_ptr <Marker> Model::GetRegion(const int index) noexcept
 {
-	this->regionlock.lock();
+	const std::lock_guard<std::mutex> lock(this->regionlock);
+
 	const int diff = index - gsl::narrow_cast<int> (this->regions.size()) + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
 			this->regions.push_back(std::make_shared<Marker>());
 	}
-	std::shared_ptr <Marker> region = this->regions.at(index);
-	this->regionlock.unlock();
-	return region;
+	return this->regions.at(index);
 }
 
 
@@ -85,16 +82,15 @@ std::shared_ptr <Marker> Model::GetRegion(const int index)
  * @param index The index of the parameter.
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Parameter> Model::GetParameter(const int index)
+std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
 {
-	this->parameterlock.lock();
+	const std::lock_guard<std::mutex> lock(this->parameterlock);
+
 	const int diff = index - gsl::narrow_cast<int> (this->parameters.size()) + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
 			this->parameters.push_back(std::make_shared <Parameter>());
 	}
-	std::shared_ptr <Parameter> parameter = this->parameters.at(index);
-	this->parameterlock.unlock();
-	return parameter;
+	return this->parameters.at(index);
 }

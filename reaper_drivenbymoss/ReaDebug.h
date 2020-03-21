@@ -5,8 +5,23 @@
 #ifndef _DBM_READEBUG_H_
 #define _DBM_READEBUG_H_
 
-#include <string>
+#include <chrono>
+#include <iostream>
+#include <sstream>
+
 #include "Model.h"
+
+constexpr bool ENABLE_EXTENSION{ true };
+constexpr bool ENABLE_JAVA{ true };
+constexpr bool ENABLE_JAVA_START{ true };
+
+// Enable or disable for debugging. If debugging is enabled Reaper is waiting for a Java debugger
+// to be connected on port 8989, only then the start continues!
+#ifdef _DEBUG
+constexpr bool DEBUG_JAVA{ true };
+#else
+constexpr bool DEBUG_JAVA{ false };
+#endif
 
 
 /**
@@ -15,11 +30,6 @@
 class ReaDebug
 {
 public:
-	static void init(Model *aModel) noexcept
-	{
-		model = aModel;
-	}
-
 	ReaDebug() noexcept;
 	ReaDebug(const ReaDebug&) = delete;
 	ReaDebug& operator=(const ReaDebug&) = delete;
@@ -27,18 +37,29 @@ public:
 	ReaDebug& operator=(ReaDebug&&) = delete;
 	~ReaDebug();
 
-	ReaDebug &operator << (const char *value);
-	ReaDebug &operator << (int value);
-	ReaDebug &operator << (size_t value);
-	ReaDebug &operator << (int64_t value);
-	ReaDebug &operator << (double value);
-	ReaDebug &operator << (void *value);
-	ReaDebug &operator << (const std::string& value);
+	ReaDebug& operator << (const char* value) noexcept;
+	ReaDebug& operator << (int value);
+	ReaDebug& operator << (size_t value);
+	ReaDebug& operator << (int64_t value);
+	ReaDebug& operator << (double value);
+	ReaDebug& operator << (void* value);
+	ReaDebug& operator << (const std::string& value);
+
+	static void init(Model* aModel) noexcept
+	{
+		model = aModel;
+	}
+
+	static void Log(const std::string& msg) noexcept;
+	static void Log(const char* msg) noexcept;
+
+	void Measure() noexcept;
 
 private:
-	static Model *model;
+	static Model* model;
 
-	std::string buffer;
+	std::ostringstream buffer;
+	std::chrono::time_point<std::chrono::steady_clock> start{ std::chrono::steady_clock::now() };
 };
 
 #endif /* _DBM_READEBUG_H_ */

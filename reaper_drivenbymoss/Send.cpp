@@ -2,6 +2,7 @@
 // (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
+#include "CodeAnalysis.h"
 #include "Collectors.h"
 #include "Send.h"
 
@@ -9,7 +10,7 @@
 /**
  * Constructor.
  */
-Send::Send()
+Send::Send() noexcept
 {
 	// Intentionally empty
 }
@@ -33,13 +34,14 @@ Send::~Send()
  * @param sendIndex The index of the send
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Send::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int sendIndex, const std::string& trackAddress, const bool& dump)
+void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int sendIndex, const std::string& trackAddress, const bool& dump)
 {
-	std::stringstream stream;
+	std::ostringstream stream;
 	stream << trackAddress << "send/" << sendIndex << "/";
 	const std::string sendAddress = stream.str();
 	constexpr int LENGTH = 20;
 	char name[LENGTH];
+	DISABLE_WARNING_ARRAY_POINTER_DECAY
 	const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
 	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, result ? name : "", dump);
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
@@ -48,17 +50,18 @@ void Send::CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* t
 }
 
 
-double Send::GetSendVolume(MediaTrack* track, int sendCounter, double position) const
+double Send::GetSendVolume(MediaTrack* track, int sendCounter, double position) const noexcept
 {
 	const char* sendType = "<VOLENV";
-	TrackEnvelope* envelope = (TrackEnvelope*)GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType);
+	DISABLE_WARNING_NO_C_STYLE_CONVERSION
+	TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
 	if (envelope != nullptr)
 	{
 		// It seems there is always a send envelope, even if not active.
 		// Therefore, check if the envelope is active
 		for (int i = 0; i < CountTrackEnvelopes(track); i++)
 		{
-			TrackEnvelope* te = GetTrackEnvelope(track, i);
+			const TrackEnvelope* te = GetTrackEnvelope(track, i);
 			if (envelope == te)
 				return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
 		}

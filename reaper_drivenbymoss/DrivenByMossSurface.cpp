@@ -5,13 +5,11 @@
 #include "ReaDebug.h"
 #include "DrivenByMossSurface.h"
 
-// TODO Only for logging
-#include <chrono>
-#include <iostream>
 
 /**
  * Constructor.
  */
+DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
 DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager> & aJvmManager) noexcept : jvmManager(aJvmManager), model(functionExecutor), updateModel(false), isShutdown(false)
 {
 	ReaDebug::init(&model);
@@ -23,6 +21,8 @@ DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager> & aJvmManag
  */
 DrivenByMossSurface::~DrivenByMossSurface()
 {
+	if (this->isShutdown)
+		return;
 	this->isShutdown = true;
 	this->jvmManager.reset();
 }
@@ -52,9 +52,6 @@ const char* DrivenByMossSurface::GetConfigString() noexcept
  */
 void DrivenByMossSurface::Run()
 {
-	// TODO
-//	auto start = std::chrono::steady_clock::now();
-
 	if (this->jvmManager == nullptr || this->isShutdown)
 		return;
 
@@ -68,15 +65,6 @@ void DrivenByMossSurface::Run()
 	std::string data = this->CollectData(this->model.ShouldDump());
 	if (data.length() > 0)
 		this->jvmManager.get()->UpdateModel(data);
-
-	/*
-	 auto end = std::chrono::steady_clock::now();
-	 auto diff = end - start;
-	
-	 std::ostringstream stringStream;
-	 stringStream << std::chrono::duration <double, std::milli>(diff).count() << " ms" << std::endl;
-	 std::string copyOfStr = stringStream.str();
-	 OutputDebugString (stringToWs(copyOfStr).c_str());*/
 }
 
 

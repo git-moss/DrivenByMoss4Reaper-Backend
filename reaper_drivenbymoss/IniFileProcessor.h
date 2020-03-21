@@ -16,7 +16,7 @@
 class IniFileProcessor : public OscProcessor
 {
 public:
-	IniFileProcessor(Model& aModel);
+	IniFileProcessor(Model& aModel) noexcept;
 
 	void Process(std::deque<std::string>& path, int value) noexcept override;
 

@@ -2,6 +2,7 @@
 // (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
+#include "WrapperGSL.h"
 #include "StringUtils.h"
 
 #ifndef _WIN32
@@ -10,10 +11,10 @@
 #include "ModdedCodecvt.h"
 #endif
 
-std::wstring stringToWs(const std::string &src)
+std::wstring stringToWs(const std::string &src) noexcept
 {
 #ifdef _WIN32
-	int sizeNeeded = MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, NULL, 0);
+	const int sizeNeeded = MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, NULL, 0);
 	std::wstring dest(sizeNeeded, 0);
 	MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, &dest[0], sizeNeeded);
 	return dest;
@@ -30,7 +31,7 @@ std::string wstringToDefaultPlatformEncoding(const std::wstring &src)
 {
 #ifdef _WIN32
 	// Remove 1 from the size since std::string does not need null-termination
-	int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, src.c_str(), -1, NULL, 0, NULL, NULL) - 1;
+	const int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, src.c_str(), -1, NULL, 0, NULL, NULL) - 1;
 	std::string dest(sizeNeeded, 0);
 	WideCharToMultiByte(CP_ACP, 0, src.c_str(), -1, &dest[0], sizeNeeded, NULL, NULL);
 	return dest;

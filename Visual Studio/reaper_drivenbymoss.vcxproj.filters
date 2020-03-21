@@ -188,6 +188,9 @@
     <ClInclude Include="..\reaper_drivenbymoss\WrapperGSL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\CodeAnalysis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\reaper_drivenbymoss\res.rc">

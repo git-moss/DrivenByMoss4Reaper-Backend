@@ -18,7 +18,7 @@
  *
  * @param aModel The model
  */
-DataCollector::DataCollector(Model& aModel) :
+DataCollector::DataCollector(Model& aModel) noexcept :
 	model(aModel),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	devicePresetsStr(128, "")
@@ -44,7 +44,7 @@ DataCollector::~DataCollector()
  */
 std::string DataCollector::CollectData(const bool& dump)
 {
-	std::stringstream ss;
+	std::ostringstream ss;
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetSelectedTrack(project, 0);
 
@@ -82,7 +82,7 @@ std::string DataCollector::CollectData(const bool& dump)
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	// Transport states
 	const int playState = GetPlayStateEx(project);
@@ -127,7 +127,7 @@ void DataCollector::CollectTransportData(std::stringstream& ss, ReaProject* proj
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectProjectData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectProjectData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	if (this->slowCounter == 0)
 	{
@@ -146,7 +146,7 @@ void DataCollector::CollectProjectData(std::stringstream& ss, ReaProject* projec
  * @param track The currently selected track
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, const bool& dump)
+void DataCollector::CollectDeviceData(std::ostringstream& ss, MediaTrack* track, const bool& dump)
 {
 	const int deviceIndex = this->model.deviceBankOffset + this->model.deviceSelected;
 	int bankDeviceIndex = 1;
@@ -167,7 +167,7 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
 
 		for (int index = 0; index < this->model.DEVICE_BANK_SIZE; index++)
 		{
-			std::stringstream das;
+			std::ostringstream das;
 			das << "/device/sibling/" << bankDeviceIndex << "/name";
 			const std::string deviceAddress = das.str();
 			result = TrackFX_GetFXName(track, this->model.deviceBankOffset + index, name, LENGTH);
@@ -208,7 +208,7 @@ void DataCollector::CollectDeviceData(std::stringstream& ss, MediaTrack* track, 
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectTrackData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	const int count = CountTracks(project);
 	int trackIndex{ 0 };
@@ -233,7 +233,7 @@ void DataCollector::CollectTrackData(std::stringstream& ss, ReaProject* project,
 		// Only collect note information, if enabled, track is active and playback is on
 		if (isActive && this->play > 0 && track->isSelected > 0)
 		{
-			std::stringstream das;
+			std::ostringstream das;
 			das << "/track/" << trackIndex << "/playingnotes";
 			playingNotes = this->CollectPlayingNotes(project, mediaTrack);
 			this->playingNotesStr = Collectors::CollectStringValue(ss, das.str().c_str(), this->playingNotesStr, playingNotes.c_str(), dump);
@@ -259,7 +259,7 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 
-	std::stringstream notes;
+	std::ostringstream notes;
 
 	for (int i = 0; i < noteCount; ++i)
 	{
@@ -281,7 +281,7 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectMasterTrackData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectMasterTrackData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	MediaTrack* master = GetMasterTrack(project);
 
@@ -328,7 +328,7 @@ void DataCollector::CollectMasterTrackData(std::stringstream& ss, ReaProject* pr
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectClipData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectClipData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	// Get the selected media item if any and calculate the items start and end
 	double musicalStart{ -1 };
@@ -410,7 +410,7 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 	double bpm{};
-	std::stringstream notes;
+	std::ostringstream notes;
 	const double pos = GetMediaItemInfo_Value(item, "D_POSITION");
 
 	for (int i = 0; i < noteCount; ++i)
@@ -439,7 +439,7 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
  * @param track The currently selected track
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectBrowserData(std::stringstream& ss, MediaTrack* track, const bool& dump)
+void DataCollector::CollectBrowserData(std::ostringstream& ss, MediaTrack* track, const bool& dump)
 {
 	if (this->slowCounter != 0)
 		return;
@@ -465,7 +465,7 @@ void DataCollector::CollectBrowserData(std::stringstream& ss, MediaTrack* track,
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectMarkerData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectMarkerData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	if (this->slowCounter == 0)
 	{
@@ -488,7 +488,7 @@ void DataCollector::CollectMarkerData(std::stringstream& ss, ReaProject* project
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	// Only collect clip data if document has changed
 	const int state = GetProjectStateChangeCount(project);
@@ -496,7 +496,7 @@ void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* projec
 		return;
 	this->projectState = state;
 
-	std::stringstream clipstr;
+	std::ostringstream clipstr;
 
 	int count = CountTracks(project);
 	int trackIndex{ 0 };
@@ -572,7 +572,7 @@ void DataCollector::CollectSessionData(std::stringstream& ss, ReaProject* projec
  * @param project The current Reaper project
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectNoteRepeatData(std::stringstream& ss, ReaProject* project, const bool& dump)
+void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	MediaTrack* const track = GetSelectedTrack(project, 0);
 
@@ -606,9 +606,8 @@ void DataCollector::CollectNoteRepeatData(std::stringstream& ss, ReaProject* pro
  */
 void DataCollector::DelayUpdate(std::string processor)
 {
-	this->delayMutex.lock();
+	const std::lock_guard<std::mutex> lock(this->delayMutex);
 	this->delayUpdateMap[processor] = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
-	this->delayMutex.unlock();
 }
 
 
@@ -693,7 +692,7 @@ MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, Me
 }
 
 
-void DataCollector::LoadDevicePresetFile(std::stringstream& ss, MediaTrack* track, int fx, const bool& dump)
+void DataCollector::LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* track, int fx, const bool& dump)
 {
 	constexpr int LENGTH = 1024;
 	char filename[LENGTH];
@@ -715,7 +714,7 @@ void DataCollector::LoadDevicePresetFile(std::stringstream& ss, MediaTrack* trac
 			{
 				std::string strip = result.str(1);
 
-				std::stringstream das;
+				std::ostringstream das;
 				das << "/browser/result/" << counter + 1 << "/name";
 				Collectors::CollectStringArrayValue(ss, das.str().c_str(), counter, this->devicePresetsStr, strip.c_str(), dump);
 
@@ -726,7 +725,7 @@ void DataCollector::LoadDevicePresetFile(std::stringstream& ss, MediaTrack* trac
 
 		while (counter < 128)
 		{
-			std::stringstream das;
+			std::ostringstream das;
 			das << "/browser/result/" << counter + 1 << "/name";
 			Collectors::CollectStringArrayValue(ss, das.str().c_str(), counter, this->devicePresetsStr, "", dump);
 			counter += 1;

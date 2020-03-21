@@ -56,9 +56,9 @@ public:
 
 	Track() noexcept;
 
-	void CollectData(std::stringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool &slowUpdate, const bool& dump);
+	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool &slowUpdate, const bool& dump);
 
-	Send* GetSend(const int index);
+	Send* GetSend(const int index) noexcept;
 
 	double GetVolume(MediaTrack* track, double position) const;
 	double GetPan(MediaTrack* track, double position) const;
@@ -71,7 +71,7 @@ private:
 
 	double GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const;
 	int GetTrackLockState(char* chunk) const;
-	void ParseInputQuantize(std::stringstream& ss, std::string& trackAddress, const bool& dump, char* chunk);
+	void ParseInputQuantize(std::ostringstream& ss, std::string& trackAddress, const bool& dump, char* chunk);
 };
 
 #endif /* _DBM_TRACK_H_ */

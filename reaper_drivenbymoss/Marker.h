@@ -23,13 +23,17 @@ public:
 	std::string color;
 
 
-	Marker();
+	Marker() noexcept;
+	Marker(const Marker&) = delete;
+	Marker& operator=(const Marker&) = delete;
+	Marker(Marker&&) = delete;
+	Marker& operator=(Marker&&) = delete;
 	virtual ~Marker();
 
-	void CollectData(std::stringstream &ss, ReaProject *project, const char *tag, int markerIndex, int markerID, const bool &dump);
+	void CollectData(std::ostringstream &ss, ReaProject *project, const char *tag, int markerIndex, int markerID, const bool &dump);
 
-	static std::vector<int> GetMarkers(ReaProject *project);
-	static std::vector<int> GetRegions(ReaProject *project);
+	static std::vector<int> GetMarkers(ReaProject *project) noexcept;
+	static std::vector<int> GetRegions(ReaProject *project) noexcept;
 };
 
 #endif /* _DBM_MARKER_H_ */

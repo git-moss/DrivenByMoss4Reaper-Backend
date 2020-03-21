@@ -18,6 +18,10 @@ class DrivenByMossSurface : public IReaperControlSurface
 {
 public:
 	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) noexcept;
+	DrivenByMossSurface(const DrivenByMossSurface&) = delete;
+	DrivenByMossSurface& operator=(const DrivenByMossSurface&) = delete;
+	DrivenByMossSurface(DrivenByMossSurface&&) = delete;
+	DrivenByMossSurface& operator=(DrivenByMossSurface&&) = delete;
 	~DrivenByMossSurface();
 
 	OscParser& GetOscParser() noexcept
