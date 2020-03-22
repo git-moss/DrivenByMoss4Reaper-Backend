@@ -10,7 +10,7 @@
  * Constructor.
  */
 DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
-DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager> & aJvmManager) noexcept : jvmManager(aJvmManager), model(functionExecutor), updateModel(false), isShutdown(false)
+DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager> & aJvmManager) noexcept : isShutdown(false), jvmManager(aJvmManager), model(functionExecutor), updateModel(false)
 {
 	ReaDebug::init(&model);
 }
