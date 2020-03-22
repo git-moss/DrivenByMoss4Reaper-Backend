@@ -17,6 +17,9 @@
 class DrivenByMossSurface : public IReaperControlSurface
 {
 public:
+	bool isShutdown;
+
+
 	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) noexcept;
 	DrivenByMossSurface(const DrivenByMossSurface&) = delete;
 	DrivenByMossSurface& operator=(const DrivenByMossSurface&) = delete;
@@ -62,7 +65,6 @@ private:
 	OscParser oscParser{ model };
 	DataCollector dataCollector{ model };
 	bool updateModel;
-	bool isShutdown;
 
 	std::string CollectData(bool dump)
 	{

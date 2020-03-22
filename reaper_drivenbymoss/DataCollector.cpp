@@ -21,6 +21,7 @@
 DataCollector::DataCollector(Model& aModel) noexcept :
 	model(aModel),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
+	instrumentParameter("/primary/param/", 0),
 	devicePresetsStr(128, "")
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
@@ -181,7 +182,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, MediaTrack* track,
 	for (int index = 0; index < paramCount; index++)
 	{
 		std::shared_ptr<Parameter> parameter = this->model.GetParameter(index);
-		parameter->CollectData(ss, "/device/param/", track, deviceIndex, index, paramCount, dump);
+		parameter->CollectData(ss, track, deviceIndex, paramCount, dump);
 	}
 
 	// First instrument (primary) data
@@ -196,7 +197,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, MediaTrack* track,
 
 		// Currently, we only need 1 parameter for the Kontrol OSC ID
 		Collectors::CollectIntValue(ss, "/primary/param/count", 1, 1, dump);
-		this->instrumentParameter1.CollectData(ss, "/primary/param/", track, instrumentIndex, 0, 1, dump);
+		this->instrumentParameter.CollectData(ss, track, instrumentIndex, 1, dump);
 	}
 }
 

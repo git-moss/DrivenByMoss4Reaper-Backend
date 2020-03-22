@@ -263,8 +263,11 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 	if (!ENABLE_EXTENSION)
 		return nullptr;
 
+	// Note: If the setup dialog is closed with OK, the current surface will be destructed but
+	// we cannot creat a new JVM, since this is only possible once! Furthermore, we cannot distinct
+	// between this and a real shutdown
 	if (surface != nullptr)
-		return nullptr;
+		return surface->isShutdown ? nullptr : surface;
 
 	if (ENABLE_JAVA)
 	{

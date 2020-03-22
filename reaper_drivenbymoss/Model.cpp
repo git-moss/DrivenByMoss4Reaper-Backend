@@ -90,7 +90,7 @@ std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->parameters.push_back(std::make_shared <Parameter>());
+			this->parameters.push_back(std::make_shared <Parameter>("/device/param/", index));
 	}
 	return this->parameters.at(index);
 }

@@ -18,15 +18,15 @@
 class Collectors
 {
 public:
-	static std::string CollectStringValue(std::ostringstream &ss, const char *command, std::string currentValue, const char *newValue, const bool &dump)
+	static std::string CollectStringValue(std::ostringstream& ss, const std::string& command, const std::string& currentValue, const std::string& newValue, const bool& dump)
 	{
-		if ((newValue && std::strcmp(currentValue.c_str(), newValue) != 0) || dump)
+		if (currentValue.compare(newValue) != 0 || dump)
 			ss << command << " " << newValue << "\n";
-		return std::string{ newValue == nullptr ? "" : newValue };
+		return newValue;
 	}
 
 
-	static int CollectIntValue(std::ostringstream &ss, const char *command, int currentValue, const int newValue, const bool &dump)
+	static int CollectIntValue(std::ostringstream& ss, const std::string& command, const int& currentValue, const int& newValue, const bool& dump)
 	{
 		if (currentValue != newValue || dump)
 			ss << command << " " << newValue << "\n";
@@ -34,7 +34,7 @@ public:
 	}
 
 
-	static double CollectDoubleValue(std::ostringstream &ss, const char *command, double currentValue, const double newValue, const bool &dump)
+	static double CollectDoubleValue(std::ostringstream& ss, const std::string& command, const double& currentValue, const double& newValue, const bool& dump)
 	{
 		if (std::fabs(currentValue - newValue) > 0.0000000001 || dump)
 			ss << command << " " << newValue << "\n";
@@ -42,7 +42,7 @@ public:
 	}
 
 
-	static void CollectStringArrayValue(std::ostringstream &ss, const char *command, int index, std::vector<std::string> &currentValues, const char *newValue, const bool &dump)
+	static void CollectStringArrayValue(std::ostringstream& ss, const std::string& command, int index, std::vector<std::string>& currentValues, const char* newValue, const bool& dump)
 	{
 		if ((newValue && std::strcmp(currentValues.at(index).c_str(), newValue) != 0) || dump)
 		{
@@ -57,7 +57,7 @@ public:
 				ss << command << " " << newValue << "\n";
 				currentValues.at(index).assign(newValue);
 			}
-			catch (const std::out_of_range &oor)
+			catch (const std::out_of_range& oor)
 			{
 				ReaDebug() << "Out of Range error: " << oor.what();
 			}
@@ -65,7 +65,7 @@ public:
 	}
 
 
-	static void CollectDoubleArrayValue(std::ostringstream &ss, const char *command, int index, std::vector<double> &currentValues, double newValue, const bool &dump)
+	static void CollectDoubleArrayValue(std::ostringstream& ss, const std::string& command, int index, std::vector<double>& currentValues, double newValue, const bool& dump)
 	{
 		try
 		{
@@ -75,14 +75,14 @@ public:
 				currentValues.at(index) = newValue;
 			}
 		}
-		catch (const std::out_of_range &oor)
+		catch (const std::out_of_range& oor)
 		{
 			ReaDebug() << "Out of Range error: " << oor.what();
 		}
 	}
 
 
-	static void CollectIntArrayValue(std::ostringstream &ss, const char *command, int index, std::vector<int> &currentValues, int newValue, const bool &dump)
+	static void CollectIntArrayValue(std::ostringstream& ss, const std::string& command, int index, std::vector<int>& currentValues, int newValue, const bool& dump)
 	{
 		try
 		{
@@ -92,7 +92,7 @@ public:
 				currentValues.at(index) = newValue;
 			}
 		}
-		catch (const std::out_of_range &oor)
+		catch (const std::out_of_range& oor)
 		{
 			ReaDebug() << "Out of Range error: " << oor.what();
 		}

@@ -148,8 +148,8 @@ void ReaDebug::Measure() noexcept
 {
 	try
 	{
-		auto end = std::chrono::steady_clock::now();
-		auto diff = end - start;
+		const auto end = std::chrono::steady_clock::now();
+		const auto diff = end - start;
 
 		std::ostringstream stringStream;
 		stringStream << std::chrono::duration <double, std::milli>(diff).count() << " ms" << std::endl;

@@ -110,7 +110,7 @@ private:
 	int instrumentExists{ -1 };
 	int instrumentPosition{ -1 };
 	std::string instrumentName{};
-	Parameter instrumentParameter1{};
+	Parameter instrumentParameter;
 
 	// Browser values
 	std::string devicePresetName{};

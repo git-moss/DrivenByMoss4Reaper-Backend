@@ -9,42 +9,58 @@
 
 /**
  * Constructor.
+ *
+ * @param prefixPath The start path to use for the OSC identificer
+ * @param index The index of the parameter
  */
-Parameter::Parameter() noexcept
+Parameter::Parameter(const char* prefixPath, const int index) noexcept : parameterIndex(index)
 {
-	// Intentionally empty
-}
+	try
+	{
+		std::ostringstream das;
+		das << prefixPath << index << "/";
+		const std::string paramAddress = das.str();
 
+		this->addressName = paramAddress + "name";
+		this->addressValue = paramAddress + "value";
+		this->addressValueStr = paramAddress + "value/str";
+	}
+	catch (...)
+	{
+		ReaDebug() << "Could not create parameter addresses.";
+	}
+}
 
 
 /**
  * Collect the (changed) parameter data.
  *
  * @param ss The stream where to append the formatted data
- * @param oscPath The start of the OSC path to use
  * @param track The track to which the device belongs
  * @param deviceIndex The index of the device to which the parameters belong
- * @param parameterIndex The index of the parameter
  * @param parameterCount The number of all parameters
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Parameter::CollectData(std::ostringstream& ss, const char* oscPath, MediaTrack* track, int deviceIndex, int parameterIndex, int parameterCount, const bool& dump)
+void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const int& parameterCount, const bool& dump)
 {
-	std::ostringstream das;
-	das << oscPath << parameterIndex << "/";
-	const std::string paramAddress = das.str();
-
 	// The warning about array pointer decay is ignored because it cannot be fixed since we have to use the available Reaper function
 	constexpr int LENGTH = 20;
 	char nameBuf[LENGTH];
 
-	DISABLE_WARNING_PUSH
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-	bool result = TrackFX_GetParamName(track, deviceIndex, parameterIndex, nameBuf, LENGTH);
-	this->name = Collectors::CollectStringValue(ss, (paramAddress + "name").c_str(), this->name, result ? nameBuf : "", dump);
+	bool result = TrackFX_GetParamName(track, deviceIndex, this->parameterIndex, nameBuf, LENGTH);
+	const std::string newName{ result ? nameBuf : "" };
+	this->name = Collectors::CollectStringValue(ss, this->addressName, this->name, newName, dump);
+
 	const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, parameterIndex);
-	this->value = Collectors::CollectDoubleValue(ss, (paramAddress + "value").c_str(), this->value, paramValue, dump);
-	result = TrackFX_FormatParamValueNormalized(track, deviceIndex, parameterIndex, paramValue, nameBuf, LENGTH);
-	this->valueStr = Collectors::CollectStringValue(ss, (paramAddress + "value/str").c_str(), this->valueStr, result ? nameBuf : "", dump);
-	DISABLE_WARNING_POP
+	const bool valueHasChanged = this->value != paramValue;
+	this->value = Collectors::CollectDoubleValue(ss, this->addressValue, this->value, paramValue, dump);
+
+	if (valueHasChanged)
+	{
+		DISABLE_WARNING_ARRAY_POINTER_DECAY
+		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, parameterIndex, paramValue, nameBuf, LENGTH);
+		const std::string newValue{ result ? nameBuf : "" };
+		this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, newValue, dump);
+	}
 }

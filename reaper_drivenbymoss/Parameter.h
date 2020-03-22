@@ -21,9 +21,16 @@ public:
 	std::string valueStr;
 
 
-	Parameter() noexcept;
+	Parameter(const char* prefixPath, const int index) noexcept;
 
-	void CollectData(std::ostringstream &ss, const char *oscPath, MediaTrack *track, int deviceIndex, int parameterIndex, int parameterCount, const bool &dump);
+	void CollectData(std::ostringstream &ss, MediaTrack *track, const int& deviceIndex, const int& parameterCount, const bool &dump);
+
+private:
+	const int parameterIndex;
+
+	std::string addressName;
+	std::string addressValue;
+	std::string addressValueStr;
 };
 
 #endif /* _DBM_PARAMETER_H_ */
