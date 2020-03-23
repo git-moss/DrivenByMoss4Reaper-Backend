@@ -264,12 +264,8 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 		return nullptr;
 
 	// Note: If the setup dialog is closed with OK, the current surface will be destructed but
-	// we cannot creat a new JVM, since this is only possible once! Furthermore, we cannot distinct
-	// between this and a real shutdown
-	if (surface != nullptr)
-		return surface->isShutdown ? nullptr : surface;
-
-	if (ENABLE_JAVA)
+	// we cannot creat a new JVM, since this is only possible once!
+	if (surface == nullptr && ENABLE_JAVA)
 	{
 		jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
 		if (jvmManager.get() == nullptr)
@@ -324,8 +320,16 @@ extern "C"
 	// Defines the entry point for the DLL application.
 	REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance, const reaper_plugin_info_t* rec)
 	{
-		if (rec == nullptr || !ENABLE_EXTENSION)
+		if (!ENABLE_EXTENSION)
 			return 0;
+
+		// On shutdown
+		if (rec == nullptr)
+		{
+			if (jvmManager != nullptr)
+				jvmManager.reset();
+			return 0;
+		}
 
 		// On startup...
 

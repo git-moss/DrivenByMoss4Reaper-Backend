@@ -24,7 +24,6 @@ DrivenByMossSurface::~DrivenByMossSurface()
 	if (this->isShutdown)
 		return;
 	this->isShutdown = true;
-	this->jvmManager.reset();
 }
 
 
