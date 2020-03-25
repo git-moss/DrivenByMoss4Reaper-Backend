@@ -137,7 +137,7 @@ private:
 
 	void CollectProjectData(std::ostringstream& ss, ReaProject* project, const bool& dump);
 	void CollectTransportData(std::ostringstream& ss, ReaProject* project, const bool& dump);
-	void CollectDeviceData(std::ostringstream& ss, MediaTrack* track, const bool& dump);
+	void CollectDeviceData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, const bool& dump);
 	void CollectTrackData(std::ostringstream& ss, ReaProject* project, const bool& dump);
 	void CollectMasterTrackData(std::ostringstream& ss, ReaProject* project, const bool& dump);
 	void CollectBrowserData(std::ostringstream& ss, MediaTrack* track, const bool& dump);

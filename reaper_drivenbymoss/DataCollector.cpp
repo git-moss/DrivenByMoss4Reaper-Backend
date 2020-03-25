@@ -58,7 +58,7 @@ std::string DataCollector::CollectData(const bool& dump)
 	if (IsActive("track"))
 		CollectTrackData(ss, project, dump);
 	if (IsActive("device"))
-		CollectDeviceData(ss, track, dump);
+		CollectDeviceData(ss, project, track, dump);
 	if (IsActive("mastertrack"))
 		CollectMasterTrackData(ss, project, dump);
 	if (IsActive("browser"))
@@ -144,10 +144,11 @@ void DataCollector::CollectProjectData(std::ostringstream& ss, ReaProject* proje
  * Collect the (changed) device data.
  *
  * @param ss The stream where to append the formatted data
+ * @param project The current Reaper project
  * @param track The currently selected track
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void DataCollector::CollectDeviceData(std::ostringstream& ss, MediaTrack* track, const bool& dump)
+void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, const bool& dump)
 {
 	const int deviceIndex = this->model.deviceBankOffset + this->model.deviceSelected;
 	int bankDeviceIndex = 1;
@@ -182,10 +183,12 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, MediaTrack* track,
 	for (int index = 0; index < paramCount; index++)
 	{
 		std::shared_ptr<Parameter> parameter = this->model.GetParameter(index);
-		parameter->CollectData(ss, track, deviceIndex, paramCount, dump);
+		parameter->CollectData(ss, track, deviceIndex, dump);
 	}
 
+	// 
 	// First instrument (primary) data
+	// 
 
 	if (this->slowCounter == 0)
 	{
@@ -197,7 +200,22 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, MediaTrack* track,
 
 		// Currently, we only need 1 parameter for the Kontrol OSC ID
 		Collectors::CollectIntValue(ss, "/primary/param/count", 1, 1, dump);
-		this->instrumentParameter.CollectData(ss, track, instrumentIndex, 1, dump);
+		this->instrumentParameter.CollectData(ss, track, instrumentIndex, dump);
+	}
+
+
+	// Track FX Parameter (as user parameters)
+	const int userParamCount = CountTCPFXParms(project, track);
+	this->model.userParamCount = Collectors::CollectIntValue(ss, "/user/param/count", this->model.userParamCount, userParamCount, dump);
+	int fxindexOut;
+	int parmidxOut;
+	for (int index = 0; index < userParamCount; index++)
+	{
+		if (GetTCPFXParm(project, track, index, &fxindexOut, &parmidxOut))
+		{
+			std::shared_ptr<Parameter> parameter = this->model.GetUserParameter(index);
+			parameter->CollectData(ss, track, fxindexOut, parmidxOut, dump);
+		}
 	}
 }
 

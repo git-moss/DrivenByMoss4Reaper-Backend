@@ -297,7 +297,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
 			DISABLE_WARNING_DANGLING_POINTER
-			Send* send = trackData->GetSend(sendIndex);
+				Send* send = trackData->GetSend(sendIndex);
 			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
 		}
@@ -328,6 +328,25 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_16, 0, project);
 			else if (value == 0.125)
 				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_32, 0, project);
+		}
+		return;
+	}
+
+	// Parse user parameter value
+	if (std::strcmp(cmd, "user") == 0)
+	{
+		if (path.empty())
+			return;
+		const char* part = safeGet(path, 2);
+		if (std::strcmp(part, "param") == 0)
+		{
+			const int userParamNo = atoi(safeGet(path, 3));
+			int fxindexOut;
+			int parmidxOut;
+			if (!GetTCPFXParm(project, track, userParamNo, &fxindexOut, &parmidxOut))
+				return;
+			if (std::strcmp(safeGet(path, 4), "value") == 0)
+				TrackFX_SetParamNormalized(track, fxindexOut, parmidxOut, value);
 		}
 		return;
 	}

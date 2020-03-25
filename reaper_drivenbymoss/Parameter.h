@@ -23,7 +23,8 @@ public:
 
 	Parameter(const char* prefixPath, const int index) noexcept;
 
-	void CollectData(std::ostringstream &ss, MediaTrack *track, const int& deviceIndex, const int& parameterCount, const bool &dump);
+	void CollectData(std::ostringstream &ss, MediaTrack *track, const int& deviceIndex, const bool &dump);
+	void CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const int& paramIndex, const bool& dump);
 
 private:
 	const int parameterIndex;

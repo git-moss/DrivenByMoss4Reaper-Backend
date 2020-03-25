@@ -236,6 +236,19 @@ protected:
 	}
 
 
+	const char* safeGet(std::vector<std::string>& path, const int index) noexcept
+	{
+		try
+		{
+			return path.at(index).c_str();
+		}
+		catch (...)
+		{
+			return "";
+		}
+	}
+
+
 	std::vector<std::string> SplitString(const std::string& value, char delimiter) const noexcept
 	{
 		std::vector<std::string> result{};

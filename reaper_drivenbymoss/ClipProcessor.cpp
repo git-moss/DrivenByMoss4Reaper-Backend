@@ -189,10 +189,10 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 		if (parts.size() != 4)
 			return;
 
-		const double pos = std::atof(safeGet(path, 0));
-		const double length = std::atof(safeGet(path, 1));
-		const int velocity = std::atoi(safeGet(path, 2));
-		const int channel = std::atoi(safeGet(path, 3));
+		const double pos = std::atof(safeGet(parts, 0));
+		const double length = std::atof(safeGet(parts, 1));
+		const int velocity = std::atoi(safeGet(parts, 2));
+		const int channel = std::atoi(safeGet(parts, 3));
 
 		// Subtract the start of the clip
 		const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);

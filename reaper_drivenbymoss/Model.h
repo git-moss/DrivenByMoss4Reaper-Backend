@@ -36,6 +36,8 @@ public:
 	int deviceExpandedType{ 3 };
 	int deviceCount{ 0 };
 
+	int userParamCount{ 0 };
+
 
 	Model(FunctionExecutor& functionExecutor) noexcept;
 
@@ -48,6 +50,7 @@ public:
 	std::shared_ptr <Marker> GetMarker(const int index) noexcept;
 	std::shared_ptr <Marker> GetRegion(const int index) noexcept;
 	std::shared_ptr <Parameter> GetParameter(const int index) noexcept;
+	std::shared_ptr <Parameter> GetUserParameter(const int index) noexcept;
 
 	void SetDump()
 	{
@@ -74,6 +77,7 @@ private:
 	std::vector<std::shared_ptr<Marker>> markers;
 	std::vector<std::shared_ptr<Marker>> regions;
 	std::vector<std::shared_ptr<Parameter>> parameters;
+	std::vector<std::shared_ptr<Parameter>> userParameters;
 	std::mutex tracklock;
 	std::mutex markerlock;
 	std::mutex regionlock;

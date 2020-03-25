@@ -79,7 +79,7 @@ std::shared_ptr <Marker> Model::GetRegion(const int index) noexcept
 /**
  * Get a parameter.
  *
- * @param index The index of the parameter.
+ * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
 std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
@@ -93,4 +93,24 @@ std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
 			this->parameters.push_back(std::make_shared <Parameter>("/device/param/", index));
 	}
 	return this->parameters.at(index);
+}
+
+
+/**
+ * Get a user parameter.
+ *
+ * @param index The index of the parameter
+ * @return The parameter, if none exists at the index a new instance is created automatically
+ */
+std::shared_ptr <Parameter> Model::GetUserParameter(const int index) noexcept
+{
+	const std::lock_guard<std::mutex> lock(this->parameterlock);
+
+	const int diff = index - gsl::narrow_cast<int> (this->userParameters.size()) + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->userParameters.push_back(std::make_shared <Parameter>("/user/param/", index));
+	}
+	return this->userParameters.at(index);
 }

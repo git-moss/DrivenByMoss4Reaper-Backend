@@ -38,28 +38,42 @@ Parameter::Parameter(const char* prefixPath, const int index) noexcept : paramet
  * @param ss The stream where to append the formatted data
  * @param track The track to which the device belongs
  * @param deviceIndex The index of the device to which the parameters belong
- * @param parameterCount The number of all parameters
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const int& parameterCount, const bool& dump)
+void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const bool& dump)
+{
+	CollectData(ss, track, deviceIndex, this->parameterIndex, dump);
+}
+
+
+/**
+ * Collect the (changed) parameter data.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param track The track to which the device belongs
+ * @param deviceIndex The index of the device to which the parameters belong
+ * @param paramIndex The index of the parameter
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
+void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const int& paramIndex, const bool& dump)
 {
 	// The warning about array pointer decay is ignored because it cannot be fixed since we have to use the available Reaper function
 	constexpr int LENGTH = 20;
 	char nameBuf[LENGTH];
 
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-	bool result = TrackFX_GetParamName(track, deviceIndex, this->parameterIndex, nameBuf, LENGTH);
+		bool result = TrackFX_GetParamName(track, deviceIndex, paramIndex, nameBuf, LENGTH);
 	const std::string newName{ result ? nameBuf : "" };
 	this->name = Collectors::CollectStringValue(ss, this->addressName, this->name, newName, dump);
 
-	const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, parameterIndex);
+	const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, paramIndex);
 	const bool valueHasChanged = this->value != paramValue;
 	this->value = Collectors::CollectDoubleValue(ss, this->addressValue, this->value, paramValue, dump);
 
 	if (valueHasChanged)
 	{
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, parameterIndex, paramValue, nameBuf, LENGTH);
+			result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, paramValue, nameBuf, LENGTH);
 		const std::string newValue{ result ? nameBuf : "" };
 		this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, newValue, dump);
 	}
