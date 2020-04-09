@@ -51,7 +51,7 @@ const char* DrivenByMossSurface::GetConfigString() noexcept
  */
 void DrivenByMossSurface::Run()
 {
-	if (this->jvmManager == nullptr || this->isShutdown)
+	if (this->jvmManager == nullptr || !this->jvmManager->isRunning() || this->isShutdown)
 		return;
 
 	this->functionExecutor.ExecuteFunctions();
