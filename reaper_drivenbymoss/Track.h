@@ -47,8 +47,12 @@ public:
 
 	double volume{ 0.0 };
 	std::string volumeStr;
+	bool isVolumeTouch{ false };
+
 	double pan{ 0.0 };
 	std::string panStr;
+	bool isPanTouch{ false };
+
 	double vuLeft{ 0.0 };
 	double vuRight{ 0.0 };
 	int autoMode{ 0 };

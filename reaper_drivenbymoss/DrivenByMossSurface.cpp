@@ -2,6 +2,7 @@
 // (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
+
 #include "ReaDebug.h"
 #include "DrivenByMossSurface.h"
 
@@ -10,7 +11,7 @@
  * Constructor.
  */
 DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
-DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager> & aJvmManager) noexcept : isShutdown(false), jvmManager(aJvmManager), model(functionExecutor), updateModel(false)
+DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) noexcept : isShutdown(false), jvmManager(aJvmManager), model(functionExecutor), updateModel(false)
 {
 	ReaDebug::init(&model);
 }
@@ -119,8 +120,12 @@ void DrivenByMossSurface::SetTrackTitle(MediaTrack* trackid, const char* title) 
 
 bool DrivenByMossSurface::GetTouchState(MediaTrack* trackid, int isPan) noexcept
 {
-	// Not used
-	return false;
+	const int position = static_cast<int>(GetMediaTrackInfo_Value(trackid, "IP_TRACKNUMBER")) - 1;
+	if (position < 0)
+		return false;
+
+	std::shared_ptr <Track> trackPtr = model.GetTrack(position);
+	return isPan ? trackPtr->isPanTouch : trackPtr->isVolumeTouch;
 }
 
 void DrivenByMossSurface::SetAutoMode(int mode) noexcept

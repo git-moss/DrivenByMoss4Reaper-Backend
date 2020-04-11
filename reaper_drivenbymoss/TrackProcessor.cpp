@@ -9,7 +9,7 @@
 #include "TrackProcessor.h"
 #include "OscProcessor.h"
 #include "ReaperUtils.h"
-
+#include "ReaDebug.h"
 
 /**
  * Constructor.
@@ -189,7 +189,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 
 	if (std::strcmp(cmd, "recarm") == 0)
 	{
-		SetMediaTrackInfo_Value(track, "I_RECARM", value);
+		CSurf_OnRecArmChange(track, value);
 		return;
 	}
 
@@ -205,49 +205,39 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 		return;
 	}
 
-	if (std::strcmp(cmd, "autotrim_read") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 0);
+	if (TrackProcessor::ProcessAutomation(track, cmd, value))
 		return;
-	}
-
-	if (std::strcmp(cmd, "autoread") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 1);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autotouch") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 2);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autowrite") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 3);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autolatch") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 4);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autolatch_preview") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 5);
-		return;
-	}
 
 	Process(path, static_cast<double>(value));
+}
+
+
+bool TrackProcessor::ProcessAutomation(MediaTrack* track, const char* cmd, const int& value) const noexcept
+{
+	if (value <= 0)
+		return false;
+
+	int mode = -1;
+
+	if (std::strcmp(cmd, "autotrim_read") == 0)
+		mode = 0;
+	else if (std::strcmp(cmd, "autoread") == 0)
+		mode = 1;
+	else if (std::strcmp(cmd, "autotouch") == 0)
+		mode = 2;
+	else if (std::strcmp(cmd, "autowrite") == 0)
+		mode = 3;
+	else if (std::strcmp(cmd, "autolatch") == 0)
+		mode = 4;
+	else if (std::strcmp(cmd, "autolatch_preview") == 0)
+		mode = 5;
+
+	if (mode < 0)
+		return false;
+
+	SetTrackAutomationMode(track, mode);
+	CSurf_SetAutoMode(-1, nullptr);
+	return true;
 }
 
 
@@ -270,22 +260,34 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
-		// Touch not supported            
 		if (path.size() == 2)
 		{
 			trackData->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			CSurf_OnVolumeChange(track, trackData->volume, false);
+			CSurf_SetSurfaceVolume(track, CSurf_OnVolumeChange(track, trackData->volume, false), nullptr);
+			return;
+		}
+
+		const char* touchCmd = safeGet(path, 2);
+		if (std::strcmp(touchCmd, "touch") == 0)
+		{
+			trackData->isVolumeTouch = value > 0;
 		}
 		return;
 	}
 
 	if (std::strcmp(cmd, "pan") == 0)
 	{
-		// Touch not supported            
 		if (path.size() == 2)
 		{
 			trackData->pan = value * 2 - 1;
-			CSurf_OnPanChange(track, trackData->pan, false);
+			CSurf_SetSurfacePan(track, CSurf_OnPanChange(track, trackData->pan, false), nullptr);
+			return;
+		}
+
+		const char* touchCmd = safeGet(path, 2);
+		if (std::strcmp(touchCmd, "touch") == 0)
+		{
+			trackData->isPanTouch = value > 0;
 		}
 		return;
 	}
@@ -469,9 +471,9 @@ void TrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, con
 
 void TrackProcessor::SetIsActivated(ReaProject* project, bool enable) noexcept
 {
+	Undo_BeginBlock2(project);
 	if (enable)
 	{
-		Undo_BeginBlock2(project);
 		Main_OnCommandEx(UNLOCK_TRACK_CONTROLS, 0, project);
 		Main_OnCommandEx(SET_ALL_FX_ONLINE, 0, project);
 		ExecuteActionEx(project, UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
@@ -482,7 +484,6 @@ void TrackProcessor::SetIsActivated(ReaProject* project, bool enable) noexcept
 	}
 	else
 	{
-		Undo_BeginBlock2(project);
 		Main_OnCommandEx(MUTE_TRACKS, 0, project);
 		ExecuteActionEx(project, BYPASS_ALL_FX_ON_SELECTED_TRACKS);
 		ExecuteActionEx(project, MUTE_ALL_SENDS_ON_SELECTED_TRACKS);

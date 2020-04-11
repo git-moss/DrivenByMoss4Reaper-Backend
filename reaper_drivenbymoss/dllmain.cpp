@@ -303,7 +303,6 @@ static HWND configFunc(const char* type_string, HWND parent, const char* initCon
 		return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
 }
 
-
 // Description for DrivenByMoss surface extension
 static reaper_csurf_reg_t drivenbymoss_reg =
 {
@@ -312,6 +311,47 @@ static reaper_csurf_reg_t drivenbymoss_reg =
 	createFunc,
 	configFunc,
 };
+
+char g_last_insertfilename[2048];
+
+bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg) noexcept
+{
+	// returns BOOL if line (and optionally subsequent lines) processed
+
+	ReaDebug::Log("Line");
+
+	return true;
+}
+
+void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg) noexcept
+{
+	//ctx->AddLine("<NINJAMLOOP");
+	//ctx->AddLine("LASTFN \"%s\"", g_last_insertfilename);
+	//ctx->AddLine(">");
+
+	ReaDebug::Log("Save Extension.");
+
+	if (isUndo)
+		ReaDebug::Log("Save Extension: isUndo");
+}
+
+// Called on project load/undo before any (possible) ProcessExtensionLine. NULL is OK too
+// also called on "new project" (wont be followed by ProcessExtensionLine calls in that case)
+void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg) noexcept
+{
+	// set defaults here (since we know that ProcessExtensionLine could come up)
+
+	ReaDebug::Log("BeginLoadProjectState");
+}
+
+project_config_extension_t pcreg =
+{
+  ProcessExtensionLine,
+  SaveExtensionConfig,
+  BeginLoadProjectState,
+  nullptr,
+};
+
 
 
 // Must be extern to be exported from the DLL
@@ -341,6 +381,9 @@ extern "C"
 		// False positive, null check above is not detected
 		DISABLE_WARNING_DANGLING_POINTER
 		REAPERAPI_LoadAPI(rec->GetFunc);
+
+		// Register project notifications
+		// TODO rec->Register("projectconfig", &pcreg);
 
 		// Register extension
 		const int result = rec->Register("csurf", &drivenbymoss_reg);
