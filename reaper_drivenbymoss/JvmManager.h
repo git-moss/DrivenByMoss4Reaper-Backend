@@ -38,7 +38,12 @@ public:
 	}
 
 	void DisplayWindow();
-	void UpdateModel(std::string data);
+	void DisplayProjectWindow();
+	void UpdateModel(const std::string& data);
+
+	void SetDefaultDocumentSettings();
+	std::string GetFormattedDocumentSettings();
+	void SetFormattedDocumentSettings(const std::string& data);
 
 private:
 	std::string javaHomePath;
@@ -71,7 +76,7 @@ private:
 
 	bool LoadJvmLibrary();
 	std::string LookupJvmLibrary(const std::string& javaHomePath) const;
-	std::string CreateClasspath(std::string libDir) const;
+	std::string CreateClasspath(const std::string& libDir) const;
 	std::vector<std::string> GetDirectoryFiles(const std::string& dir) const;
 	std::string GetLibraryPath() const;
 

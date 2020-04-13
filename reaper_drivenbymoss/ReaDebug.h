@@ -52,6 +52,8 @@ public:
 
 	static void Log(const std::string& msg) noexcept;
 	static void Log(const char* msg) noexcept;
+	static void Log(const int& value) noexcept;
+	static void Log(const double& value) noexcept;
 
 	void Measure() noexcept;
 

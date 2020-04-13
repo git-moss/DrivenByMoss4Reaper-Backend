@@ -18,16 +18,17 @@ Parameter::Parameter(const char* prefixPath, const int index) noexcept : paramet
 	try
 	{
 		std::ostringstream das;
-		das << prefixPath << index << "/";
+		DISABLE_WARNING_CAN_THROW
+			das << prefixPath << index << "/";
 		const std::string paramAddress = das.str();
 
 		this->addressName = paramAddress + "name";
 		this->addressValue = paramAddress + "value";
 		this->addressValueStr = paramAddress + "value/str";
 	}
-	catch (...)
+	catch (const std::exception& ex)
 	{
-		ReaDebug() << "Could not create parameter addresses.";
+		ReaDebug() << "Could not create parameter addresses: " << ex.what();
 	}
 }
 

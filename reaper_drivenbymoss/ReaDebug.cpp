@@ -33,7 +33,8 @@ ReaDebug::~ReaDebug()
 			return;
 
 		std::ostringstream out;
-		out << "drivenbymoss: " << bufferStr << "\n";
+		DISABLE_WARNING_CAN_THROW
+			out << "drivenbymoss: " << bufferStr << "\n";
 		const std::string msg = out.str();
 
 		if (ReaDebug::model == nullptr)
@@ -144,6 +145,21 @@ void ReaDebug::Log(const char* msg) noexcept
 }
 
 
+void ReaDebug::Log(const int& value) noexcept
+{
+	Log(std::to_string(value));
+}
+
+
+void ReaDebug::Log(const double& value) noexcept
+{
+	Log(std::to_string(value));
+}
+
+
+/**
+ * Print out the time difference in milliseconds since the last call of the function.
+ */
 void ReaDebug::Measure() noexcept
 {
 	try

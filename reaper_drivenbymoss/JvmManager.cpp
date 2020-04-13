@@ -121,13 +121,13 @@ void JvmManager::Create()
 	if (opts == nullptr)
 		return;
 	DISABLE_WARNING_NO_POINTER_ARITHMETIC
-	DISABLE_WARNING_USE_GSL_AT
-	opts[0].optionString = &this->classpath[0];
+		DISABLE_WARNING_USE_GSL_AT
+		opts[0].optionString = &this->classpath[0];
 	if (this->debug)
 	{
 		DISABLE_WARNING_NO_POINTER_ARITHMETIC
-		DISABLE_WARNING_USE_GSL_AT
-		opts[1].optionString = &this->jvmCmdOptions[0];
+			DISABLE_WARNING_USE_GSL_AT
+			opts[1].optionString = &this->jvmCmdOptions[0];
 	}
 
 	// Minimum required Java version
@@ -290,11 +290,28 @@ void JvmManager::DisplayWindow()
 
 
 /**
+ * Call the displayProjectWindow method in the main class of the JVM.
+ */
+void JvmManager::DisplayProjectWindow()
+{
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
+	// Call displayWindow method
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayProjectWindow", "()V");
+	if (methodID == nullptr)
+		return;
+	this->env->CallStaticVoidMethod(clazz, methodID);
+	this->HandleException("ERROR: Could not call displayProjectWindow.");
+}
+
+
+/**
  * Call the updateModel method in the main class of the JVM.
  *
  * @param data The data to send
  */
-void JvmManager::UpdateModel(std::string data)
+void JvmManager::UpdateModel(const std::string& data)
 {
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
@@ -306,6 +323,68 @@ void JvmManager::UpdateModel(std::string data)
 	jstring dataUTF = this->env->NewStringUTF(data.c_str());
 	this->env->CallStaticVoidMethod(clazz, methodID, dataUTF);
 	this->HandleException("ERROR: Could not call updateModel.");
+}
+
+
+/**
+ * Call the setDefaultDocumentSettings method in the main class of the JVM.
+ */
+void JvmManager::SetDefaultDocumentSettings()
+{
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "setDefaultDocumentSettings", "()V");
+	if (methodID == nullptr)
+		return;
+	this->env->CallStaticVoidMethod(clazz, methodID);
+	this->HandleException("ERROR: Could not call setDefaultDocumentSettings.");
+}
+
+
+
+
+
+/**
+ * Call the getFormattedDocumentSettings method in the main class of the JVM.
+ *
+ * @return The document settings formatted to be stored in the Reaper extension data
+ */
+std::string JvmManager::GetFormattedDocumentSettings()
+{
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return "";
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "getFormattedDocumentSettings", "()Ljava/lang/String;");
+	if (methodID == nullptr)
+		return "";
+	jstring jdata = (jstring)this->env->CallStaticObjectMethod(clazz, methodID);
+	this->HandleException("ERROR: Could not call getFormattedDocumentSettings.");
+
+	jboolean isCopy = false;
+	const char* data = env->GetStringUTFChars(jdata, &isCopy);
+	std::string result{ data };
+	env->ReleaseStringUTFChars(jdata, data);
+	return result;
+}
+
+
+/**
+ * Call she SetFormattedDocumentSettings method in the main class of the JVM.
+ *
+ * @param data The data to send
+ */
+void JvmManager::SetFormattedDocumentSettings(const std::string& data)
+{
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "setFormattedDocumentSettings", "(Ljava/lang/String;)V");
+	if (methodID == nullptr)
+		return;
+	jstring dataUTF = this->env->NewStringUTF(data.c_str());
+	this->env->CallStaticVoidMethod(clazz, methodID, dataUTF);
+	this->HandleException("ERROR: Could not call setFormattedDocumentSettings.");
 }
 
 
@@ -341,7 +420,7 @@ std::string getDylibPath()
  * @param libDir The location where the Reaper extension libraries are located
  * @return The full classpath including the VM parameter
  */
-std::string JvmManager::CreateClasspath(std::string libDir) const
+std::string JvmManager::CreateClasspath(const std::string& libDir) const
 {
 	if (libDir.empty())
 		return libDir;
@@ -446,8 +525,7 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string& dir) c
 	{
 		ReaDebug() << "Error looking up JAR files in: " << dir;
 		return files;
-	}
-	while ((dirent_ptr = readdir(directory_ptr.get())) != nullptr)
+	} while ((dirent_ptr = readdir(directory_ptr.get())) != nullptr)
 		files.push_back(std::string(dirent_ptr->d_name));
 #endif
 	return files;

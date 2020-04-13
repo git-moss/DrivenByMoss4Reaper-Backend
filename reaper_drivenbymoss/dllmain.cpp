@@ -12,6 +12,7 @@
 #include <thread>
 
 #include "wdltypes.h"
+#include "lineparse.h"
 #include "resource.h"
 
 #include "CodeAnalysis.h"
@@ -23,6 +24,7 @@
 // static keyword restricts the visibility of a function to the file
 REAPER_PLUGIN_HINSTANCE pluginInstanceHandle;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
+gaccel_register_t openDBMProjectWindowAccel = { {0,0,0}, "DrivenByMoss: Open the project settings window." };
 DrivenByMossSurface* surface;
 std::unique_ptr <JvmManager> jvmManager;
 
@@ -217,6 +219,12 @@ bool hookCommandProc(int command, int flag)
 			jvmManager->DisplayWindow();
 		return true;
 	}
+	if (openDBMProjectWindowAccel.accel.cmd != 0 && openDBMProjectWindowAccel.accel.cmd == command)
+	{
+		if (jvmManager != nullptr)
+			jvmManager->DisplayProjectWindow();
+		return true;
+	}
 	return false;
 }
 
@@ -272,8 +280,8 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 			return nullptr;
 
 		DISABLE_WARNING_PUSH
-		DISABLE_WARNING_REINTERPRET_CAST
-		void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
+			DISABLE_WARNING_REINTERPRET_CAST
+			void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
 		void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
 		void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
 		void* processDoubleArgPtr = reinterpret_cast<void*>(&processDoubleArgCPP);
@@ -282,16 +290,16 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 		void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
 		DISABLE_WARNING_POP
 
-		// Nullcheck above is not picked up
-		DISABLE_WARNING_PUSH
-		DISABLE_WARNING_DANGLING_POINTER
-		jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
+			// Nullcheck above is not picked up
+			DISABLE_WARNING_PUSH
+			DISABLE_WARNING_DANGLING_POINTER
+			jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
 		DISABLE_WARNING_POP
 	}
 
 	// Note: delete is called from Reaper on shutdown, no need to do it ourselves
 	DISABLE_WARNING_DONT_USE_NEW
-	surface = new DrivenByMossSurface(jvmManager);
+		surface = new DrivenByMossSurface(jvmManager);
 	return surface;
 }
 
@@ -312,36 +320,63 @@ static reaper_csurf_reg_t drivenbymoss_reg =
 	configFunc,
 };
 
-char g_last_insertfilename[2048];
 
-bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg) noexcept
+/**
+ * Called for all extension sub-tags of the project file.
+ */
+bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
-	// returns BOOL if line (and optionally subsequent lines) processed
+	if (ctx == nullptr)
+		return false;
 
-	ReaDebug::Log("Line");
+	if (!jvmManager->isRunning())
+		return false;
+
+	// Parse the line and check if it is valid an belongs to this extension
+	LineParser lp(false);
+	if (lp.parse(line) || lp.getnumtokens() < 1)
+		return false;
+	if (strcmp(lp.gettoken_str(0), "<DRIVEN_BY_MOSS") != 0)
+		return false;
+
+	char linebuf[8000]{};
+	while (true)
+	{
+		if (ctx->GetLine(linebuf, sizeof(linebuf)) || lp.parse(linebuf))
+			break;
+		
+		if (lp.gettoken_str(0)[0] == '>')
+			break;
+
+		std::string data{linebuf};
+		jvmManager->SetFormattedDocumentSettings(data);
+	}
 
 	return true;
 }
 
-void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg) noexcept
+void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
-	//ctx->AddLine("<NINJAMLOOP");
-	//ctx->AddLine("LASTFN \"%s\"", g_last_insertfilename);
-	//ctx->AddLine(">");
+	if (ctx == nullptr)
+		return;
 
-	ReaDebug::Log("Save Extension.");
+	if (!jvmManager->isRunning())
+		return;
 
-	if (isUndo)
-		ReaDebug::Log("Save Extension: isUndo");
+	std::string line = jvmManager->GetFormattedDocumentSettings();
+
+	ctx->AddLine("<DRIVEN_BY_MOSS");
+	ctx->AddLine(line.c_str());
+	ctx->AddLine(">");
 }
 
-// Called on project load/undo before any (possible) ProcessExtensionLine. NULL is OK too
-// also called on "new project" (wont be followed by ProcessExtensionLine calls in that case)
-void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg) noexcept
+void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg)
 {
-	// set defaults here (since we know that ProcessExtensionLine could come up)
-
-	ReaDebug::Log("BeginLoadProjectState");
+	// Called on project load/undo before any (possible) ProcessExtensionLine. NULL is OK too
+	// also called on "new project" (wont be followed by ProcessExtensionLine calls in that case)
+	// Defaults could be set here but are already set by the controller instances
+	if (jvmManager.get() != nullptr && jvmManager->isRunning())
+		jvmManager->SetDefaultDocumentSettings();
 }
 
 project_config_extension_t pcreg =
@@ -380,10 +415,10 @@ extern "C"
 
 		// False positive, null check above is not detected
 		DISABLE_WARNING_DANGLING_POINTER
-		REAPERAPI_LoadAPI(rec->GetFunc);
+			REAPERAPI_LoadAPI(rec->GetFunc);
 
 		// Register project notifications
-		// TODO rec->Register("projectconfig", &pcreg);
+		rec->Register("projectconfig", &pcreg);
 
 		// Register extension
 		const int result = rec->Register("csurf", &drivenbymoss_reg);
@@ -393,11 +428,11 @@ extern "C"
 			return 0;
 		}
 
-		// Register Open Window action
+		// Register actions
 		openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_WINDOW_ACTION");
 		if (!openDBMConfigureWindowAccel.accel.cmd)
 		{
-			ReaDebug() << "Could not register ID for DrivenByMoss open window action.";
+			ReaDebug() << "Could not register ID for DrivenByMoss open configuration window action.";
 			return 0;
 		}
 		if (!rec->Register("gaccel", &openDBMConfigureWindowAccel))
@@ -405,9 +440,22 @@ extern "C"
 			ReaDebug() << "Could not register DrivenByMoss open window action.";
 			return 0;
 		}
+
+		openDBMProjectWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_PROJECT_WINDOW_ACTION");
+		if (!openDBMProjectWindowAccel.accel.cmd)
+		{
+			ReaDebug() << "Could not register ID for DrivenByMoss open project window action.";
+			return 0;
+		}
+		if (!rec->Register("gaccel", &openDBMProjectWindowAccel))
+		{
+			ReaDebug() << "Could not register DrivenByMoss open project action.";
+			return 0;
+		}
+
 		if (!rec->Register("hookcommand", (void*)hookCommandProc))
 		{
-			ReaDebug() << "Could not register DrivenByMoss open window action callback.";
+			ReaDebug() << "Could not register DrivenByMoss action callback.";
 			return 0;
 		}
 
