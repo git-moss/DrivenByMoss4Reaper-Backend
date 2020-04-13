@@ -366,7 +366,7 @@ void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_c
 	std::string line = jvmManager->GetFormattedDocumentSettings();
 
 	ctx->AddLine("<DRIVEN_BY_MOSS");
-	ctx->AddLine(line.c_str());
+    ctx->AddLine("%s", line.c_str());
 	ctx->AddLine(">");
 }
 
