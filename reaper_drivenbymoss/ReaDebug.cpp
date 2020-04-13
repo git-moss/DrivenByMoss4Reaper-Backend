@@ -32,9 +32,9 @@ ReaDebug::~ReaDebug()
 		if (bufferStr.empty())
 			return;
 
-		std::ostringstream out;
 		DISABLE_WARNING_CAN_THROW
-			out << "drivenbymoss: " << bufferStr << "\n";
+		std::ostringstream out;
+		out << "drivenbymoss: " << bufferStr << "\n";
 		const std::string msg = out.str();
 
 		if (ReaDebug::model == nullptr)
@@ -118,7 +118,7 @@ void ReaDebug::Log(const std::string& msg) noexcept
 #ifdef _WIN32
 		OutputDebugString(stringToWs(msg).c_str());
 #else
-		// TODO
+		std::cout << msg;
 #endif
 	}
 	catch (...)
@@ -135,7 +135,7 @@ void ReaDebug::Log(const char* msg) noexcept
 #ifdef _WIN32
 		OutputDebugString(stringToWs(msg).c_str());
 #else
-		// TODO
+		std::cout << msg;
 #endif
 	}
 	catch (...)
