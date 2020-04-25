@@ -230,6 +230,9 @@ std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePath) const
  */
 void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
 {
+	if (this->env == nullptr)
+		return;
+
 	const JNINativeMethod methods[]
 	{
 		{ (char*)"processNoArg", (char*)"(Ljava/lang/String;Ljava/lang/String;)V", processNoArgCPP },
@@ -259,6 +262,8 @@ void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCP
  */
 void JvmManager::StartApp()
 {
+	if (this->env == nullptr)
+		return;
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;
@@ -277,6 +282,8 @@ void JvmManager::StartApp()
  */
 void JvmManager::DisplayWindow()
 {
+	if (this->env == nullptr)
+		return;
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;
@@ -294,6 +301,8 @@ void JvmManager::DisplayWindow()
  */
 void JvmManager::DisplayProjectWindow()
 {
+	if (this->env == nullptr)
+		return;
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;
@@ -313,6 +322,8 @@ void JvmManager::DisplayProjectWindow()
  */
 void JvmManager::UpdateModel(const std::string& data)
 {
+	if (this->env == nullptr)
+		return;
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;
@@ -331,6 +342,8 @@ void JvmManager::UpdateModel(const std::string& data)
  */
 void JvmManager::SetDefaultDocumentSettings()
 {
+	if (this->env == nullptr)
+		return;
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;
@@ -352,6 +365,8 @@ void JvmManager::SetDefaultDocumentSettings()
  */
 std::string JvmManager::GetFormattedDocumentSettings()
 {
+	if (this->env == nullptr)
+		return "";
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return "";
@@ -362,7 +377,7 @@ std::string JvmManager::GetFormattedDocumentSettings()
 	this->HandleException("ERROR: Could not call getFormattedDocumentSettings.");
 
 	jboolean isCopy = false;
-	const char* data = env->GetStringUTFChars(jdata, &isCopy);
+	const char* data = this->env->GetStringUTFChars(jdata, &isCopy);
 	std::string result{ data };
 	env->ReleaseStringUTFChars(jdata, data);
 	return result;
@@ -376,6 +391,8 @@ std::string JvmManager::GetFormattedDocumentSettings()
  */
 void JvmManager::SetFormattedDocumentSettings(const std::string& data)
 {
+	if (this->env == nullptr)
+		return;
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;

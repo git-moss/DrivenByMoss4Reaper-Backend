@@ -22,10 +22,10 @@
 
 // The global extension variables required to bridge from C to C++,
 // static keyword restricts the visibility of a function to the file
-REAPER_PLUGIN_HINSTANCE pluginInstanceHandle;
+REAPER_PLUGIN_HINSTANCE pluginInstanceHandle = nullptr;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
 gaccel_register_t openDBMProjectWindowAccel = { {0,0,0}, "DrivenByMoss: Open the project settings window." };
-DrivenByMossSurface* surface;
+DrivenByMossSurface* surface = nullptr;
 std::unique_ptr <JvmManager> jvmManager;
 
 
@@ -213,16 +213,17 @@ void processMidiArgCPP(const JNIEnv* env, jobject object, jint status, jint data
 // Callback for custom actions
 bool hookCommandProc(int command, int flag)
 {
+	if (!jvmManager || !jvmManager->isRunning())
+		return false;
+
 	if (openDBMConfigureWindowAccel.accel.cmd != 0 && openDBMConfigureWindowAccel.accel.cmd == command)
 	{
-		if (jvmManager != nullptr)
-			jvmManager->DisplayWindow();
+		jvmManager->DisplayWindow();
 		return true;
 	}
 	if (openDBMProjectWindowAccel.accel.cmd != 0 && openDBMProjectWindowAccel.accel.cmd == command)
 	{
-		if (jvmManager != nullptr)
-			jvmManager->DisplayProjectWindow();
+		jvmManager->DisplayProjectWindow();
 		return true;
 	}
 	return false;
@@ -234,32 +235,40 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_INITDIALOG:
-	{
-		if (jvmManager != nullptr)
+		case WM_INITDIALOG:
 		{
+			std::string path = jvmManager ? jvmManager->GetJavaHomePath() : "Filled when the dialog is opened again...";
 #ifdef _WIN32
-			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(jvmManager->GetJavaHomePath()).c_str());
+			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(path).c_str());
 #else
-			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, jvmManager->GetJavaHomePath().c_str());
+			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, path.c_str());
 #endif
-		}
-	}
-	break;
-
-	case WM_COMMAND:
-	{
-		DISABLE_WARNING_NO_C_STYLE_CONVERSION
-			const WORD value = LOWORD(wParam);
-		switch (value)
-		{
-		case IDC_BUTTON_CONFIGURE:
-			if (jvmManager != nullptr)
-				jvmManager->DisplayWindow();
-			break;
+			if (jvmManager)
+			{
+				ShowWindow(GetDlgItem(hwndDlg, IDC_REOPEN_INFO), SW_HIDE);
+			}
+			else
+			{
+				ShowWindow(GetDlgItem(hwndDlg, IDC_JAVA_HOME_LBL), SW_HIDE);
+				ShowWindow(GetDlgItem(hwndDlg, IDC_JAVA_HOME), SW_HIDE);
+				ShowWindow(GetDlgItem(hwndDlg, IDC_BUTTON_CONFIGURE), SW_HIDE);
+			}
 		}
 		break;
-	}
+
+		case WM_COMMAND:
+		{
+			DISABLE_WARNING_NO_C_STYLE_CONVERSION
+				const WORD value = LOWORD(wParam);
+			switch (value)
+			{
+			case IDC_BUTTON_CONFIGURE:
+				if (jvmManager && jvmManager->isRunning())
+					jvmManager->DisplayWindow();
+				break;
+			}
+		}
+		break;
 	}
 	return 0;
 }
@@ -276,12 +285,12 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 	if (surface == nullptr && ENABLE_JAVA)
 	{
 		jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
-		if (jvmManager.get() == nullptr)
+		if (!jvmManager)
 			return nullptr;
 
 		DISABLE_WARNING_PUSH
-			DISABLE_WARNING_REINTERPRET_CAST
-			void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
+		DISABLE_WARNING_REINTERPRET_CAST
+		void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
 		void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
 		void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
 		void* processDoubleArgPtr = reinterpret_cast<void*>(&processDoubleArgCPP);
@@ -290,10 +299,10 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 		void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
 		DISABLE_WARNING_POP
 
-			// Nullcheck above is not picked up
-			DISABLE_WARNING_PUSH
-			DISABLE_WARNING_DANGLING_POINTER
-			jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
+		// Nullcheck above is not picked up
+		DISABLE_WARNING_PUSH
+		DISABLE_WARNING_DANGLING_POINTER
+		jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
 		DISABLE_WARNING_POP
 	}
 
@@ -308,7 +317,7 @@ static HWND configFunc(const char* type_string, HWND parent, const char* initCon
 {
 	// No way to prevent the LPARAM cast
 	DISABLE_WARNING_REINTERPRET_CAST
-		return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
+	return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
 }
 
 // Description for DrivenByMoss surface extension
@@ -329,10 +338,10 @@ bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUnd
 	if (ctx == nullptr)
 		return false;
 
-	if (!jvmManager->isRunning())
+	if (!jvmManager || !jvmManager->isRunning())
 		return false;
 
-	// Parse the line and check if it is valid an belongs to this extension
+	// Parse the line and check if it is valid and belongs to this extension
 	LineParser lp(false);
 	if (lp.parse(line) || lp.getnumtokens() < 1)
 		return false;
@@ -344,11 +353,11 @@ bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUnd
 	{
 		if (ctx->GetLine(linebuf, sizeof(linebuf)) || lp.parse(linebuf))
 			break;
-		
+
 		if (lp.gettoken_str(0)[0] == '>')
 			break;
 
-		std::string data{linebuf};
+		std::string data{ linebuf };
 		jvmManager->SetFormattedDocumentSettings(data);
 	}
 
@@ -360,13 +369,13 @@ void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_c
 	if (ctx == nullptr)
 		return;
 
-	if (!jvmManager->isRunning())
+	if (!jvmManager || !jvmManager->isRunning())
 		return;
 
 	std::string line = jvmManager->GetFormattedDocumentSettings();
 
 	ctx->AddLine("<DRIVEN_BY_MOSS");
-    ctx->AddLine("%s", line.c_str());
+	ctx->AddLine("%s", line.c_str());
 	ctx->AddLine(">");
 }
 
@@ -375,7 +384,7 @@ void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg)
 	// Called on project load/undo before any (possible) ProcessExtensionLine. NULL is OK too
 	// also called on "new project" (wont be followed by ProcessExtensionLine calls in that case)
 	// Defaults could be set here but are already set by the controller instances
-	if (jvmManager.get() != nullptr && jvmManager->isRunning())
+	if (jvmManager && jvmManager->isRunning())
 		jvmManager->SetDefaultDocumentSettings();
 }
 
@@ -388,11 +397,11 @@ project_config_extension_t pcreg =
 };
 
 
-
 // Must be extern to be exported from the DLL
 extern "C"
 {
 	// Defines the entry point for the DLL application.
+	// It is always executed after Reaper loaded it, even if the extension is not added in the configuration dialog!
 	REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance, const reaper_plugin_info_t* rec)
 	{
 		if (!ENABLE_EXTENSION)
@@ -401,7 +410,7 @@ extern "C"
 		// On shutdown
 		if (rec == nullptr)
 		{
-			if (jvmManager != nullptr)
+			if (jvmManager)
 				jvmManager.reset();
 			return 0;
 		}
@@ -417,9 +426,6 @@ extern "C"
 		DISABLE_WARNING_DANGLING_POINTER
 			REAPERAPI_LoadAPI(rec->GetFunc);
 
-		// Register project notifications
-		rec->Register("projectconfig", &pcreg);
-
 		// Register extension
 		const int result = rec->Register("csurf", &drivenbymoss_reg);
 		if (!result)
@@ -427,6 +433,9 @@ extern "C"
 			ReaDebug() << "Could not instantiate DrivenByMoss surface extension.";
 			return 0;
 		}
+
+		// Register project notifications
+		rec->Register("projectconfig", &pcreg);
 
 		// Register actions
 		openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_WINDOW_ACTION");

@@ -128,13 +128,22 @@ Send* Track::GetSend(const int index) noexcept
 
 double Track::GetVolume(MediaTrack* track, double position) const
 {
-	return ReaperUtils::ValueToDB(GetValue(track, position, "Volume", "D_VOL"));
+	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Volume");
+	if (envelope == nullptr)
+		return ReaperUtils::ValueToDB(GetMediaTrackInfo_Value(track, "D_VOL"));
+	return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
 }
 
 
 double Track::GetPan(MediaTrack* track, double position) const
 {
-	return GetValue(track, position, "Pan", "D_PAN");
+	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Pan");
+	if (envelope != nullptr)
+	{
+		// Higher values are left!
+		return -1 * ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+	}
+	return GetMediaTrackInfo_Value(track, "D_PAN");
 }
 
 
@@ -144,15 +153,6 @@ int Track::GetMute(MediaTrack* track, double position, int trackState) const
 	if (envelope != nullptr)
 		return (int)ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
 	return (trackState & 8) > 0 ? 1 : 0;
-}
-
-
-double Track::GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const
-{
-	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, envelopeName);
-	if (envelope != nullptr)
-		return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
-	return GetMediaTrackInfo_Value(track, infoName);
 }
 
 
