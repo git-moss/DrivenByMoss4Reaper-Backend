@@ -25,8 +25,10 @@
 REAPER_PLUGIN_HINSTANCE pluginInstanceHandle = nullptr;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
 gaccel_register_t openDBMProjectWindowAccel = { {0,0,0}, "DrivenByMoss: Open the project settings window." };
-DrivenByMossSurface* surface = nullptr;
 std::unique_ptr <JvmManager> jvmManager;
+
+// Defined in DrivenByMossSurface.cpp
+extern DrivenByMossSurface* surfaceInstance;
 
 
 /**
@@ -39,7 +41,7 @@ std::unique_ptr <JvmManager> jvmManager;
  */
 void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command)
 {
-	if (env == nullptr || surface == nullptr)
+	if (env == nullptr || surfaceInstance == nullptr)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
@@ -49,7 +51,7 @@ void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring com
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
-	surface->GetOscParser().Process(procstr, path);
+	surfaceInstance->GetOscParser().Process(procstr, path);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -67,7 +69,7 @@ void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring com
  */
 void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jstring value)
 {
-	if (env == nullptr || surface == nullptr)
+	if (env == nullptr || surfaceInstance == nullptr)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
@@ -84,7 +86,7 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
 	std::string valueString(val);
-	surface->GetOscParser().Process(procstr, path, valueString);
+	surfaceInstance->GetOscParser().Process(procstr, path, valueString);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -103,7 +105,7 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
  */
 void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jint value)
 {
-	if (env == nullptr || surface == nullptr)
+	if (env == nullptr || surfaceInstance == nullptr)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
@@ -113,7 +115,7 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
-	surface->GetOscParser().Process(procstr, path, value);
+	surfaceInstance->GetOscParser().Process(procstr, path, value);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -131,7 +133,7 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
  */
 void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jdouble value)
 {
-	if (env == nullptr || surface == nullptr)
+	if (env == nullptr || surfaceInstance == nullptr)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
@@ -141,7 +143,7 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
-	surface->GetOscParser().Process(procstr, path, value);
+	surfaceInstance->GetOscParser().Process(procstr, path, value);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -158,7 +160,7 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
  */
 void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean enable)
 {
-	if (env == nullptr || surface == nullptr)
+	if (env == nullptr || surfaceInstance == nullptr)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
@@ -166,7 +168,7 @@ void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean e
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
-	surface->GetDataCollector().EnableUpdate(procstr, enable);
+	surfaceInstance->GetDataCollector().EnableUpdate(procstr, enable);
 	env->ReleaseStringUTFChars(processor, proc);
 }
 
@@ -181,7 +183,7 @@ void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean e
  */
 void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 {
-	if (env == nullptr || surface == nullptr)
+	if (env == nullptr || surfaceInstance == nullptr)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
@@ -189,7 +191,7 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
-	surface->GetDataCollector().DelayUpdate(procstr);
+	surfaceInstance->GetDataCollector().DelayUpdate(procstr);
 	env->ReleaseStringUTFChars(processor, proc);
 }
 
@@ -205,7 +207,7 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
  */
 void processMidiArgCPP(const JNIEnv* env, jobject object, jint status, jint data1, jint data2) noexcept
 {
-	if (env != nullptr && surface != nullptr)
+	if (env != nullptr && surfaceInstance != nullptr)
 		StuffMIDIMessage(0, status, data1, data2);
 }
 
@@ -280,9 +282,9 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 	if (!ENABLE_EXTENSION)
 		return nullptr;
 
-	// Note: If the setup dialog is closed with OK, the current surface will be destructed but
+	// Note: If the setup dialog is closed with OK, the current surfaceInstance will be destructed but
 	// we cannot creat a new JVM, since this is only possible once!
-	if (surface == nullptr && ENABLE_JAVA)
+	if (surfaceInstance == nullptr && ENABLE_JAVA)
 	{
 		jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
 		if (!jvmManager)
@@ -308,8 +310,8 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 
 	// Note: delete is called from Reaper on shutdown, no need to do it ourselves
 	DISABLE_WARNING_DONT_USE_NEW
-		surface = new DrivenByMossSurface(jvmManager);
-	return surface;
+		surfaceInstance = new DrivenByMossSurface(jvmManager);
+	return surfaceInstance;
 }
 
 // Callback function for Reaper to create the configuration dialog of the extension
@@ -320,7 +322,7 @@ static HWND configFunc(const char* type_string, HWND parent, const char* initCon
 	return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
 }
 
-// Description for DrivenByMoss surface extension
+// Description for DrivenByMoss surfaceInstance extension
 static reaper_csurf_reg_t drivenbymoss_reg =
 {
 	"DrivenByMoss4Reaper",
@@ -430,7 +432,7 @@ extern "C"
 		const int result = rec->Register("csurf", &drivenbymoss_reg);
 		if (!result)
 		{
-			ReaDebug() << "Could not instantiate DrivenByMoss surface extension.";
+			ReaDebug() << "Could not instantiate DrivenByMoss surfaceInstance extension.";
 			return 0;
 		}
 

@@ -85,7 +85,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value) n
 
 void NoteRepeatProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const noexcept
 {
-	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 1);
+	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, true, enable ? 1 : 0);
 	if (position > -1)
 	{
 		// Note: 0x1000000 selects plugins on the record input FX chain
@@ -96,7 +96,7 @@ void NoteRepeatProcessor::EnableRepeatPlugin(ReaProject* project, MediaTrack* tr
 
 void NoteRepeatProcessor::SetParameter(ReaProject* project, MediaTrack* track, int parameterIndex, double value) const noexcept
 {
-	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 1);
+	const int position = TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, true, 1);
 	if (position > -1)
 	{
 		// Note: 0x1000000 selects plugins on the record input FX chain

@@ -6,6 +6,9 @@
 #include "ReaDebug.h"
 #include "DrivenByMossSurface.h"
 
+// Singleton, deleted from Reaper
+DrivenByMossSurface* surfaceInstance = nullptr;
+
 
 /**
  * Constructor.
@@ -22,9 +25,10 @@ DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManage
  */
 DrivenByMossSurface::~DrivenByMossSurface()
 {
-	if (this->isShutdown)
-		return;
 	this->isShutdown = true;
+
+	// Null global variable
+	surfaceInstance = nullptr;
 }
 
 

@@ -159,7 +159,7 @@ int Track::GetMute(MediaTrack* track, double position, int trackState) const
 int Track::GetTrackLockState(char* chunk) const
 {
 	std::cmatch result{};
-	if (!std::regex_search(chunk, result, INPUT_QUANTIZE_PATTERN))
+	if (!std::regex_search(chunk, result, LOCK_PATTERN))
 		return 0;
 	return std::atoi(result.str(1).c_str());
 }

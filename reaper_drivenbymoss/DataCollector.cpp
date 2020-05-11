@@ -596,7 +596,7 @@ void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* pr
 	MediaTrack* const track = GetSelectedTrack(project, 0);
 
 	// Midi note repeat plugin is on track?
-	const int position = track ? TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, 1, 0) : -1;
+	const int position = track ? TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, true, 0) : -1;
 	const int inputPosition = 0x1000000 + position;
 
 	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, inputPosition) ? 1 : 0;
