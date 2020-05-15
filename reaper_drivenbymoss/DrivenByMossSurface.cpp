@@ -16,7 +16,7 @@ DrivenByMossSurface* surfaceInstance = nullptr;
 DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
 DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) noexcept : isShutdown(false), jvmManager(aJvmManager), model(functionExecutor), updateModel(false)
 {
-	ReaDebug::init(&model);
+	ReaDebug::setModel(&model);
 }
 
 
@@ -27,7 +27,8 @@ DrivenByMossSurface::~DrivenByMossSurface()
 {
 	this->isShutdown = true;
 
-	// Null global variable
+	// Null global variables
+	ReaDebug::setModel(nullptr);
 	surfaceInstance = nullptr;
 }
 

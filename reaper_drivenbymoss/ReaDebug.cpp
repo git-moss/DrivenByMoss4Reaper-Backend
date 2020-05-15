@@ -7,6 +7,7 @@
 #include "ReaperUtils.h"
 #include "StringUtils.h"
 
+// Initialise the static variable
 Model* ReaDebug::model = nullptr;
 
 constexpr const char* DISPLAY_ERROR = "Could not display error message in Reaper.";

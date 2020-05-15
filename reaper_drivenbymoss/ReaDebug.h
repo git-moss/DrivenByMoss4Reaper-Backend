@@ -45,7 +45,7 @@ public:
 	ReaDebug& operator << (void* value);
 	ReaDebug& operator << (const std::string& value);
 
-	static void init(Model* aModel) noexcept
+	static void setModel(Model* aModel) noexcept
 	{
 		model = aModel;
 	}
