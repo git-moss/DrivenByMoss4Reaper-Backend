@@ -121,8 +121,8 @@ void JvmManager::Create()
 	if (opts == nullptr)
 		return;
 	DISABLE_WARNING_NO_POINTER_ARITHMETIC
-		DISABLE_WARNING_USE_GSL_AT
-		opts[0].optionString = &this->classpath[0];
+	DISABLE_WARNING_USE_GSL_AT
+	opts[0].optionString = &this->classpath[0];
 	if (this->debug)
 	{
 		DISABLE_WARNING_NO_POINTER_ARITHMETIC
@@ -523,7 +523,7 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string& dir) c
 	std::string pattern(dir);
 	pattern.append("\\*");
 	WIN32_FIND_DATA data;
-	HANDLE hFind = hFind = FindFirstFile(stringToWs(pattern).c_str(), &data);
+	HANDLE hFind = FindFirstFile(stringToWs(pattern).c_str(), &data);
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		ReaDebug() << "Error looking up JAR files in: " << pattern;
