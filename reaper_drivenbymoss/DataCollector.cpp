@@ -600,7 +600,7 @@ void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* pr
 	const int inputPosition = 0x1000000 + position;
 
 	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, inputPosition) ? 1 : 0;
-	this->repeatActive = Collectors::CollectIntValue(ss, "/noterepeat/active", this->repeatActive, repeatActive ? 1 : 0, dump);
+	this->repeatActive = Collectors::CollectIntValue(ss, "/noterepeat/active", this->repeatActive, repeatActive, dump);
 
 	double minVal{}, maxVal{};
 	const double repeatRate = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_RATE, &minVal, &maxVal) : 1.0;
