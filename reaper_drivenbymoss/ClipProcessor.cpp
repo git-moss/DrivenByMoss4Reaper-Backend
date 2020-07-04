@@ -31,7 +31,14 @@ void ClipProcessor::Process(std::deque<std::string>& path) noexcept
 	if (item == nullptr)
 		return;
 
-	const char* cmd = safeGet (path, 0);
+	const char* cmd = safeGet(path, 0);
+
+	if (std::strcmp(cmd, "clear") == 0)
+	{
+		// Remove all MIDI events from the clip (midi item)
+		this->ClearNotes(project, item, -1, -1);
+		return;
+	}
 
 	if (std::strcmp(cmd, "duplicate") == 0)
 	{
@@ -321,13 +328,21 @@ void ClipProcessor::ClearNotes(ReaProject* project, MediaItem* item, int channel
 
 	PreventUIRefresh(1);
 
-	int midiChannel{ 0 };
-	int notePitch{ 0 };
-	for (int id = 0; id < noteCount; id++)
+	if (channel == -1 && pitch == -1)
 	{
-		MIDI_GetNote(take, id, nullptr, nullptr, nullptr, nullptr, &midiChannel, &notePitch, nullptr);
-		if (channel == midiChannel && pitch == notePitch)
+		for (int id = noteCount - 1; id >= 0; id--)
 			MIDI_DeleteNote(take, id);
+	}
+	else
+	{
+		int midiChannel{ 0 };
+		int notePitch{ 0 };
+		for (int id = noteCount - 1; id >= 0; id--)
+		{
+			MIDI_GetNote(take, id, nullptr, nullptr, nullptr, nullptr, &midiChannel, &notePitch, nullptr);
+			if (channel == midiChannel && pitch == notePitch)
+				MIDI_DeleteNote(take, id);
+		}
 	}
 
 	UpdateItemInProject(item);
