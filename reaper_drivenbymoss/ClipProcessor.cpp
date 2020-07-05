@@ -103,17 +103,20 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 
 	if (std::strcmp(cmd, "start") == 0)
 	{
+		PreventUIRefresh(1);
 		double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
 		int timesig, denomOut;
 		double startBPM;
 		TimeMap_GetTimeSigAtTime(project, itemStart, &timesig, &denomOut, &startBPM);
 		itemStart = value * 60.0 / startBPM;
 		SetMediaItemInfo_Value(item, "D_POSITION", itemStart);
+		PreventUIRefresh(-1);
 		return;
 	}
 
 	if (std::strcmp(cmd, "end") == 0)
 	{
+		PreventUIRefresh(1);
 		const double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
 		double itemEnd = itemStart + GetMediaItemInfo_Value(item, "D_LENGTH");
 		int timesig, denomOut;
@@ -121,6 +124,7 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 		TimeMap_GetTimeSigAtTime(project, itemEnd, &timesig, &denomOut, &startBPM);
 		itemEnd = value * 60.0 / startBPM;
 		SetMediaItemInfo_Value(item, "D_LENGTH", itemEnd - itemStart);
+		PreventUIRefresh(-1);
 		return;
 	}
 
@@ -208,20 +212,24 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 
 		if (std::strcmp(noteCmd, "toggle") == 0)
 		{
+			PreventUIRefresh(1);
 			if (!ClearNote(project, item, channel, pitch, ppqPosStart))
 			{
 				MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, channel, pitch, velocity, nullptr);
 				UpdateItemInProject(item);
 				Undo_OnStateChange_Item(project, "Insert note", item);
 			}
+			PreventUIRefresh(-1);
 			return;
 		}
 
 		if (std::strcmp(noteCmd, "set") == 0)
 		{
+			PreventUIRefresh(1);
 			MIDI_InsertNote(take, false, false, ppqPosStart, ppqPosEnd, channel, pitch, velocity, nullptr);
 			UpdateItemInProject(item);
 			Undo_OnStateChange_Item(project, "Insert note", item);
+			PreventUIRefresh(-1);
 			return;
 		}
 
@@ -256,6 +264,7 @@ void ClipProcessor::SetColorOfClip(ReaProject* project, MediaItem* item, const s
 		return;
 	}
 
+	PreventUIRefresh(1);
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
 
 	const int takes = CountTakes(item);
@@ -268,6 +277,7 @@ void ClipProcessor::SetColorOfClip(ReaProject* project, MediaItem* item, const s
 
 	UpdateItemInProject(item);
 	Undo_OnStateChange_Item(project, "Set clip color", item);
+	PreventUIRefresh(-1);
 }
 
 
@@ -303,8 +313,8 @@ void ClipProcessor::TransposeClip(ReaProject* project, MediaItem* item, int tran
 	}
 
 	UpdateItemInProject(item);
-	PreventUIRefresh(-1);
 	Undo_OnStateChange_Item(project, "Transpose selected midi item notes", item);
+	PreventUIRefresh(-1);
 }
 
 
@@ -372,6 +382,8 @@ bool ClipProcessor::ClearNote(ReaProject* project, MediaItem* item, int channel,
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return false;
 
+	PreventUIRefresh(1);
+
 	bool found{ false };
 	int midiChannel{ 0 };
 	int notePitch{ 0 };
@@ -392,5 +404,8 @@ bool ClipProcessor::ClearNote(ReaProject* project, MediaItem* item, int channel,
 		UpdateItemInProject(item);
 		Undo_OnStateChange_Item(project, "Delete note", item);
 	}
+	
+	PreventUIRefresh(-1);
+
 	return found;
 }

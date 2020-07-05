@@ -48,6 +48,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 
 	if (std::strcmp(cmd, "remove") == 0)
 	{
+		PreventUIRefresh(1);
 		Undo_BeginBlock2(project);
 		DeleteTrack(track);
 		// Make sure that a track is selected
@@ -63,6 +64,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 			}
 		}
 		Undo_EndBlock2(project, "Delete track", 0);
+		PreventUIRefresh(-1);
 		return;
 	}
 

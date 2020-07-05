@@ -60,6 +60,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 	const char* cmd = safeGet(path, 1);
 	if (std::strcmp(cmd, "remove") == 0)
 	{
+		PreventUIRefresh(1);
 		Undo_BeginBlock2(project);
 		TrackFX_Delete(track, fx);
 		// Make sure a device is selected
@@ -67,6 +68,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 		if (fx >= max)
 			this->model.deviceSelected = max - 1 - this->model.deviceBankOffset;
 		Undo_EndBlock2(project, "Delete device", 0);
+		PreventUIRefresh(-1);
 		return;
 	}
 
@@ -170,9 +172,11 @@ void DeviceProcessor::Process(std::deque<std::string>& path, double value) noexc
 
 	if (std::strcmp(part, "param") == 0)
 	{
+		PreventUIRefresh(1);
 		const int paramNo = atoi(safeGet(path, 1));
 		if (std::strcmp(safeGet(path, 2), "value") == 0)
 			TrackFX_SetParamNormalized(track, selDevice, paramNo, value);
+		PreventUIRefresh(-1);
 	}
 }
 

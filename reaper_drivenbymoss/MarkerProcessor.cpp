@@ -31,10 +31,12 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 
 	if (std::strcmp(part, "add") == 0)
 	{
+		PreventUIRefresh(1);
 		const double position = GetPlayPosition2Ex(project);
 		std::ostringstream markerName;
 		markerName << "Marker " << (this->model.markerCount + 1);
 		AddProjectMarker(project, false, position, 0, markerName.str().c_str(), 0);
+		PreventUIRefresh(-1);
 		return;
 	}
 

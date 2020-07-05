@@ -153,8 +153,10 @@ void MastertrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* trac
 		return;
 	}
 
+	PreventUIRefresh(1);
 	Undo_BeginBlock2(project);
 	// Note: SetTrackColor is not working for the master track
 	SetMediaTrackInfo_Value(track, "I_CUSTOMCOLOR", ColorToNative(red, green, blue));
 	Undo_EndBlock2(project, "Set master track color", 0);
+	PreventUIRefresh(-1);
 }
