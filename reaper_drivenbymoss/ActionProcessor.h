@@ -22,7 +22,7 @@ public:
 	void Process(std::deque<std::string>& path, int value) noexcept override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
 
-	void ActionProcessor::CollectData(std::ostringstream& ss);
+	void CollectData(std::ostringstream& ss);
 
 	void CheckActionSelection();
 
