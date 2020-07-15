@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Model.h"
+#include "ActionProcessor.h"
 
 
 /**
@@ -29,7 +30,7 @@ public:
 	DataCollector(DataCollector&&) = delete;
 	DataCollector& operator=(DataCollector&&) = delete;
 
-	std::string CollectData(const bool& dump);
+	std::string CollectData(const bool& dump, ActionProcessor& actionProcessor);
 
 	void EnableUpdate(std::string processor, bool enable);
 	void DelayUpdate(std::string processor);

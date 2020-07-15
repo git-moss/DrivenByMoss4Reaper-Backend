@@ -14,6 +14,7 @@
 #include "Model.h"
 #include "OscProcessor.h"
 #include "JvmManager.h"
+#include "ActionProcessor.h"
 #include "TransportProcessor.h"
 #include "MastertrackProcessor.h"
 #include "TrackProcessor.h"
@@ -31,7 +32,7 @@
 class OscParser
 {
 public:
-	OscParser(Model &model) noexcept;
+	OscParser(Model& model) noexcept;
 	OscParser(const OscParser&) = delete;
 	OscParser& operator=(const OscParser&) = delete;
 	OscParser(OscParser&&) = delete;
@@ -42,6 +43,12 @@ public:
 	virtual void Process(const std::string processor, const std::string path, const std::string value) const;
 	virtual void Process(const std::string processor, const std::string path, const int value) const;
 	virtual void Process(const std::string processor, const std::string path, const double value) const;
+
+	ActionProcessor& GetActionProcessor() noexcept
+	{
+		return this->actionProcessor;
+	};
+
 
 private:
 	PlayProcessor 					 playProcessor;
@@ -67,11 +74,11 @@ private:
 	SceneProcessor 					 sceneProcessor;
 	IniFileProcessor                 iniFileProcessor;
 
-	std::map<std::string, OscProcessor *> processors;
-	Model &theModel;
+	std::map<std::string, OscProcessor*> processors;
+	Model& theModel;
 
-	std::deque<std::string> Split(const std::string &path) const;
-	void LogError(const std::string command, const std::out_of_range &oor) const;
+	std::deque<std::string> Split(const std::string& path) const;
+	void LogError(const std::string command, const std::out_of_range& oor) const;
 };
 
 #endif /* _DBM_OSCPARSER_H_ */

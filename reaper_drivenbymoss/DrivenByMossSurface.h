@@ -68,7 +68,7 @@ private:
 
 	std::string CollectData(bool dump)
 	{
-		return this->dataCollector.CollectData(dump);
+		return this->dataCollector.CollectData(dump, this->oscParser.GetActionProcessor());
 	};
 };
 

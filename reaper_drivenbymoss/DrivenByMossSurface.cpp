@@ -62,6 +62,8 @@ void DrivenByMossSurface::Run()
 
 	this->functionExecutor.ExecuteFunctions();
 
+	this->oscParser.GetActionProcessor().CheckActionSelection();
+
 	// Only update each 2nd call (about 60ms)
 	this->updateModel = !this->updateModel;
 	if (!this->updateModel)

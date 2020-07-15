@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\reaper_drivenbymoss\ActionProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\ClipProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DataCollector.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DeviceProcessor.cpp" />
@@ -182,6 +183,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\TrackProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\reaper_drivenbymoss\ActionProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\afxres.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\CodeAnalysis.h" />

@@ -124,17 +124,6 @@ public:
 	}
 };
 
-class ActionProcessor : public OscProcessor
-{
-public:
-	ActionProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
-
-	void Process(std::deque<std::string>& path, int value) noexcept override
-	{
-		Main_OnCommandEx(value, 0, ReaperUtils::GetProject());
-	};
-};
-
 class QuantizeProcessor : public OscProcessor
 {
 public:

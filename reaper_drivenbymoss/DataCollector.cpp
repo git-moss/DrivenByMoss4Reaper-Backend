@@ -43,9 +43,12 @@ DataCollector::~DataCollector()
  * @param dump If true all data is collected not only the changed one since the last call
  * @return The formatted data in OSC style separated by line separators
  */
-std::string DataCollector::CollectData(const bool& dump)
+std::string DataCollector::CollectData(const bool& dump, ActionProcessor& actionProcessor)
 {
 	std::ostringstream ss;
+
+	actionProcessor.CollectData(ss);
+
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetSelectedTrack(project, 0);
 
@@ -750,7 +753,7 @@ void DataCollector::LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* tra
 			counter += 1;
 		}
 	}
-	catch (const std::ios_base::failure & ex)
+	catch (const std::ios_base::failure& ex)
 	{
 		(void)ex;
 		// File does not exist
