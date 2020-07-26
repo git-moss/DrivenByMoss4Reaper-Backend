@@ -3,6 +3,7 @@
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "WrapperGSL.h"
+#include "ReaDebug.h"
 #include "Model.h"
 
 
@@ -14,6 +15,28 @@ Model::Model(FunctionExecutor& aFunctionExecutor)  noexcept :
 {
 	// Intentionally empty
 }
+
+
+void Model::AddFunction(std::function<void(void)> f) noexcept
+{
+	try
+	{
+		functionExecutor.AddFunction(f);
+	}
+	catch (const std::exception& ex)
+	{
+		ReaDebug::Log("Could not add function. Cause: ");
+		ReaDebug::Log(ex.what());
+	}
+	catch (const std::string& ex)
+	{
+		ReaDebug::Log("Could not add function. Cause: " + ex);
+	}
+	catch (...)
+	{
+		ReaDebug::Log("Could not add function.");
+	}
+};
 
 
 /**

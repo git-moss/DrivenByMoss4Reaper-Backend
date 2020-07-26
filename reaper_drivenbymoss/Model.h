@@ -41,10 +41,7 @@ public:
 
 	Model(FunctionExecutor& functionExecutor) noexcept;
 
-	void AddFunction(std::function<void(void)> f)
-	{
-		functionExecutor.AddFunction(f);
-	};
+	void AddFunction(std::function<void(void)> f) noexcept;
 
 	std::shared_ptr <Track> GetTrack(const int index) noexcept;
 	std::shared_ptr <Marker> GetMarker(const int index) noexcept;

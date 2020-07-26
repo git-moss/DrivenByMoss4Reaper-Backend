@@ -355,9 +355,6 @@ void JvmManager::SetDefaultDocumentSettings()
 }
 
 
-
-
-
 /**
  * Call the getFormattedDocumentSettings method in the main class of the JVM.
  *
