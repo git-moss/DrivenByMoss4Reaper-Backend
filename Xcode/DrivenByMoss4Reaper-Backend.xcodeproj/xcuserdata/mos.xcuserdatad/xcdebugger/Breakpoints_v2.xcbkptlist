@@ -9,8 +9,9 @@
          <BreakpointContent
             uuid = "FD00BAC4-7D7E-4094-AE73-5A476423A8EE"
             shouldBeEnabled = "Yes"
-            ignoreCount = "0"
+            nameForDebugger = "Ignore SIGSEGV"
             condition = "process handle SIGSEGV -n true -p true -s false"
+            ignoreCount = "0"
             continueAfterRunningActions = "Yes"
             symbolName = "NSApplicationMain"
             moduleName = "">

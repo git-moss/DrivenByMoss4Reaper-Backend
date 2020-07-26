@@ -40,6 +40,9 @@
 		8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F21B20F40E4000F5FF39 /* reaper_plugin.h */; };
 		855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855CF89420F4B8EA0001F74A /* ReaDebug.cpp */; };
 		855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = 855CF89520F4B8EB0001F74A /* ReaDebug.h */; };
+		85647DC224BFB2FA00576420 /* ActionProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 85647DBF24BFB2FA00576420 /* ActionProcessor.h */; };
+		85647DC324BFB2FA00576420 /* CodeAnalysis.h in Headers */ = {isa = PBXBuildFile; fileRef = 85647DC024BFB2FA00576420 /* CodeAnalysis.h */; };
+		85647DC424BFB2FA00576420 /* ActionProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85647DC124BFB2FA00576420 /* ActionProcessor.cpp */; };
 		858F79F321558EA800488951 /* Track.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79E921558E9800488951 /* Track.h */; };
 		858F79F421558EA800488951 /* ReaperUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EA21558E9900488951 /* ReaperUtils.h */; };
 		858F79F521558EA800488951 /* SceneProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79EB21558E9A00488951 /* SceneProcessor.cpp */; };
@@ -105,6 +108,9 @@
 		8554F21B20F40E4000F5FF39 /* reaper_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = reaper_plugin.h; path = ../reaper_drivenbymoss/reaper_plugin.h; sourceTree = "<group>"; };
 		855CF89420F4B8EA0001F74A /* ReaDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ReaDebug.cpp; path = ../reaper_drivenbymoss/ReaDebug.cpp; sourceTree = "<group>"; };
 		855CF89520F4B8EB0001F74A /* ReaDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaDebug.h; path = ../reaper_drivenbymoss/ReaDebug.h; sourceTree = "<group>"; };
+		85647DBF24BFB2FA00576420 /* ActionProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ActionProcessor.h; path = ../reaper_drivenbymoss/ActionProcessor.h; sourceTree = "<group>"; };
+		85647DC024BFB2FA00576420 /* CodeAnalysis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CodeAnalysis.h; path = ../reaper_drivenbymoss/CodeAnalysis.h; sourceTree = "<group>"; };
+		85647DC124BFB2FA00576420 /* ActionProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ActionProcessor.cpp; path = ../reaper_drivenbymoss/ActionProcessor.cpp; sourceTree = "<group>"; };
 		85823BC220F40CD000E4CC57 /* reaper_drivenbymoss.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = reaper_drivenbymoss.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		858F79E921558E9800488951 /* Track.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Track.h; path = ../reaper_drivenbymoss/Track.h; sourceTree = "<group>"; };
 		858F79EA21558E9900488951 /* ReaperUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaperUtils.h; path = ../reaper_drivenbymoss/ReaperUtils.h; sourceTree = "<group>"; };
@@ -164,6 +170,9 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				85647DC124BFB2FA00576420 /* ActionProcessor.cpp */,
+				85647DBF24BFB2FA00576420 /* ActionProcessor.h */,
+				85647DC024BFB2FA00576420 /* CodeAnalysis.h */,
 				85DC73E92422BBCA006F7BCD /* afxres.h */,
 				85DC73EA2422BBCA006F7BCD /* de_mossgrabers_reaper_MainApp.h */,
 				85DC73ED2422BBCB006F7BCD /* dllmain.h */,
@@ -265,8 +274,10 @@
 				85DC73F62422BBCB006F7BCD /* ModdedCodecvt.h in Headers */,
 				85DC73F32422BBCB006F7BCD /* WrapperJNI.h in Headers */,
 				8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */,
+				85647DC224BFB2FA00576420 /* ActionProcessor.h in Headers */,
 				858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */,
 				858F7A0521558EBC00488951 /* de_mossgrabers_reaper_ui_MainFrame.h in Headers */,
+				85647DC324BFB2FA00576420 /* CodeAnalysis.h in Headers */,
 				858F7A0621558EBC00488951 /* Collectors.h in Headers */,
 				855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */,
 				8554F22A20F40E4000F5FF39 /* MastertrackProcessor.h in Headers */,
@@ -373,6 +384,7 @@
 				8554F23720F40E4000F5FF39 /* stdafx.cpp in Sources */,
 				8554F22920F40E4000F5FF39 /* JvmManager.cpp in Sources */,
 				8554F23820F40E4000F5FF39 /* ClipProcessor.cpp in Sources */,
+				85647DC424BFB2FA00576420 /* ActionProcessor.cpp in Sources */,
 				8535241B212F470100706C88 /* swell-modstub.mm in Sources */,
 				858F79F721558EA800488951 /* Track.cpp in Sources */,
 				8554F23920F40E4000F5FF39 /* DrivenByMossSurface.cpp in Sources */,

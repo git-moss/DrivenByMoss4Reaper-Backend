@@ -32,12 +32,13 @@
 *.app
 /reaper_drivenbymoss/x64/Debug/reaper_d.66BF532D.tlog/*.tlog
 /reaper_drivenbymoss/x64/Debug/*.log
-/x64/Debug
 /reaper_drivenbymoss/x64/Debug
+/x64/Debug
 /.vs/reaper_drivenbymoss/v15
-Debug
 /Visual Studio/.vs/reaper_drivenbymoss/v15
+/Visual Studio/x64/Release
+/Xcode/~
+Debug
 .DS_Store
 .settings
-/Visual Studio/x64/Release
 .vs
