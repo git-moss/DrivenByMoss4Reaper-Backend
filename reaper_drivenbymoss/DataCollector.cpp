@@ -202,7 +202,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 		this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? name : "", dump);
 
 		// Currently, we only need 1 parameter for the Kontrol OSC ID
-		Collectors::CollectIntValue(ss, "/primary/param/count", 1, 1, dump);
+		Collectors::CollectIntValue(ss, "/primary/param/count", 0, 1, dump);
 		this->instrumentParameter.CollectData(ss, track, instrumentIndex, dump);
 	}
 
