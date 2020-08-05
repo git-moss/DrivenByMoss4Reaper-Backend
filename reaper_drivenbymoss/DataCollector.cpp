@@ -25,6 +25,9 @@ DataCollector::DataCollector(Model& aModel) noexcept :
 	devicePresetsStr(128, "")
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
+
+	for (int i = 0; i < 8; i++)
+		this->eqBandTypes.push_back("-1");
 }
 
 
@@ -206,6 +209,50 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 		this->instrumentParameter.CollectData(ss, track, instrumentIndex, dump);
 	}
 
+	// 
+	// First ReaEQ data
+	// 
+
+	if (this->slowCounter == 0)
+	{
+		const int eqIndex = TrackFX_GetEQ(track, false);
+		this->eqExists = Collectors::CollectIntValue(ss, "/eq/exists", this->eqExists, eqIndex >= 0, dump);
+		const int eqParamCount = TrackFX_GetNumParams(track, eqIndex);
+		this->model.eqParamCount = Collectors::CollectIntValue(ss, "/eq/param/count", this->model.eqParamCount, eqParamCount, dump);
+
+		if (this->eqExists)
+		{
+			char filterType[40];
+			char filterEnabled[2];
+			for (int index = 0; index < 8; index++)
+			{
+				std::ostringstream btss;
+				btss << "BANDTYPE" << index;
+				const std::string bandTypeParam = btss.str();
+				std::string bandType = "-1";
+				if (TrackFX_GetNamedConfigParm(track, eqIndex, bandTypeParam.c_str(), filterType, 40))
+				{
+					std::ostringstream bess;
+					bess << "BANDENABLED" << index;
+					const std::string bandEnabledParam = bess.str();
+					if (TrackFX_GetNamedConfigParm(track, eqIndex, bandEnabledParam.c_str(), filterEnabled, 2))
+					{
+						if (std::atoi(filterEnabled) > 0)
+							bandType = filterType;
+					}
+				}
+				std::ostringstream das;
+				das << "/eq/band/" << index;
+				this->eqBandTypes.at(index) = Collectors::CollectStringValue(ss, das.str().c_str(), this->eqBandTypes.at(index), bandType, dump);
+			}
+		}
+
+		for (int index = 0; index < eqParamCount; index++)
+		{
+			std::shared_ptr<Parameter> parameter = this->model.GetEqParameter(index);
+			parameter->CollectData(ss, track, eqIndex, dump);
+		}
+	}
 
 	// Track FX Parameter (as user parameters)
 	const int userParamCount = CountTCPFXParms(project, track);

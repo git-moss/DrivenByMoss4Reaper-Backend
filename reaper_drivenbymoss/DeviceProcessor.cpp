@@ -2,6 +2,8 @@
 // (c) 2018-2020
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
+#include <sstream>
+
 #include "DeviceProcessor.h"
 #include "ReaperUtils.h"
 
@@ -51,11 +53,17 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 	}
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int fx = atoi(part) - 1;
-
 	MediaTrack* track = GetSelectedTrack(project, 0);
 	if (track == nullptr)
 		return;
+
+	if (std::strcmp(part, "eq-add") == 0)
+	{
+		TrackFX_GetEQ(track, true);
+		return;
+	}
+
+	const int fx = atoi(part) - 1;
 
 	const char* cmd = safeGet(path, 1);
 	if (std::strcmp(cmd, "remove") == 0)
@@ -198,6 +206,28 @@ void DeviceProcessor::Process(std::deque<std::string>& path, const std::string& 
 			return;
 		const int insert = atoi(safeGet(path, 1));
 		TrackFX_CopyToTrack(track, position, track, insert, true);
+	}
+
+	if (std::strcmp(part, "eq-band") == 0)
+	{
+		const int eqIndex = TrackFX_GetEQ(track, false);
+		if (eqIndex < 0)
+			return;
+
+		const int bandNo = atoi(safeGet(path, 1));
+
+		// Off?
+		const bool isOff = std::strcmp(value.c_str(), "-1") == 0;
+		if (!isOff)
+		{
+			std::ostringstream btss;
+			btss << "BANDTYPE" << bandNo;
+			TrackFX_SetNamedConfigParm(track, eqIndex, btss.str().c_str(), value.c_str());
+		}
+		std::ostringstream bess;
+		bess << "BANDENABLED" << bandNo;
+		TrackFX_SetNamedConfigParm(track, eqIndex, bess.str().c_str(), isOff ? "0" : "1");
+		return;
 	}
 }
 

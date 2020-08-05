@@ -113,6 +113,10 @@ private:
 	std::string instrumentName{};
 	Parameter instrumentParameter;
 
+	// Equalizer device values
+	int eqExists{ -1 };
+	std::vector<std::string> eqBandTypes;
+
 	// Browser values
 	std::string devicePresetName{};
 	int devicePresetIndex{};

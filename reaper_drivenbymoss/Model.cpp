@@ -120,6 +120,26 @@ std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
 
 
 /**
+ * Get an equalizer parameter.
+ *
+ * @param index The index of the parameter
+ * @return The parameter, if none exists at the index a new instance is created automatically
+ */
+std::shared_ptr <Parameter> Model::GetEqParameter(const int index) noexcept
+{
+	const std::lock_guard<std::mutex> lock(this->parameterlock);
+
+	const int diff = index - gsl::narrow_cast<int> (this->eqParameters.size()) + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->eqParameters.push_back(std::make_shared <Parameter>("/eq/param/", index));
+	}
+	return this->eqParameters.at(index);
+}
+
+
+/**
  * Get a user parameter.
  *
  * @param index The index of the parameter
