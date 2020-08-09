@@ -53,7 +53,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 	}
 
 	ReaProject* project = ReaperUtils::GetProject();
-	MediaTrack* track = GetSelectedTrack(project, 0);
+	MediaTrack* track = GetSelectedTrack2(project, 0, true);
 	if (track == nullptr)
 		return;
 
@@ -96,7 +96,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	const char* part = safeGet(path, 0);
 
 	ReaProject* project = ReaperUtils::GetProject();
-	MediaTrack* track = GetSelectedTrack(project, 0);
+	MediaTrack* track = GetSelectedTrack2(project, 0, true);
 	if (track == nullptr)
 		return;
 
@@ -172,7 +172,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path, double value) noexc
 	const char* part = safeGet(path, 0);
 
 	ReaProject* project = ReaperUtils::GetProject();
-	MediaTrack* track = GetSelectedTrack(project, 0);
+	MediaTrack* track = GetSelectedTrack2(project, 0, true);
 	if (track == nullptr)
 		return;
 
@@ -197,7 +197,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path, const std::string& 
 	const char* part = safeGet(path, 0);
 
 	ReaProject* project = ReaperUtils::GetProject();
-	MediaTrack* track = GetSelectedTrack(project, 0);
+	MediaTrack* track = GetSelectedTrack2(project, 0, true);
 
 	if (std::strcmp(part, "add") == 0)
 	{

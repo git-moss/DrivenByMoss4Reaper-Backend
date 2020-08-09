@@ -20,6 +20,7 @@
  */
 DataCollector::DataCollector(Model& aModel) noexcept :
 	model(aModel),
+	crossfaderParameter("/master/user/param/", 0),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	instrumentParameter("/primary/param/", 0),
 	devicePresetsStr(128, "")
@@ -53,7 +54,7 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 	actionProcessor.CollectData(ss);
 
 	ReaProject* project = ReaperUtils::GetProject();
-	MediaTrack* track = GetSelectedTrack(project, 0);
+	MediaTrack* track = GetSelectedTrack2(project, 0, true);
 
 	this->slowCounter = (this->slowCounter + 1) % SLOW_UPDATE;
 
@@ -387,6 +388,11 @@ void DataCollector::CollectMasterTrackData(std::ostringstream& ss, ReaProject* p
 		const double automode = GetMediaTrackInfo_Value(master, "I_AUTOMODE");
 		this->masterAutoMode = Collectors::CollectIntValue(ss, "/master/automode", this->masterAutoMode, static_cast<int>(automode), dump);
 	}
+
+	int fxindexOut;
+	int parmidxOut;
+	if (GetTCPFXParm(project, master, 0, &fxindexOut, &parmidxOut))
+		this->crossfaderParameter.CollectData(ss, master, fxindexOut, parmidxOut, dump);
 }
 
 
@@ -643,6 +649,7 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
  */
 void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
+	// Don't include the master track here
 	MediaTrack* const track = GetSelectedTrack(project, 0);
 
 	// Midi note repeat plugin is on track?

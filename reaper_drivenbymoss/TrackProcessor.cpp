@@ -52,7 +52,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 		Undo_BeginBlock2(project);
 		DeleteTrack(track);
 		// Make sure that a track is selected
-		if (GetSelectedTrack(project, 0) == nullptr)
+		if (GetSelectedTrack2(project, 0, true) == nullptr)
 		{
 			if (trackIndex >= CountTracks(project))
 				trackIndex = trackIndex - 1;

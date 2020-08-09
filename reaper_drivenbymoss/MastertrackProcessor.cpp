@@ -90,7 +90,8 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 	if (path.empty())
 		return;
 	const char* cmd = safeGet(path, 0);
-	MediaTrack* track = GetMasterTrack(ReaperUtils::GetProject());
+	ReaProject* project = ReaperUtils::GetProject();
+	MediaTrack* track = GetMasterTrack(project);
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
@@ -113,6 +114,25 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 		}
 		return;
 	}
+
+	// Parse user parameter value
+	if (std::strcmp(cmd, "user") == 0)
+	{
+		if (path.empty())
+			return;
+		const char* part = safeGet(path, 1);
+		if (std::strcmp(part, "param") == 0)
+		{
+			const int userParamNo = atoi(safeGet(path, 2));
+			int fxindexOut;
+			int parmidxOut;
+			if (!GetTCPFXParm(project, track, userParamNo, &fxindexOut, &parmidxOut))
+				return;
+			if (std::strcmp(safeGet(path, 3), "value") == 0)
+				TrackFX_SetParamNormalized(track, fxindexOut, parmidxOut, value);
+		}
+		return;
+	}
 }
 
 /** {@inheritDoc} */
@@ -121,8 +141,8 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, const std::str
 	if (path.empty())
 		return;
 	const char* cmd = safeGet(path, 0);
-	MediaTrack* track = GetMasterTrack(ReaperUtils::GetProject());
 	ReaProject* project = ReaperUtils::GetProject();
+	MediaTrack* track = GetMasterTrack(project);
 
 	if (std::strcmp(cmd, "color") == 0)
 	{
