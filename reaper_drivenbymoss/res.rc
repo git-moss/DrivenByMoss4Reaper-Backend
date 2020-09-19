@@ -25,8 +25,8 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 10,6,0,0
- PRODUCTVERSION 10,6,0,0
+ FILEVERSION 10,7,0,0
+ PRODUCTVERSION 10,7,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -43,12 +43,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "MOSS"
             VALUE "FileDescription", "DrivenByMoss"
-            VALUE "FileVersion", "10.6.0.0"
+            VALUE "FileVersion", "10.7.0.0"
             VALUE "InternalName", "res.rc"
             VALUE "LegalCopyright", "Copyright (c) 2020"
             VALUE "OriginalFilename", "res.rc"
             VALUE "ProductName", "DrivenByMoss"
-            VALUE "ProductVersion", "10.6.0.0"
+            VALUE "ProductVersion", "10.7.0.0"
         END
     END
     BLOCK "VarFileInfo"

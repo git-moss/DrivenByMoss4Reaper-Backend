@@ -66,7 +66,7 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 		CollectTrackData(ss, project, dump);
 	if (IsActive("device"))
 		CollectDeviceData(ss, project, track, dump);
-	if (IsActive("mastertrack"))
+	if (IsActive("master"))
 		CollectMasterTrackData(ss, project, dump);
 	if (IsActive("browser"))
 		CollectBrowserData(ss, track, dump);
