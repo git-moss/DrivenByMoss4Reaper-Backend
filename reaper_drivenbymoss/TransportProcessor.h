@@ -162,9 +162,15 @@ public:
 		if (path.empty())
 			return;
 		const char* direction = safeGet(path, 0);
-		const int actionID = NamedCommandLookup(strcmp(direction, "+") == 0 ? "_S&M_METRO_VOL_UP" : "_S&M_METRO_VOL_DOWN");
-		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
+		const int val = strcmp(direction, "+") == 0 ? 1 : -1;
+		// 2 = relative mode 2
+		KBD_OnMainActionEx(999, 0x40 + val, -1, 2, GetMainHwnd(), nullptr);
+	};
+
+	void Process(std::deque<std::string>& path, int value) noexcept override
+	{
+		// 0 = absolute
+		KBD_OnMainActionEx(999, 0x40 + value, -1, 0, GetMainHwnd(), nullptr);
 	};
 };
 

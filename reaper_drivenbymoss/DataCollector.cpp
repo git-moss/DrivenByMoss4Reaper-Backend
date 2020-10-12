@@ -97,11 +97,17 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	this->play = Collectors::CollectIntValue(ss, "/play", this->play, (playState & 1) > 0, dump);
 	this->record = Collectors::CollectIntValue(ss, "/record", this->record, (playState & 4) > 0, dump);
 	this->repeat = Collectors::CollectIntValue(ss, "/repeat", this->repeat, GetSetRepeat(-1), dump);
-	this->metronome = Collectors::CollectIntValue(ss, "/click", this->metronome, GetToggleCommandState(40364), dump);
-	this->prerollClick = Collectors::CollectIntValue(ss, "/prerollClick", this->prerollClick, GetToggleCommandState(41819), dump);
-
 	// The tempo
 	this->tempo = Collectors::CollectDoubleValue(ss, "/tempo", this->tempo, Master_GetTempo(), dump);
+
+	// Click / metronome values
+	this->metronome = Collectors::CollectIntValue(ss, "/click", this->metronome, GetToggleCommandState(40364), dump);
+	this->prerollClick = Collectors::CollectIntValue(ss, "/click/preroll", this->prerollClick, GetToggleCommandState(41819), dump);
+	char metroVolumeStr[20];
+	double value = get_config_var_string("projmetrov1", metroVolumeStr, 20) ? std::atof(metroVolumeStr) : 0.5;
+	const double volDB = ReaperUtils::ValueToDB(value);
+	this->metronomeVolume = Collectors::CollectDoubleValue(ss, "/click/volume", this->metronomeVolume, DB2SLIDER(volDB) / 1000.0, dump);
+	this->metronomeVolumeStr = Collectors::CollectStringValue(ss, "/click/volumeStr", this->metronomeVolumeStr, Collectors::FormatDB(volDB).c_str(), dump);
 
 	// Get the time signature at the current play position, if playback is active or never was read
 	const double cursorPos = ReaperUtils::GetCursorPosition(project);

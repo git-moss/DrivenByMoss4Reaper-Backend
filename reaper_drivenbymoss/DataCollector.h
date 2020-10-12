@@ -80,12 +80,16 @@ private:
 	std::string strPlayPosition{};
 	std::string strBeatPosition{};
 	int prerollMeasures{};
-	int prerollClick{};
 	int play{};
 	int record{};
 	int repeat{};
-	int metronome{};
 	double tempo{};
+
+	// Click / metronome values
+	int metronome{};
+	int prerollClick{};
+	double metronomeVolume{};
+	std::string metronomeVolumeStr;
 
 	// Master track values
 	int masterSelected{};
