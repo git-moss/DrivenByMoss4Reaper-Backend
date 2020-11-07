@@ -376,6 +376,25 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 		SetColorOfTrack(project, track, value);
 		return;
 	}
+
+	if (std::strcmp(cmd, "name") == 0)
+	{
+		try
+		{
+			std::string val = value;
+
+			Undo_BeginBlock2(project);
+			GetSetMediaTrackInfo(track, "P_NAME", &val[0]);
+			Undo_EndBlock2(project, "Set track name", 0);
+		}
+		catch (...)
+		{
+			// Can't do anything about it...
+			return;
+		}
+
+		return;
+	}
 }
 
 
