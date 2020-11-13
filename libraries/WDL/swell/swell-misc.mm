@@ -22,7 +22,9 @@
 
 //#import <Carbon/Carbon.h>
 #import <Cocoa/Cocoa.h>
+#include <sys/poll.h>
 #include "swell.h"
+#define SWELL_IMPLEMENT_GETOSXVERSION
 #include "swell-internal.h"
 
 #include "../mutex.h"
@@ -119,13 +121,13 @@ void SWELL_ReleaseNSTask(void *p)
 DWORD SWELL_WaitForNSTask(void *p, DWORD msTO)
 {
   NSTask *a =(NSTask*)p;
-  DWORD t = msTO ? GetTickCount()+msTO : 0;
+  const DWORD t = GetTickCount();
   do 
   {
     if (![a isRunning]) return WAIT_OBJECT_0;
-    if (t) Sleep(1);
+    if (msTO) Sleep(1);
   }
-  while (GetTickCount()<t);
+  while (msTO && (GetTickCount()-t) < msTO);
 
   return [a isRunning] ? WAIT_TIMEOUT : WAIT_OBJECT_0;
 }
@@ -217,6 +219,12 @@ int SWELL_ReadWriteProcessIO(HANDLE hand, int w/*stdin,stdout,stderr*/, char *bu
   if (!hdr || hdr->hdr.type != INTERNAL_OBJECT_NSTASK || !hdr->task) return 0;
   NSTask *tsk = (NSTask*)hdr->task;
   NSPipe *pipe = NULL;
+  bool async_mode = false;
+  if (w & (1<<24))
+  {
+    async_mode = true;
+    w &= ~ (1<<24);
+  }
   switch (w)
   {
     case 0: pipe = [tsk standardInput]; break;
@@ -244,6 +252,17 @@ int SWELL_ReadWriteProcessIO(HANDLE hand, int w/*stdin,stdout,stderr*/, char *bu
   }
   else 
   {
+    if (async_mode)
+    {
+      int handle = [fh fileDescriptor];
+      if (handle >= 0)
+      {
+        struct pollfd pl = { handle, POLLIN };
+        if (poll(&pl,1,0)<1) return 0;
+
+        return read(handle,buf,bufsz);
+      }
+    }
     NSData *d = NULL;
     @try
     {
@@ -776,26 +795,5 @@ void SWELL_DisableAppNap(int disable)
 }
 
 
-int SWELL_GetOSXVersion()
-{
-  static SInt32 v;
-  if (!v)
-  {
-    if (NSAppKitVersionNumber >= 1266.0) 
-    {
-      if (NSAppKitVersionNumber >= 1404.0)
-        v = 0x10b0;
-      else
-        v = 0x10a0; // 10.10+ Gestalt(gsv) return 0x109x, so we bump this to 0x10a0
-    }
-    else 
-    {
-      SInt32 a = 0x1040;
-      Gestalt(gestaltSystemVersion,&a);
-      v=a;
-    }
-  }
-  return v;
-}
 
 #endif

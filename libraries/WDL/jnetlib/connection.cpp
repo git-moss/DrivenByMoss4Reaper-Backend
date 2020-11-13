@@ -48,6 +48,7 @@ void JNL_Connection::connect(SOCKET s, struct sockaddr_in *loc)
   else memset(m_saddr,0,sizeof(struct sockaddr_in));
   if (m_socket != INVALID_SOCKET)
   {
+    SET_SOCK_DEFAULTS(m_socket);
     SET_SOCK_BLOCK(m_socket,0);
     m_state=STATE_CONNECTED;
   }
@@ -77,6 +78,7 @@ void JNL_Connection::connect(const char *hostname, int port)
       sa.sin_addr.s_addr=m_localinterfacereq;
       bind(m_socket,(struct sockaddr *)&sa,16);
     }
+    SET_SOCK_DEFAULTS(m_socket);
     SET_SOCK_BLOCK(m_socket,0);
     strncpy(m_host,hostname,sizeof(m_host)-1);
     m_host[sizeof(m_host)-1]=0;
@@ -142,7 +144,7 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
       {
         m_state=STATE_CONNECTED;
       }
-      else if (ERRNO!=EINPROGRESS)
+      else if (JNL_ERRNO!=JNL_EINPROGRESS)
       {
         m_errorstr="connecting to host";
         m_state=STATE_ERROR;
@@ -150,7 +152,8 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
       else { m_state=STATE_CONNECTING; }
     break;
     case STATE_CONNECTING:
-      {		
+      {
+#ifdef _WIN32
         fd_set f[3];
         FD_ZERO(&f[0]);
         FD_ZERO(&f[1]);
@@ -160,13 +163,7 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
         FD_SET(m_socket,&f[2]);
         struct timeval tv;
         memset(&tv,0,sizeof(tv));
-        if (select(
-#ifdef _WIN32
-          0
-#else
-          m_socket+1
-#endif
-          ,&f[0],&f[1],&f[2],&tv)==-1)
+        if (select(0,&f[0],&f[1],&f[2],&tv)==-1)
         {
           m_errorstr="connecting to host (calling select())";
           m_state=STATE_ERROR;
@@ -180,6 +177,17 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
           m_errorstr="connecting to host";
           m_state=STATE_ERROR;
         }
+#else
+        struct pollfd pl = { m_socket, POLLERR|POLLHUP|POLLOUT, 0 };
+        int res = poll(&pl,1,0);
+        if (res < 0 || (pl.revents & (POLLERR|POLLHUP)))
+        {
+          m_errorstr="connecting to host";
+          m_state=STATE_ERROR;
+        }
+        else if (res>0 || (pl.revents&POLLOUT))
+          m_state=STATE_CONNECTED;
+#endif
       }
     break;
     case STATE_CONNECTED:
@@ -191,8 +199,8 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
         if (len > bytes_allowed_to_send) len=bytes_allowed_to_send;
         if (len > 0)
         {
-          int res=::send(m_socket,(char*)m_send_buffer.Get()+m_send_pos,len,0);
-          if (res==-1 && ERRNO != EWOULDBLOCK)
+          int res=(int)::send(m_socket,(char*)m_send_buffer.Get()+m_send_pos,len,0);
+          if (res==-1 && JNL_ERRNO != JNL_EWOULDBLOCK)
           {            
 //            m_state=STATE_CLOSED;
 //            return;
@@ -213,8 +221,8 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
             len=m_send_buffer.GetSize()-m_send_pos;
             if (len > m_send_len) len=m_send_len;
             if (len > bytes_allowed_to_send) len=bytes_allowed_to_send;
-            int res=::send(m_socket,(char*)m_send_buffer.Get()+m_send_pos,len,0);
-            if (res==-1 && ERRNO != EWOULDBLOCK)
+            int res=(int)::send(m_socket,(char*)m_send_buffer.Get()+m_send_pos,len,0);
+            if (res==-1 && JNL_ERRNO != JNL_EWOULDBLOCK)
             {
 //              m_state=STATE_CLOSED;
             }
@@ -235,8 +243,8 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
         if (len > bytes_allowed_to_recv) len=bytes_allowed_to_recv;
         if (len>0)
         {
-          int res=::recv(m_socket,(char*)m_recv_buffer.Get()+m_recv_pos,len,0);
-          if (res == 0 || (res < 0 && ERRNO != EWOULDBLOCK))
+          int res=(int)::recv(m_socket,(char*)m_recv_buffer.Get()+m_recv_pos,len,0);
+          if (res == 0 || (res < 0 && JNL_ERRNO != JNL_EWOULDBLOCK))
           {        
             m_state=STATE_CLOSED;
             break;
@@ -258,8 +266,8 @@ void JNL_Connection::run(int max_send_bytes, int max_recv_bytes, int *bytes_sent
             if (len > bytes_allowed_to_recv) len=bytes_allowed_to_recv;
             if (len > 0)
             {
-              int res=::recv(m_socket,(char*)m_recv_buffer.Get()+m_recv_pos,len,0);
-              if (res == 0 || (res < 0 && ERRNO != EWOULDBLOCK))
+              int res=(int)::recv(m_socket,(char*)m_recv_buffer.Get()+m_recv_pos,len,0);
+              if (res == 0 || (res < 0 && JNL_ERRNO != JNL_EWOULDBLOCK))
               {        
                 m_state=STATE_CLOSED;
                 break;
@@ -447,8 +455,9 @@ int JNL_Connection::recv_get_linelen()
 
 int JNL_Connection::recv_line(char *line, int maxlength)
 {
+  maxlength--; // room for trailing NUL
   if (maxlength > m_recv_len) maxlength=m_recv_len;
-  while (maxlength--)
+  while (maxlength-- > 0)
   {
     int t=getbfromrecv(0,1);
     if (t == -1) 
@@ -465,6 +474,7 @@ int JNL_Connection::recv_line(char *line, int maxlength)
     }
     *line++=(char)t;
   }
+  *line=0;
   return 1;
 }
 

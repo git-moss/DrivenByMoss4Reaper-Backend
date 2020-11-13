@@ -90,6 +90,7 @@ struct SWELL_DlgResourceEntry
 #define GROUPBOX       }, { "__SWELL_GROUP", 0, 
 #define CHECKBOX       }, { "__SWELL_CHECKBOX", 0, 
 #define LISTBOX        }, { "__SWELL_LISTBOX", 0, "", 
+#define ICON           }, { "__SWELL_ICON", 0, (const char*)(INT_PTR)
 
 #define NOT 
                                     
@@ -108,12 +109,18 @@ struct SWELL_DlgResourceEntry
 #define SS_BLACKRECT 0x4L
 #define SS_BLACKFRAME (SS_BLACKRECT)
 #define SS_LEFTNOWORDWRAP 0xCL
+#define SS_ETCHEDHORZ 0x10L
+#define SS_ETCHEDVERT 0x11L
+#define SS_ETCHEDFRAME 0x12L
 #define SS_TYPEMASK 0x1FL
 #define SS_NOTIFY 0x0100L
 
-#define BS_CENTER 0x0300L
 #define BS_LEFTTEXT 0x0020L
-#define BS_LEFT 0x100L
+
+#define BS_LEFT   0x100L
+#define BS_CENTER 0x300L
+#define BS_XPOSITION_MASK BS_CENTER
+
 #define BS_GROUPBOX      0x20000000
 #define BS_DEFPUSHBUTTON 0x10000000
 #define BS_PUSHBUTTON    0x8000000
@@ -153,18 +160,20 @@ struct SWELL_DlgResourceEntry
 #define TVS_LINESATROOT 0
 #define TVS_SHOWSELALWAYS 0
 #define TVS_HASBUTTONS 0
-#define BS_FLAT 0
-#define TVS_DISABLEDRAGDROP 0
 #define TVS_TRACKSELECT 0
 #define TVS_NONEVENHEIGHT 0
+#define TVS_NOTOOLTIPS 0
+#define BS_FLAT 0
 #define SS_SUNKEN 0
 #define BS_RIGHT 0
 #define WS_EX_STATICEDGE 0
 #define WS_EX_RIGHT 0
 #define SS_CENTERIMAGE 0                                       
 #define SS_NOPREFIX 0
-                     
-                                       
+
+// more ignore flags for vc11+
+#define LVS_ALIGNLEFT 0 /* 0x0800 */
+
 #ifndef IDC_STATIC
 #define IDC_STATIC 0
 #endif
@@ -199,38 +208,6 @@ typedef struct SWELL_CursorResourceIndex
 } SWELL_CursorResourceIndex;
 
 
-
-static inline HWND __SWELL_MakeButton(int def, const char *label, int idx, int x, int y, int w, int h, int flags=0, int exstyle=0)
-{
-  return SWELL_MakeButton(def,label,idx,x,y,w,h,flags);
-}
-static inline HWND __SWELL_MakeEditField(int idx, int x, int y, int w, int h, int flags=0)
-{
-  return SWELL_MakeEditField(idx,x,y,w,h,flags);
-}
-static inline HWND __SWELL_MakeLabel(int align, const char *label, int idx, int x, int y, int w, int h, int flags=0, int exflags=0)
-{
-  return SWELL_MakeLabel(align,label,idx,x,y,w,h,flags);
-}
-static inline HWND __SWELL_MakeCombo(int idx, int x, int y, int w, int h, int flags=0)
-{
-  return SWELL_MakeCombo(idx,x,y,w,h,flags);
-}
-static inline HWND __SWELL_MakeListBox(int idx, int x, int y, int w, int h, int styles=0)
-{
-  return SWELL_MakeListBox(idx,x,y,w,h,styles);
-}
-
-static inline HWND __SWELL_MakeControl(const char *cname, int idx, const char *classname, int style, int x, int y, int w, int h, int exstyle=0)
-{
-  return SWELL_MakeControl(cname,idx,classname,style,x,y,w,h,exstyle);
-}
-
-static inline HWND __SWELL_MakeGroupBox(const char *name, int idx, int x, int y, int w, int h, int style=0)
-{
-  return SWELL_MakeGroupBox(name,idx,x,y,w,h,style);
-}
-
 class SWELL_DialogRegHelper { 
   public:
      SWELL_DialogResourceIndex m_rec;
@@ -250,16 +227,48 @@ class SWELL_DialogRegHelper {
      }
 };
 
+#ifdef _DEBUG
+  #include "../assocarray.h"
+  class SWELL_DialogRegValidator 
+  {
+    public:
+      SWELL_DialogRegValidator(const SWELL_DlgResourceEntry *recs, size_t recs_sz)
+      {
+        if (recs_sz>1)
+        {
+          // check for duplicate IDs
+          WDL_IntKeyedArray<bool> tmp;
+          for (size_t x = 0; x < recs_sz; x ++)
+          {
+            const SWELL_DlgResourceEntry *list = recs + x;
+            const int idx = strncmp(list->str1,"__SWELL_",8) ? list->flag1 : list->p1;
+            if (idx != 0 && idx != -1)
+            {
+              WDL_ASSERT(!tmp.Get(idx));
+              tmp.Insert(idx,true);
+            }
+          }
+        }
+      }
+  };
+  #define SWELL_VALIDATE_DIALOG_RESOURCE(v,r) static SWELL_DialogRegValidator v(r+1, sizeof(r)/sizeof(r[0])-1); 
+#else
+  #define SWELL_VALIDATE_DIALOG_RESOURCE(v,r)
+#endif
+
+
 #define SWELL_DEFINE_DIALOG_RESOURCE_BEGIN(recid, flags, titlestr, wid, hei, scale) \
                                        static void SWELL__dlg_cf__##recid(HWND view, int wflags); \
-                                          static SWELL_DialogRegHelper __swell_dlg_helper_##recid(&SWELL_curmodule_dialogresource_head, SWELL__dlg_cf__##recid, recid,flags,titlestr,wid,hei,scale); \
-                                           void SWELL__dlg_cf__##recid(HWND view, int wflags) { \
-                                              SWELL_MakeSetCurParms(scale,scale,0,0,view,false,!(wflags&SWELL_DLG_WS_NOAUTOSIZE));  \
-                                              static const SWELL_DlgResourceEntry list[]={
+                                       const float __swell_dlg_scale__##recid = (float) (scale); \
+                                       static SWELL_DialogRegHelper __swell_dlg_helper_##recid(&SWELL_curmodule_dialogresource_head, SWELL__dlg_cf__##recid, recid,flags,titlestr,wid,hei,scale); \
+                                       static const SWELL_DlgResourceEntry __swell_dlg_list__##recid[]={
 
                                             
-#define SWELL_DEFINE_DIALOG_RESOURCE_END(recid ) }; SWELL_GenerateDialogFromList(list+1,sizeof(list)/sizeof(list[0])-1); }
+#define SWELL_DEFINE_DIALOG_RESOURCE_END(recid ) }; \
+                              SWELL_VALIDATE_DIALOG_RESOURCE( __swell_dlg_validator__##recid, __swell_dlg_list__##recid) \
+                              static void SWELL__dlg_cf__##recid(HWND view, int wflags) { \
+                                SWELL_MakeSetCurParms(__swell_dlg_scale__##recid,__swell_dlg_scale__##recid,0,0,view,false,!(wflags&SWELL_DLG_WS_NOAUTOSIZE));  \
+                                SWELL_GenerateDialogFromList(__swell_dlg_list__##recid+1,sizeof(__swell_dlg_list__##recid)/sizeof(__swell_dlg_list__##recid[0])-1); \
+                              }
 
-                                       
-                                
 #endif

@@ -2,7 +2,7 @@
 #define _WDL_ASSOCARRAY_H_
 
 #include "heapbuf.h"
-
+#include "mergesort.h"
 
 // on all of these, if valdispose is set, the array will dispose of values as needed.
 // if keydup/keydispose are set, copies of (any) key data will be made/destroyed as necessary
@@ -140,26 +140,27 @@ public:
   void ChangeKey(KEY oldkey, KEY newkey)
   {
     bool ismatch=false;
-    int i = LowerBound(oldkey, &ismatch);
-    if (ismatch)
-    {
-      KeyVal* kv = m_data.Get()+i;
-      if (m_keydispose) m_keydispose(kv->key);
-      if (m_keydup) newkey = m_keydup(newkey);
-      kv->key = newkey;
-      Resort();
-    }
+    int i=LowerBound(oldkey, &ismatch);
+    if (ismatch) ChangeKeyByIndex(i, newkey, true);
   }
 
   void ChangeKeyByIndex(int idx, KEY newkey, bool needsort)
   {
     if (idx >= 0 && idx < m_data.GetSize())
     {
-      KeyVal* kv = m_data.Get()+idx;
-      if (m_keydispose) m_keydispose(kv->key);
-      if (m_keydup) newkey = m_keydup(newkey);
-      kv->key = newkey;
-      if (needsort) Resort();
+      KeyVal* kv=m_data.Get()+idx;
+      if (!needsort)
+      {
+        if (m_keydispose) m_keydispose(kv->key);
+        if (m_keydup) newkey=m_keydup(newkey);
+        kv->key=newkey;
+      }
+      else
+      {
+        VAL val=kv->val;
+        m_data.Delete(idx);
+        Insert(newkey, val);
+      }
     }
   }
 
@@ -173,25 +174,36 @@ public:
     kv->val = val;
   }
 
-  void Resort()
+  void Resort(int (*new_keycmp)(KEY *k1, KEY *k2)=NULL)
+  {
+    if (new_keycmp) m_keycmp = new_keycmp;
+    if (m_data.GetSize() > 1 && m_keycmp)
+    {
+      qsort(m_data.Get(), m_data.GetSize(), sizeof(KeyVal),
+        (int(*)(const void*, const void*))m_keycmp);
+      if (!new_keycmp)
+        RemoveDuplicateKeys();
+    }
+  }
+
+  void ResortStable()
   {
     if (m_data.GetSize() > 1 && m_keycmp)
     {
-      qsort(m_data.Get(),m_data.GetSize(),sizeof(KeyVal),(int(*)(const void *,const void *))m_keycmp);
-
-      // AddUnsorted can add duplicate keys
-      // unfortunately qsort is not guaranteed to preserve order,
-      // ideally this filter would always preserve the last-added key
-      int i;
-      for (i=0; i < m_data.GetSize()-1; ++i)
+      char *tmp=(char*)malloc(m_data.GetSize()*sizeof(KeyVal));
+      if (WDL_NORMALLY(tmp))
       {
-        KeyVal* kv=m_data.Get()+i;
-        KeyVal* nv=kv+1;
-        if (!m_keycmp(&kv->key, &nv->key))
-        {
-          DeleteByIndex(i--);
-        }
+        WDL_mergesort(m_data.Get(), m_data.GetSize(), sizeof(KeyVal),
+          (int(*)(const void*, const void*))m_keycmp, tmp);
+        free(tmp);
       }
+      else
+      {
+        qsort(m_data.Get(), m_data.GetSize(), sizeof(KeyVal),
+          (int(*)(const void*, const void*))m_keycmp);
+      }
+
+      RemoveDuplicateKeys();
     }
   }
 
@@ -251,6 +263,7 @@ public:
   void CopyContentsAsReference(const WDL_AssocArrayImpl &cp)
   {
     DeleteAll(true);
+    m_keycmp = cp.m_keycmp;
     m_keydup = NULL;  // this no longer can own any data
     m_keydispose = NULL;
     m_valdispose = NULL; 
@@ -272,6 +285,31 @@ protected:
   void (*m_keydispose)(KEY);
   void (*m_valdispose)(VAL);
 
+private:
+
+  void RemoveDuplicateKeys() // after resorting
+  {
+    const int sz = m_data.GetSize();
+
+    int cnt = 1;
+    KeyVal *rd = m_data.Get() + 1, *wr = rd;
+    for (int x = 1; x < sz; x ++)
+    {
+      if (m_keycmp(&rd->key, &wr[-1].key))
+      {
+        if (rd != wr) *wr=*rd;
+        wr++;
+        cnt++;
+      }
+      else
+      {
+        if (m_keydispose) m_keydispose(rd->key);
+        if (m_valdispose) m_valdispose(rd->val);
+      }
+      rd++;
+    }
+    if (cnt < sz) m_data.Resize(cnt,false);
+  }
 };
 
 
@@ -320,6 +358,17 @@ private:
   static int cmpint(int *i1, int *i2) { return *i1-*i2; }
 };
 
+template <class VAL> class WDL_IntKeyedArray2 : public WDL_AssocArrayImpl<int, VAL>
+{
+public:
+
+  explicit WDL_IntKeyedArray2(void (*valdispose)(VAL)=0) : WDL_AssocArrayImpl<int, VAL>(cmpint, NULL, NULL, valdispose) {}
+  ~WDL_IntKeyedArray2() {}
+
+private:
+
+  static int cmpint(int *i1, int *i2) { return *i1-*i2; }
+};
 
 template <class VAL> class WDL_StringKeyedArray : public WDL_AssocArray<const char *, VAL>
 {
@@ -364,10 +413,10 @@ public:
   
   ~WDL_LogicalSortStringKeyedArray() { }
 
-private:
-
   static int cmpstr(const char **a, const char **b) { return _cmpstr(*a, *b, true); }
   static int cmpistr(const char **a, const char **b) { return _cmpstr(*a, *b, false); }
+
+private:
 
   static int _cmpstr(const char *s1, const char *s2, bool case_sensitive)
   {

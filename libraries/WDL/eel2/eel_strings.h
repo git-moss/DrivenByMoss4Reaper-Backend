@@ -282,11 +282,11 @@ class eel_string_context_state
    }
    int AddString(EEL_STRING_STORAGECLASS *ns)
    {
-     const int l = ns->GetLength();
 #ifdef EEL_STRINGS_MUTABLE_LITERALS
      m_literal_strings.Add(ns);
      return m_literal_strings.GetSize()-1+EEL_STRING_LITERAL_BASE;
 #else
+     const int l = ns->GetLength();
      const int sz=m_literal_strings.GetSize();
      int x;
      for (x=0;x<sz;x++)
@@ -489,7 +489,22 @@ int eel_format_strings(void *opaque, const char *fmt, const char *fmt_end, char 
           *op=0;
         }
         else
+        {
+#if !defined(_WIN32) && !defined(__arm__) && !defined(__aarch64__)
+          // x86 and x86_64 set rounding to truncate (ugh)
+          // apparently on Windows it doesn't matter for sprintf(), though.
+          // this is safe to call on other platforms, too, just perhaps wasteful
+          int fpstate[2];
+          eel_enterfp(fpstate);
+          eel_setfp_round();
+#endif
+
           snprintf(op,64,fs,v);
+
+#if !defined(_WIN32) && !defined(__arm__) && !defined(__aarch64__)
+          eel_leavefp(fpstate);
+#endif
+        }
       }
 
       while (*op) op++;

@@ -30,6 +30,85 @@
 
 #define NSRECTSET_RECT NSRect
 
+#import <objc/objc-runtime.h>
+
+#include "swell-internal.h"
+
+#ifndef SWELL_NO_METAL
+#undef min
+#undef max
+#include <simd/simd.h>
+#import <QuartzCore/CAMetalLayer.h>
+#import <Metal/Metal.h>
+#include "../assocarray.h"
+
+#ifdef __SSE__
+// for SWELL_fastDoubleUpImage
+#include <xmmintrin.h>
+#endif
+
+static id __class_CAMetalLayer, __class_MTLRenderPassDescriptor, __class_MTLTextureDescriptor, __class_MTLRenderPipelineDescriptor, __class_MTLCompileOptions;
+static id<MTLDevice> (*__MTLCreateSystemDefaultDevice)(void);
+static id<MTLDevice> (*__CGDirectDisplayCopyCurrentMetalDevice)(CGDirectDisplayID);
+
+struct mtl_dev_rec {
+  id<MTLFunction> vertexFunction,fragmentFunction;
+};
+
+static void get_dev_shaders(id<MTLDevice> dev, id<MTLFunction> *vertex, id<MTLFunction> *frag)
+{
+  static WDL_PtrKeyedArray<mtl_dev_rec> s_mtl_device_recs;
+  mtl_dev_rec *p = s_mtl_device_recs.GetPtr((INT_PTR)dev);
+  if (p)
+  {
+    *vertex = p->vertexFunction;
+    *frag = p->fragmentFunction;
+    return;
+  }
+
+  mtl_dev_rec rec={NULL, };
+  // open device, compiler shaders
+  id opt = (id)[[__class_MTLCompileOptions alloc] init];
+  NSError *err=NULL;
+  NSString *code = 
+@"#include <metal_stdlib>\n"
+@"#include <simd/simd.h>\n"
+@"using namespace metal;\n"
+@"typedef struct { float4 position [[position]]; float2 textureCoordinate; } RasterizerData;\n"
+@"vertex RasterizerData\n"
+@"vertexShader(uint vertexID [[ vertex_id ]], constant vector_float2 *vertexArray [[ buffer(0) ]]) {\n"
+@"    RasterizerData out;\n"
+@"    out.position = vector_float4(0.0, 0.0, 0.0, 1.0);\n"
+@"    out.position.xy = vertexArray[vertexID*2].xy;\n"
+@"    out.textureCoordinate = vertexArray[vertexID*2+1].xy;\n"
+@"    return out;\n"
+@"}\n"
+@"fragment float4\n"
+@"samplingShader(RasterizerData in [[stage_in]], texture2d<half> colorTexture [[ texture(0) ]]) { \n"
+@"   constexpr sampler textureSampler (mag_filter::linear, min_filter::linear);\n"
+@"   const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);\n"
+@"   return float4(colorSample);\n"
+@"}\n";
+
+  id<MTLLibrary> mtl_lib = [dev newLibraryWithSource:code options:opt error:&err];
+  if (err) NSLog(@"swell-cocoa: error compiling metal shaders for device %p %@: %@\n",dev,dev.name,err);
+  [opt release];
+
+  if (mtl_lib &&
+      (*vertex = rec.vertexFunction = [mtl_lib newFunctionWithName:@"vertexShader"]) &&
+      (*frag = rec.fragmentFunction = [mtl_lib newFunctionWithName:@"samplingShader"]))
+  {
+    NSLog(@"swell-cocoa: mtl ok for device %p %@!\n", dev, dev.name);
+  }
+  else
+  {
+    NSLog(@"swell-cocoa: mtl failed functions for device %p %@!\n", dev, dev.name);
+  }
+  s_mtl_device_recs.Insert((INT_PTR)dev, rec);
+}
+
+#endif
+
 @interface NSRectSet : NSObject
 {
   struct CGRect _bounds;
@@ -70,6 +149,9 @@
 - (void) setRectSetBeingDrawn:(NSRectSet *)rs forView:(NSView *)v;
 @end
 
+@interface NSView (swell_internals)
+-(void)_recursiveDisplayRectIfNeededIgnoringOpacity:(NSRect)rect isVisibleRect:(BOOL)vr rectIsVisibleRectForView:(NSView*)view topView:(NSView *)v2;
+@end
 
 #undef NSRECTSET_RECT 
 
@@ -87,7 +169,6 @@ const char* (*SWELL_DDrop_getDroppedFileTargetPath)(const char* extension);
 
 bool SWELL_owned_windows_levelincrease=false;
 
-#include "swell-internal.h"
 #include "../wdlstring.h"
 #include "../wdlcstring.h"
 
@@ -120,10 +201,10 @@ void updateWindowCollection(NSWindow *w)
   }
 }
 
-static void DrawSwellViewRectImpl(SWELL_hwndChild *view, NSRect rect, HDC hdc);
+static void DrawSwellViewRectImpl(SWELL_hwndChild *view, NSRect rect, HDC hdc, bool isMetal=false);
 static void swellRenderOptimizely(int passflags, SWELL_hwndChild *view, HDC hdc, BOOL doforce, WDL_PtrList<void> *needdraws, const NSRect *rlist, NSInteger rlistcnt, int draw_xlate_x, int draw_xlate_y, bool iscv, NSView *rlist_coordview);
 
-static LRESULT SWELL_SendMouseMessage(NSView *slf, int msg, NSEvent *event);
+static LRESULT SWELL_SendMouseMessage(SWELL_hwndChild *slf, int msg, NSEvent *event);
 static LRESULT SWELL_SendMouseMessageImpl(SWELL_hwndChild *slf, int msg, NSEvent *theEvent)
 {
  
@@ -136,8 +217,8 @@ static LRESULT SWELL_SendMouseMessageImpl(SWELL_hwndChild *slf, int msg, NSEvent
   NSPoint swellProcessMouseEvent(int msg, NSView *view, NSEvent *event);
   
   NSPoint pt = swellProcessMouseEvent(msg,slf,theEvent);
-  unsigned short xpos=(int)floor(pt.x);
-  unsigned short ypos=(int)floor(pt.y);
+  unsigned short xpos=(int)floor(pt.x + 0.5);
+  unsigned short ypos=(int)floor(pt.y + 0.5);
   
   LRESULT htc=HTCLIENT;
   if (msg != WM_MOUSEWHEEL && msg != WM_MOUSEHWHEEL && !capv) 
@@ -186,11 +267,11 @@ static LRESULT SWELL_SendMouseMessageImpl(SWELL_hwndChild *slf, int msg, NSEvent
   }
   return ret;  
 }
-static LRESULT SWELL_SendMouseMessage(NSView *slf, int msg, NSEvent *event)
+static LRESULT SWELL_SendMouseMessage(SWELL_hwndChild *slf, int msg, NSEvent *event)
 {
   if (!slf) return 0;
   [slf retain];
-  LRESULT res=SWELL_SendMouseMessageImpl((SWELL_hwndChild*)slf,msg,event);
+  LRESULT res=SWELL_SendMouseMessageImpl(slf,msg,event);
   [slf release];
   return res;
 }
@@ -230,7 +311,15 @@ void SWELL_DoDialogColorUpdates(HWND hwnd, DLGPROC d, bool isUpdate)
             SWELL_DeleteGfxContext((HDC)c);
           }
         }
-        if (buttonFg) [(NSTextField*)ch setTextColor:buttonFg]; // NSButton had this added below
+        if (buttonFg)
+        {
+          NSMutableAttributedString *attrTitle = [[NSMutableAttributedString alloc] initWithAttributedString:[(NSButton *)ch attributedTitle]];
+          NSRange range = NSMakeRange(0, [attrTitle length]);
+          [attrTitle addAttribute:NSForegroundColorAttributeName value:buttonFg range:range];
+          [attrTitle fixAttributesInRange:range];
+          [(NSButton *)ch setAttributedTitle:attrTitle];
+          [attrTitle release];
+        }
       }
       else if ([ch isKindOfClass:[NSTextField class]] || [ch isKindOfClass:[NSBox class]])
       {
@@ -291,6 +380,8 @@ void SWELL_DoDialogColorUpdates(HWND hwnd, DLGPROC d, bool isUpdate)
             }
             else
             {
+              if ([ch isKindOfClass:[SWELL_TextField class]])
+                ((SWELL_TextField *)ch)->m_ctlcolor_set = true;
               [(NSTextField*)ch setTextColor:staticFg]; 
             }
           }
@@ -373,7 +464,7 @@ static SWELL_DialogResourceIndex *resById(SWELL_DialogResourceIndex *reshead, co
   return 0;
 }
 
-static void DoPaintStuff(WNDPROC wndproc, HWND hwnd, HDC hdc, NSRect *modrect)
+static void DoPaintStuff(WNDPROC wndproc, HWND hwnd, HDC hdc, NSRect *modrect, bool isMetal)
 {
   RECT r;
   GetWindowRect(hwnd,&r);
@@ -383,14 +474,14 @@ static void DoPaintStuff(WNDPROC wndproc, HWND hwnd, HDC hdc, NSRect *modrect)
   RECT r2=r;
   r=p.rgrc[0];
 
-  wndproc(hwnd,WM_NCPAINT,(WPARAM)1,0);
+  if (!isMetal) wndproc(hwnd,WM_NCPAINT,(WPARAM)1,0);
   modrect->origin.x += r.left-r2.left;
   modrect->origin.y += r.top-r2.top;
     
   if (modrect->size.width >= 1 && modrect->size.height >= 1)
   {
     int a=0;
-    if (memcmp(&r,&r2,sizeof(r)))
+    if (!isMetal && memcmp(&r,&r2,sizeof(r)))
     {
       RECT tr;
       SWELL_PushClipRegion(hdc);
@@ -401,6 +492,7 @@ static void DoPaintStuff(WNDPROC wndproc, HWND hwnd, HDC hdc, NSRect *modrect)
     wndproc(hwnd,WM_PAINT,(WPARAM)hdc,0);
     if (a) SWELL_PopClipRegion(hdc);
   }
+  if (isMetal) wndproc(hwnd,WM_NCPAINT,(WPARAM)1,0);
 }
 
 
@@ -492,13 +584,31 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
 
 @implementation SWELL_hwndChild : NSView 
 
+- (NSMenu *)textView:(NSTextView *)view
+                menu:(NSMenu *)menu
+            forEvent:(NSEvent *)event
+             atIndex:(NSUInteger)charIndex
+{
+  return [view respondsToSelector:@selector(swellWantsContextMenu)] && ![(SWELL_TextView *)view swellWantsContextMenu] ? nil : menu;
+}
+
 -(void)viewDidHide
 {
   SendMessage((HWND)self, WM_SHOWWINDOW, FALSE, 0);
+#ifndef SWELL_NO_METAL
+  if (m_use_metal>0) swell_removeMetalDirty(self);
+#endif
 }
 -(void) viewDidUnhide
 {
   SendMessage((HWND)self, WM_SHOWWINDOW, TRUE, 0);
+#ifndef SWELL_NO_METAL
+  if (m_use_metal>0) 
+  {
+    [self swellDrawMetal:NULL];
+    swell_removeMetalDirty(self);
+  }
+#endif
 }
 
 - (void)SWELL_Timer:(id)sender
@@ -522,7 +632,6 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
   {
     if (m_hashaddestroy==2 || msg == WM_DESTROY || msg == WM_CAPTURECHANGED) return 0;
   }
-  
   
   if (msg==WM_DESTROY) // only ever called once per window
   { 
@@ -580,6 +689,28 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
   if ([aTableView isKindOfClass:[SWELL_ListView class]])
   {
     SWELL_ListView *f = (SWELL_ListView *)aTableView;
+
+    const unsigned short tag = (unsigned short)[aTableView tag];
+    NMLVCUSTOMDRAW nmlv={
+      {
+        {(HWND)aTableView,(UINT_PTR)tag, NM_CUSTOMDRAW},
+        CDDS_ITEMPREPAINT,NULL, {0,0,0,0}, rowIndex, 0,0
+      },
+      (COLORREF)-1,
+      (COLORREF)-1,
+      f->m_cols ? f->m_cols->Find(aTableColumn) : 0
+    };
+    if (m_wndproc) m_wndproc((HWND)self,WM_NOTIFY,tag,(LPARAM)&nmlv);
+    // todo clrTextBk too
+    if (nmlv.clrText != (COLORREF)-1)
+    {
+      if ([aCell respondsToSelector:@selector(setTextColor:)])
+      {
+        [aCell setTextColor:NSColorFromCol(nmlv.clrText)];
+      }
+      return;
+    }
+
     if (f->m_selColors&&[aTableView isRowSelected:rowIndex]) 
     {
       const NSInteger cnt = [f->m_selColors count];
@@ -631,7 +762,17 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
 {
   id sender=[notification object];
   int code=CBN_SELCHANGE;
-  if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_COMMAND,([(NSControl*)sender tag])|(code<<16),(LPARAM)sender);
+  if (m_wndproc&&!m_hashaddestroy)
+  {
+    if ([sender isKindOfClass:[SWELL_ComboBox class]])
+    {
+      SWELL_ComboBox *p = (SWELL_ComboBox *)sender;
+      const int sel = [p indexOfSelectedItem];
+      if (sel == p->m_ignore_selchg) return;
+      p->m_ignore_selchg = sel;
+    }
+    m_wndproc((HWND)self,WM_COMMAND,([(NSControl*)sender tag])|(code<<16),(LPARAM)sender);
+  }
 }
 
 - (void)comboBoxWillDismiss:(NSNotification *)notification
@@ -685,9 +826,24 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
       m_wndproc((HWND)self,WM_COMMAND,(LBN_DBLCLK<<16)|[(NSControl*)sender tag],(LPARAM)sender);
     else
     {
-      SWELL_ListView* v = (SWELL_ListView*)sender;
-      NMLISTVIEW nmlv={{(HWND)sender,(UINT_PTR)[(NSControl*)sender tag], NM_DBLCLK}, (int) [v clickedRow], (int) [sender clickedColumn], };
-      SWELL_ListView_Row *row=v->m_items->Get(nmlv.iItem);
+      SWELL_ListView *lv = (SWELL_ListView*)sender;
+      NMLISTVIEW nmlv={{(HWND)sender,(UINT_PTR)[(NSControl*)sender tag], NM_DBLCLK}, (int) [lv clickedRow], (int) [sender clickedColumn], };
+
+      if (nmlv.iItem == -1)
+      {
+        // ignore doubleclicks in column headers
+        NSTableHeaderView *v = [sender headerView];
+        if (v)
+        {
+          NSPoint pt=[NSEvent mouseLocation];
+          NSWindow *w = [self window];
+          pt = [w convertScreenToBase:pt];
+          pt = [v convertPoint:pt fromView:nil];
+          if (NSPointInRect(pt,[v bounds])) return;
+        }
+      }
+
+      SWELL_ListView_Row *row=lv->m_items->Get(nmlv.iItem);
       if (row)
        nmlv.lParam = row->m_param;
       m_wndproc((HWND)self,WM_NOTIFY,[(NSControl*)sender tag],(LPARAM)&nmlv);
@@ -699,16 +855,42 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
     m_wndproc((HWND)self,WM_NOTIFY,[(NSControl*)sender tag],(LPARAM)&nm);
   }
 }
-
+- (void)outlineViewItemWillExpand:(NSNotification*)notification
+{
+  NSOutlineView *sender=[notification object];
+  NMTREEVIEW nmhdr={{(HWND)sender,(UINT_PTR)[sender tag],TVN_ITEMEXPANDING},0,};  // todo: better treeview notifications
+  SWELL_DataHold *t=[[notification userInfo] valueForKey:@"NSObject"];
+  HTREEITEM hi = t ? (HTREEITEM)[t getValue] : NULL;
+  if (hi)
+  {
+    nmhdr.itemNew.hItem=hi;
+    nmhdr.itemNew.lParam=hi->m_param;
+  }
+  if (m_wndproc && !m_hashaddestroy)
+  {
+    m_wndproc((HWND)self, WM_NOTIFY, (int)[sender tag], (LPARAM)&nmhdr);
+  }
+}
+- (void)outlineViewItemWillCollapse:(NSNotification*)notification
+{
+  return [self outlineViewItemWillExpand:notification]; // yes it's the same notification
+}
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification
 {
   NSOutlineView *sender=[notification object];
   NMTREEVIEW nmhdr={{(HWND)sender,(UINT_PTR)[sender tag],TVN_SELCHANGED},0,};  // todo: better treeview notifications
+  HTREEITEM item = TreeView_GetSelection((HWND)sender);
+  nmhdr.itemNew.hItem = item;
+  nmhdr.itemNew.lParam = item ? item->m_param : 0;
   if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_NOTIFY,(int)[sender tag],(LPARAM)&nmhdr);
 }
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification
 {
-  NSTableView *sender=[aNotification object];
+  extern int swell_ignore_listview_changes;
+  if (!swell_ignore_listview_changes)
+  {
+      swell_ignore_listview_changes++;
+      NSTableView *sender=[aNotification object];
       if ([sender respondsToSelector:@selector(getSwellNotificationMode)] && [(SWELL_ListView*)sender getSwellNotificationMode])
       {
         if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_COMMAND,(int)[sender tag] | (LBN_SELCHANGE<<16),(LPARAM)sender);
@@ -717,8 +899,9 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
       {
         NMLISTVIEW nmhdr={{(HWND)sender,(UINT_PTR)[sender tag],LVN_ITEMCHANGED},(int)[sender selectedRow],0};
         if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_NOTIFY,(int)[sender tag],(LPARAM)&nmhdr);
-        
       }
+      swell_ignore_listview_changes--;
+  }
 }
 
 - (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn
@@ -842,7 +1025,6 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
 }
 -(void) dealloc
 {
-
   int x;
   for (x=0;x<sizeof(m_access_cacheptrs)/sizeof(m_access_cacheptrs[0]);x ++)
   {
@@ -857,6 +1039,20 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
     [m_glctx release];
     m_glctx=0;
   }
+#ifndef SWELL_NO_METAL
+  if (m_use_metal == 2)
+  {
+    [m_metal_texture release];
+    [m_metal_pipelineState release];
+    [m_metal_commandQueue release];
+  }
+  m_metal_drawable=NULL;
+  m_metal_texture=NULL;
+  m_metal_pipelineState=NULL;
+  m_metal_commandQueue=NULL;
+  if (m_use_metal>0) swell_removeMetalDirty(self);
+#endif
+
   [super dealloc];
 }
 
@@ -878,10 +1074,7 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
     m_paintctx_used=1;
     ps->hdc = m_paintctx_hdc;
     ps->fErase=false;
-    ps->rcPaint.left = (int)m_paintctx_rect.origin.x;
-    ps->rcPaint.right = (int)ceil(m_paintctx_rect.origin.x+m_paintctx_rect.size.width);
-    ps->rcPaint.top = (int)m_paintctx_rect.origin.y;
-    ps->rcPaint.bottom  = (int)ceil(m_paintctx_rect.origin.y+m_paintctx_rect.size.height);
+    NSRECT_TO_RECT(&ps->rcPaint,m_paintctx_rect);
 
     // should NC_CALCSIZE to convert, but this will be good enough to fix this small scrollbar overdraw bug
     RECT r;
@@ -977,12 +1170,25 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
   if (m_menu) SWELL_SetMenuDestination(m_menu,(HWND)self);
 }
 
+#ifndef SWELL_NO_METAL
+
+-(CALayer *)makeBackingLayer
+{
+  if (m_use_metal>0 && __class_CAMetalLayer)
+  {
+    CALayer *layer = [__class_CAMetalLayer layer];
+    if (layer) return layer;
+  }
+  return [super makeBackingLayer];
+}
+#endif
 
 - (id)initChild:(SWELL_DialogResourceIndex *)resstate Parent:(NSView *)parent dlgProc:(DLGPROC)dlgproc Param:(LPARAM)par
 {
   NSRect contentRect=NSMakeRect(0,0,resstate ? resstate->width : 300,resstate ? resstate->height : 200);
   if (!(self = [super initWithFrame:contentRect])) return self;
 
+  m_classname=NULL;
   memset(m_access_cacheptrs,0,sizeof(m_access_cacheptrs));
   m_allow_nomiddleman=1;
   m_isdirty=3;
@@ -1004,6 +1210,22 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
   m_props=0;
   
   m_titlestr[0]=0;
+
+#ifndef SWELL_NO_METAL
+  m_use_metal=0;
+  m_metal_dc_dirty=0;
+  m_metal_retina=false;
+  m_metal_device=NULL;
+  m_metal_device_lastchkt=0;
+  m_metal_texture=NULL;
+  m_metal_drawable=NULL;
+  m_metal_pipelineState=NULL;
+  m_metal_commandQueue=NULL;
+  m_metal_in_needref_list=false;
+  m_metal_gravity=0;
+  memset(&m_metal_lastframe,0,sizeof(m_metal_lastframe));
+  memset(&m_metal_in_needref_rect,0,sizeof(m_metal_in_needref_rect));
+#endif
   
   m_wndproc=SwellDialogDefaultWindowProc;
   
@@ -1013,25 +1235,24 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
   
   [self setHidden:YES];
   
-  
-  if ([parent isKindOfClass:[NSSavePanel class]]||[parent isKindOfClass:[NSOpenPanel class]])
+  if ([parent isKindOfClass:[NSWindow class]])
   {
-    [(NSSavePanel *)parent setAccessoryView:self];
-    [self setHidden:NO];
-  }
-  else if ([parent isKindOfClass:[NSColorPanel class]])
-  {
-    [(NSColorPanel *)parent setAccessoryView:self];
-    [self setHidden:NO];
-  }  
-  else if ([parent isKindOfClass:[NSFontPanel class]])
-  {
-    [(NSFontPanel *)parent setAccessoryView:self];
-    [self setHidden:NO];
-  }    
-  else if ([parent isKindOfClass:[NSWindow class]])
-  {
-    [(NSWindow *)parent setContentView:self];
+    if ([parent isKindOfClass:[NSPanel class]] &&
+        [parent respondsToSelector:@selector(setAccessoryView:)])
+    {
+      [(NSOpenPanel *)parent setAccessoryView:self];
+      if ([parent isKindOfClass:[NSOpenPanel class]] ||
+          [[parent className] isEqualToString:@"NSLocalOpenPanel"])
+      {
+        if ([parent respondsToSelector:@selector(setAccessoryViewDisclosed:)])
+          [(NSOpenPanel *)parent setAccessoryViewDisclosed:YES];
+      }
+      [self setHidden:NO];
+    }
+    else
+    {
+      [(NSWindow *)parent setContentView:self];
+    }
   }
   else
   {
@@ -1119,8 +1340,9 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
 - (void)setFrame:(NSRect)frameRect 
 {
   [super setFrame:frameRect];
-  if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_SIZE,0,0); 
-  InvalidateRect(GetParent((HWND)self),NULL,FALSE);
+  if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_SIZE,0,0);
+  HWND par = GetParent((HWND)self);
+  if (par) InvalidateRect(par,NULL,FALSE);
 } 
 
 - (void)keyDown:(NSEvent *)theEvent
@@ -1250,6 +1472,227 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
   
 }
 #endif
+
+-(BOOL) swellWantsMetal
+{
+#ifndef SWELL_NO_METAL
+  return m_use_metal > 0;
+#else
+  return NO;
+#endif
+}
+-(void) swellDrawMetal:(const RECT *)forRect
+{
+#ifndef SWELL_NO_METAL
+  SWELL_AutoReleaseHelper arparp;
+
+#define swell_metal_set_layer_gravity(layer, g) do { \
+  const int grav = (g); \
+  (layer).contentsGravity = (grav&1) ?  (grav&2) ? @"bottomRight" : @"topRight" : \
+    (grav&2) ? @"bottomLeft" : @"topLeft"; } while(0)
+
+  if (m_use_metal != 1 && m_use_metal != 2) return;
+  const bool direct_mode = m_use_metal == 1;
+
+  CAMetalLayer *layer = (CAMetalLayer *)[self layer];
+
+  id<MTLDevice> device = m_metal_device;
+
+#if 1
+  // support multiple devices. only check every second for device changes (it will use the old device and be slower in that duration)
+  // (checking the device takes about 20uS, which isn't a lot but also isn't nothing)
+
+  // this seems to work correclty, *except* - if you're using the high-performance card, the system will never go back to integrated,
+  // presumably because our metal devices are open. Maybe we can flag them as "non-essential" ?
+  const DWORD now = GetTickCount();
+  if (__CGDirectDisplayCopyCurrentMetalDevice && (!device || (now-m_metal_device_lastchkt)>1000))
+  {
+    m_metal_device_lastchkt = now;
+    CGDirectDisplayID viewDisplayID = (CGDirectDisplayID) [self.window.screen.deviceDescription[@"NSScreenNumber"] unsignedIntegerValue];
+    device = __CGDirectDisplayCopyCurrentMetalDevice(viewDisplayID);
+  }
+#endif
+  if (!device)
+  {
+    static id<MTLDevice> def;
+    if (!def) def = __MTLCreateSystemDefaultDevice();
+    device = def;
+  }
+
+  if (device != m_metal_device)
+  {
+    id<MTLDevice> olddev = (id<MTLDevice>)m_metal_device;
+    if (olddev) NSLog(@"swell-cocoa: switching metal devices from %p %@ to %p %@\n",olddev,olddev.name,device,device.name);
+    m_metal_device = device;
+    [layer setDevice:device];
+    swell_metal_set_layer_gravity(layer,m_metal_gravity ^ ([self isFlipped] ? 2 : 0));
+    if (m_use_metal==1)
+      layer.framebufferOnly = NO;
+    [layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
+
+    [m_metal_pipelineState release];
+    [m_metal_commandQueue release];
+    if (!direct_mode) [m_metal_texture release];
+
+    m_metal_commandQueue = NULL;
+    m_metal_pipelineState = NULL;
+    m_metal_texture = NULL;
+    m_metal_drawable = NULL;
+  }
+
+  if (!device) return;
+
+  if (!direct_mode)
+  {
+    if (!m_metal_pipelineState)
+    {
+      id<MTLFunction> vertex = NULL, frag = NULL;
+      get_dev_shaders(device, &vertex, &frag);
+      if (!vertex || !frag) return; // fail
+
+      MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[__class_MTLRenderPipelineDescriptor alloc] init];
+
+      pipelineStateDescriptor.vertexFunction = vertex;
+      pipelineStateDescriptor.fragmentFunction = frag;
+      pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+
+      NSError *error = NULL;
+      m_metal_pipelineState = [device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&error];
+      [pipelineStateDescriptor release];
+    }
+  }
+
+  RECT cr;
+  GetClientRect((HWND)self,&cr);
+  if (m_use_metal == 2 && forRect)
+  {
+    WinIntersectRect(&cr,&cr,forRect);
+  }
+
+  if (direct_mode)
+  {
+    m_metal_drawable = NULL;
+    m_metal_texture = NULL;
+  }
+  if (cr.right > cr.left && cr.bottom > cr.top)
+  {
+    // this might be good to enable for all metal windows? shrug
+    if (m_use_metal == 2)
+    {
+      NSRect frame = [self frame];
+      NSView *cv = [[self window] contentView];
+      if (cv != self) frame = [self convertRect:frame toView:cv];
+
+      const int last_grav = m_metal_gravity;
+      if (frame.size.width != m_metal_lastframe.size.width)
+      {
+        if (frame.origin.x != m_metal_lastframe.origin.x) m_metal_gravity|=1;
+        else m_metal_gravity&=~1;
+      }
+      if (frame.size.height != m_metal_lastframe.size.height)
+      {
+        if (frame.origin.y != m_metal_lastframe.origin.y) m_metal_gravity|=2;
+        else m_metal_gravity&=~2;
+      }
+      m_metal_lastframe = frame;
+      if (last_grav != m_metal_gravity)
+        swell_metal_set_layer_gravity(layer,m_metal_gravity ^ ([self isFlipped] ? 2 : 0));
+    }
+
+    HDC hdc = SWELL_CreateMetalDC(self);
+
+    NSRect rect;
+    rect.origin.x = cr.left;
+    rect.origin.y = cr.top;
+    rect.size.width = cr.right-cr.left;
+    rect.size.height = cr.bottom-cr.top;
+
+    m_metal_dc_dirty=0;
+    DrawSwellViewRectImpl(self,rect,hdc,true);
+
+    SWELL_DeleteGfxContext(hdc);
+  }
+  m_metal_dc_dirty=0;
+
+  if (direct_mode)
+  {
+    if (m_metal_drawable)
+      [m_metal_drawable present];
+    m_metal_drawable = NULL;
+    m_metal_texture = NULL;
+    return;
+  }
+
+
+  id<MTLTexture> tex = (id<MTLTexture>) m_metal_texture;
+  if (!tex) return; // this can happen if GetDC()/ReleaseDC() are called before the first WM_PAINT
+
+  NSRect bounds = [self bounds];
+  if (bounds.size.width < 1 || bounds.size.height < 1) return;
+
+  if (m_metal_retina)
+  {
+    bounds.size.width *= 2;
+    bounds.size.height *= 2;
+  }
+  CGSize oldsc = layer.drawableSize;
+  if (oldsc.width != bounds.size.width || oldsc.height != bounds.size.height)
+  {
+    CGSize ns;
+    ns.width = bounds.size.width;
+    ns.height = bounds.size.height;
+    layer.drawableSize = ns;
+    layer.contentsScale = m_metal_retina ? 2.0 : 1.0;
+  }
+  id<CAMetalDrawable> drawable = [layer nextDrawable];
+  if (!drawable)
+  {
+    NSLog(@"swell-cocoa: metal surface got nul drawable\n");
+    return;
+  }
+
+
+  RECT r = {0,0, (int)bounds.size.width, (int)bounds.size.height };
+
+  const float x_sc = (float) (r.right / (double)tex.width);
+  const float y_sc = (float) (r.bottom / (double)tex.height);
+
+  vector_float2 quads[] =
+  {
+    {  1,  -1 }, {x_sc, y_sc}, 
+    { -1,  -1 }, {0, y_sc},
+    { -1,   1 }, {0, 0},
+
+    {  1,  -1 }, {x_sc, y_sc},
+    { -1,   1 }, {0, 0},
+    {  1,   1 }, {x_sc, 0},
+  };
+
+  if (!m_metal_commandQueue)
+    m_metal_commandQueue = [device newCommandQueue];
+
+  id<MTLCommandBuffer> commandBuffer = [m_metal_commandQueue commandBuffer];
+
+  MTLRenderPassDescriptor *renderPassDescriptor = [__class_MTLRenderPassDescriptor renderPassDescriptor];
+  renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
+
+  id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+
+  // Set the region of the drawable to draw into.
+  [renderEncoder setViewport:(MTLViewport){0.0, 0.0, (double)r.right,(double)r.bottom, -1.0, 1.0 }];
+
+  [renderEncoder setRenderPipelineState:m_metal_pipelineState];
+  [renderEncoder setVertexBytes:quads length:sizeof(quads) atIndex:0];
+  [renderEncoder setFragmentTexture:m_metal_texture atIndex:0];
+
+  [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+
+  [renderEncoder endEncoding];
+
+  [commandBuffer presentDrawable:drawable];
+  [commandBuffer commit];
+#endif
+}
 
 -(void) drawRect:(NSRect)rect
 {
@@ -1448,7 +1891,12 @@ static void MakeGestureInfo(NSEvent* evt, GESTUREINFO* gi, HWND hwnd, int type)
 
 - (BOOL)becomeFirstResponder 
 {
-  if (m_enabled <= 0 || ![super becomeFirstResponder]) return NO;
+  int en = m_enabled;
+  if (en < 0)
+  {
+    if ([[self window] contentView]==self) en = 1; // accept focus if we're enabled-without-focus and the contentview
+  }
+  if (en <= 0 || ![super becomeFirstResponder]) return NO;
   SendMessage((HWND)self, WM_MOUSEACTIVATE, 0, 0);
   return YES;
 }
@@ -1465,6 +1913,11 @@ static void MakeGestureInfo(NSEvent* evt, GESTUREINFO* gi, HWND hwnd, int type)
 
 - (BOOL)acceptsFirstResponder 
 {
+  if (m_enabled < 0)
+  {
+    // accept focus if we're enabled-without-focus and the contentview
+    if ([[self window] contentView]==self) return YES;
+  }
   return m_enabled > 0?YES:NO;
 }
 
@@ -1503,8 +1956,8 @@ static void MakeGestureInfo(NSEvent* evt, GESTUREINFO* gi, HWND hwnd, int type)
     HANDLE h = (HANDLE)[self swellExtendedDragOp:sender retGlob:YES];
     if (h)
     {
-      NSPoint p=[[self window] convertBaseToScreen:[sender draggingLocation]];
-      POINT pt={(int)(p.x+0.5),(int)(p.y+0.5)};
+      POINT pt;
+      NSPOINT_TO_POINT(&pt,[[self window] convertBaseToScreen:[sender draggingLocation]]);
       SWELL_DDrop_onDragEnter(h,pt);
       GlobalFree(h);
     }
@@ -1522,8 +1975,8 @@ static void MakeGestureInfo(NSEvent* evt, GESTUREINFO* gi, HWND hwnd, int type)
 
   if (SWELL_DDrop_onDragOver)
   {
-    NSPoint p=[[self window] convertBaseToScreen:[sender draggingLocation]];
-    POINT pt={(int)(p.x+0.5),(int)(p.y+0.5)};
+    POINT pt;
+    NSPOINT_TO_POINT(&pt,[[self window] convertBaseToScreen:[sender draggingLocation]]);
     SWELL_DDrop_onDragOver(pt);
   }
   
@@ -1618,8 +2071,7 @@ static void MakeGestureInfo(NSEvent* evt, GESTUREINFO* gi, HWND hwnd, int type)
   HANDLE gobj=GlobalAlloc(0,sz+1);
   DROPFILES *df=(DROPFILES*)gobj;
   df->pFiles=sizeof(DROPFILES);
-  df->pt.x = (int)(tpt.x+0.5);
-  df->pt.y = (int)(tpt.y+0.5);
+  NSPOINT_TO_POINT(&df->pt, tpt);
   df->fNC = FALSE;
   df->fWide = FALSE;
   char *pout = (char *)(df+1);
@@ -1782,10 +2234,10 @@ static void MakeGestureInfo(NSEvent* evt, GESTUREINFO* gi, HWND hwnd, int type)
   return [super accessibilityIsIgnored];
 }
 
-
-
-
-
+- (const char *)getSwellClass
+{
+  return m_classname;
+}
 
 @end
 
@@ -1795,6 +2247,33 @@ static void MakeGestureInfo(NSEvent* evt, GESTUREINFO* gi, HWND hwnd, int type)
 
 static HWND last_key_window;
 
+static HMENU swell_getEffectiveMenuForWindow(NSView *cv, NSWindow *window, bool isModal) // cv and window must be non-NULL
+{
+  for (;;)
+  {
+    if ([cv respondsToSelector:@selector(swellGetMenu)]) 
+    {
+      HMENU menu = [(SWELL_hwndChild*)cv swellGetMenu];
+      if (menu) return menu;
+    }
+
+    if (isModal) return NULL;
+
+    if (![window respondsToSelector:@selector(swellGetOwner)]) return NULL;
+
+    id own = [(SWELL_ModelessWindow*)window swellGetOwner];
+    if (!own || own == cv || own == window) return NULL;
+
+    if ([own isKindOfClass:[NSWindow class]]) window = (NSWindow *)own;
+    else if ([own isKindOfClass:[NSView class]]) window = [(NSView *)own window];
+    else return NULL;
+
+    if (!window) return NULL;
+
+    cv = [window contentView];
+    if (!cv) return NULL;
+  }
+}
 
 #define SWELLDIALOGCOMMONIMPLEMENTS_WND(ISMODAL) \
 -(BOOL)acceptsFirstResponder { return m_enabled?YES:NO; } \
@@ -1811,7 +2290,7 @@ static HWND last_key_window;
 } \
 - (void)windowDidMove:(NSNotification *)aNotification { \
     NSRect f=[self frame]; \
-    sendSwellMessage([self contentView], WM_MOVE,0, MAKELPARAM((int)f.origin.x,(int)f.origin.y)); \
+    sendSwellMessage([self contentView], WM_MOVE,0, MAKELPARAM((int)floor(f.origin.x+0.5),(int)floor(f.origin.y+0.5))); \
 } \
 - (BOOL)accessibilityIsIgnored \
 { \
@@ -1865,7 +2344,7 @@ static HWND last_key_window;
   if (foc && [foc respondsToSelector:@selector(swellHasBeenDestroyed)] && [(SWELL_hwndChild*)foc swellHasBeenDestroyed]) foc=NULL; \
   NSView *cv = [self contentView];  \
   if (!cv || ![cv respondsToSelector:@selector(swellHasBeenDestroyed)] || ![(SWELL_hwndChild*)cv swellHasBeenDestroyed])  { \
-    if ([cv respondsToSelector:@selector(swellGetMenu)]) menu = [(SWELL_hwndChild*)cv swellGetMenu]; \
+    menu = swell_getEffectiveMenuForWindow(cv,self,ISMODAL); \
     if (!menu) menu=ISMODAL && g_swell_defaultmenumodal ? g_swell_defaultmenumodal : g_swell_defaultmenu; \
     if (menu && menu != (HMENU)[NSApp mainMenu] && !g_swell_terminating) [NSApp setMainMenu:(NSMenu *)menu]; \
     sendSwellMessage(cv,WM_ACTIVATE,WA_ACTIVE,(LPARAM)foc); \
@@ -2023,6 +2502,7 @@ SWELLDIALOGCOMMONIMPLEMENTS_WND(0)
     }
   }
     
+  [self setAutorecalculatesKeyViewLoop:YES];
   [self display];
   return self;
 }
@@ -2081,6 +2561,7 @@ SWELLDIALOGCOMMONIMPLEMENTS_WND(0)
  
   [ch release];
 
+  [self setAutorecalculatesKeyViewLoop:YES];
   [self display];
   [self release]; // matching retain above
   
@@ -2160,6 +2641,7 @@ SWELLDIALOGCOMMONIMPLEMENTS_WND(1)
 //  DOWINDOWMINMAXSIZES(ch)
   [ch release];
 
+  [self setAutorecalculatesKeyViewLoop:YES];
   [self setHidesOnDeactivate:NO];
   [self display];
   
@@ -2185,7 +2667,7 @@ SWELLDIALOGCOMMONIMPLEMENTS_WND(1)
 
 void EndDialog(HWND wnd, int ret)
 {   
-  if (!wnd) return;
+  if (WDL_NOT_NORMALLY(!wnd)) return;
   
   NSWindow *nswnd=NULL;
   NSView *nsview = NULL;
@@ -2225,15 +2707,24 @@ int SWELL_DialogBox(SWELL_DialogResourceIndex *reshead, const char *resid, HWND 
 {
   SWELL_DialogResourceIndex *p=resById(reshead,resid);
   if (!p||(p->windowTypeFlags&SWELL_DLG_WS_CHILD)) return -1;
+
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
   SWELL_ModalDialog *box = [[SWELL_ModalDialog alloc] initDialogBox:p Parent:parent dlgProc:dlgproc Param:param];      
      
-  if (!box) return -1;
+  if (!box)
+  {
+    [pool release];
+    return -1;
+  }
   
   if ([box swellHasModalRetVal]) // detect EndDialog() in WM_INITDIALOG
   {
     int ret=[box swellGetModalRetVal];
     sendSwellMessage([box contentView],WM_DESTROY,0,0);
+    [box close];
     [box release];
+    [pool release];
     return ret;
   }
     
@@ -2254,6 +2745,7 @@ int SWELL_DialogBox(SWELL_DialogResourceIndex *reshead, const char *resid, HWND 
   }
   int ret=[box swellGetModalRetVal];
   [box release];
+  [pool release];
   return ret;
 }
 
@@ -2282,13 +2774,25 @@ HWND SWELL_CreateDialog(SWELL_DialogResourceIndex *reshead, const char *resid, H
   if (!p&&resid) return 0;
   
   NSView *parview=NULL;
-  if (parent && ([(id)parent isKindOfClass:[NSView class]] || 
-                 [(id)parent isKindOfClass:[NSSavePanel class]] || 
-                 [(id)parent isKindOfClass:[NSOpenPanel class]] ||
-                 [(id)parent isKindOfClass:[NSColorPanel class]] || 
-                 [(id)parent isKindOfClass:[NSFontPanel class]]
-                 )) parview=(NSView *)parent;
-  else if (parent && [(id)parent isKindOfClass:[NSWindow class]])  parview=(NSView *)[(id)parent contentView];
+  if (parent)
+  {
+    if ([(id)parent isKindOfClass:[NSView class]])
+    {
+      parview = (NSView *)parent;
+    }
+    else if ([(id)parent isKindOfClass:[NSWindow class]])
+    {
+      if ([(id)parent isKindOfClass:[NSPanel class]] &&
+          [(id)parent respondsToSelector:@selector(setAccessoryView:)])
+      {
+        parview=(NSView *)parent;
+      }
+      else
+      {
+        parview=(NSView *)[(NSWindow *)parent contentView];
+      }
+    }
+  }
   
   if ((!p || (p->windowTypeFlags&SWELL_DLG_WS_CHILD)) && parview && (p || !forceNonChild))
   {
@@ -2853,7 +3357,7 @@ HWND SWELL_CreateCarbonWindowView(HWND viewpar, void **wref, RECT* r, bool wantc
 void* SWELL_GetWindowFromCarbonWindowView(HWND cwv)
 {
   SWELL_hwndCarbonHost* w = (SWELL_hwndCarbonHost*)cwv;
-  if (w) return [w->m_cwnd windowRef];
+  if (WDL_NORMALLY(w)) return [w->m_cwnd windowRef];
   return 0;
 }
 
@@ -2861,7 +3365,7 @@ void SWELL_AddCarbonPaneToView(HWND cwv, void* pane)  // not currently used
 {
 #ifndef __LP64__
   SWELL_hwndCarbonHost* w = (SWELL_hwndCarbonHost*)cwv;
-  if (w)
+  if (WDL_NORMALLY(w))
   {
     WindowRef wndref = (WindowRef)[w->m_cwnd windowRef];
     if (wndref)
@@ -2884,50 +3388,11 @@ void SWELL_AddCarbonPaneToView(HWND cwv, void* pane)  // not currently used
 void SWELL_SetWindowFlip(HWND hwnd, bool flip)
 {
   SWELL_hwndChild * hc = (SWELL_hwndChild*)hwnd;
-  if (hc && [hc isKindOfClass:[SWELL_hwndChild class]])
+  if (WDL_NORMALLY(hc && [hc isKindOfClass:[SWELL_hwndChild class]]))
   {
     hc->m_flip = flip;
   }
 }
-
-
-@interface NSButton (TextColor)
-
-- (NSColor *)textColor;
-- (void)setTextColor:(NSColor *)textColor;
-
-@end
-
-@implementation NSButton (TextColor)
-
-- (NSColor *)textColor
-{
-  NSAttributedString *attrTitle = [self attributedTitle];
-  NSUInteger len = [attrTitle length];
-  NSRange range = NSMakeRange(0, wdl_min(len, 1)); // take color from first char
-  NSDictionary *attrs = [attrTitle fontAttributesInRange:range];
-  NSColor *textColor = [NSColor controlTextColor];
-  if (attrs) {
-    textColor = [attrs objectForKey:NSForegroundColorAttributeName];
-  }
-  return textColor;
-}
-
-- (void)setTextColor:(NSColor *)textColor
-{
-  NSMutableAttributedString *attrTitle = [[NSMutableAttributedString alloc] 
-                                          initWithAttributedString:[self attributedTitle]];
-  NSUInteger len = [attrTitle length];
-  NSRange range = NSMakeRange(0, len);
-  [attrTitle addAttribute:NSForegroundColorAttributeName 
-                    value:textColor 
-                    range:range];
-  [attrTitle fixAttributesInRange:range];
-  [self setAttributedTitle:attrTitle];
-  [attrTitle release];
-}
-
-@end
 
 
 static char* s_dragdropsrcfn = 0;
@@ -2995,7 +3460,9 @@ void SWELL_InitiateDragDropOfFileList(HWND hwnd, RECT *srcrect, const char **src
     }
     // default image?
   }
-  [(NSView *)hwnd dragImage:img at:NSMakePoint(srcrect->left,srcrect->top) offset:NSMakeSize(0,0) event:[NSApp currentEvent] pasteboard:pb source:(id)hwnd slideBack:YES];
+  NSEvent *evt = [NSApp currentEvent];
+  if (evt)
+    [(NSView *)hwnd dragImage:img at:NSMakePoint(srcrect->left,srcrect->top) offset:NSMakeSize(0,0) event:evt pasteboard:pb source:(id)hwnd slideBack:YES];
   
   [ar release];
 }
@@ -3106,7 +3573,7 @@ void SWELL_FinishDragDrop()
 bool SWELL_SetGLContextToView(HWND h)
 {
   if (!h) [NSOpenGLContext clearCurrentContext];
-  else if ([(id)h isKindOfClass:[SWELL_hwndChild class]])
+  else if (WDL_NORMALLY([(id)h isKindOfClass:[SWELL_hwndChild class]]))
   {
     SWELL_hwndChild *hc = (SWELL_hwndChild*)h;
     if (hc->m_glctx)
@@ -3120,7 +3587,7 @@ bool SWELL_SetGLContextToView(HWND h)
 
 void SWELL_SetViewGL(HWND h, bool wantGL)
 {
-  if (h && [(id)h isKindOfClass:[SWELL_hwndChild class]])
+  if (WDL_NORMALLY(h && [(id)h isKindOfClass:[SWELL_hwndChild class]]))
   {
     SWELL_hwndChild *hc = (SWELL_hwndChild*)h;
     if (wantGL != !!hc->m_glctx)
@@ -3151,9 +3618,9 @@ void SWELL_SetViewGL(HWND h, bool wantGL)
 
 bool SWELL_GetViewGL(HWND h)
 {
-  return h && [(id)h isKindOfClass:[SWELL_hwndChild class]] && ((SWELL_hwndChild*)h)->m_glctx;
+  return WDL_NORMALLY(h && [(id)h isKindOfClass:[SWELL_hwndChild class]]) && ((SWELL_hwndChild*)h)->m_glctx;
 }
-void DrawSwellViewRectImpl(SWELL_hwndChild *view, NSRect rect, HDC hdc)
+void DrawSwellViewRectImpl(SWELL_hwndChild *view, NSRect rect, HDC hdc, bool isMetal)
 {
   if (view->m_hashaddestroy) 
   {
@@ -3172,7 +3639,7 @@ void DrawSwellViewRectImpl(SWELL_hwndChild *view, NSRect rect, HDC hdc)
   }
   view->m_paintctx_rect=rect;
   view->m_paintctx_used=false;
-  DoPaintStuff(view->m_wndproc,(HWND)view,view->m_paintctx_hdc,&view->m_paintctx_rect);
+  DoPaintStuff(view->m_wndproc,(HWND)view,view->m_paintctx_hdc,&view->m_paintctx_rect,isMetal);
   
   if (view->m_paintctx_hdc)
   {
@@ -3336,7 +3803,8 @@ void swellRenderOptimizely(int passflags, SWELL_hwndChild *view, HDC hdc, BOOL d
                 NSRect ff = NSIntersectionRect(fr,rlist[ri]);
                 if (ff.size.width>0 && ff.size.height>0)
                 {
-                  RECT r={(int)ff.origin.x,(int)ff.origin.y,(int)(ff.origin.x+ff.size.width),(int)(ff.origin.y+ff.size.height)};                    
+                  RECT r;
+                  NSRECT_TO_RECT(&r,ff);
                   r.left+=draw_xlate_x;
                   r.right+=draw_xlate_x;
                   r.top+=draw_xlate_y;
@@ -3357,5 +3825,545 @@ void swellRenderOptimizely(int passflags, SWELL_hwndChild *view, HDC hdc, BOOL d
   if (passflags&2)
      view->m_isdirty=0;
 }
+
+#ifndef SWELL_NO_METAL
+
+
+static void metalUpdateProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+{
+  swell_updateAllMetalDirty();
+}
+
+static bool mtl_init()
+{
+  static int state;
+  if (!state)
+  {
+    state=-1;
+
+    if (SWELL_GetOSXVersion() < 0x10b0) return false;
+
+    dlopen("/System/Library/Frameworks/QuartzCore.framework/Versions/Current/QuartzCore",RTLD_LAZY);
+    void *lib = dlopen("/System/Library/Frameworks/Metal.framework/Versions/Current/Metal",RTLD_LAZY);
+    void *cgf = dlopen("/System/Library/Frameworks/CoreGraphics.framework/Versions/Current/CoreGraphics",RTLD_LAZY);
+    if (!lib || !cgf) return false;
+    NSArray *(*__MTLCopyAllDevices)(void);
+    *(void **)&__MTLCopyAllDevices = dlsym(lib,"MTLCopyAllDevices");
+    *(void **)&__MTLCreateSystemDefaultDevice = dlsym(lib,"MTLCreateSystemDefaultDevice");
+    *(void **)&__CGDirectDisplayCopyCurrentMetalDevice = dlsym(cgf,"CGDirectDisplayCopyCurrentMetalDevice");
+
+    if (__MTLCreateSystemDefaultDevice &&
+        __MTLCopyAllDevices &&
+        (__class_CAMetalLayer = objc_getClass("CAMetalLayer")) &&
+        (__class_MTLRenderPassDescriptor = objc_getClass("MTLRenderPassDescriptor")) &&
+        (__class_MTLRenderPipelineDescriptor = objc_getClass("MTLRenderPipelineDescriptor")) &&
+        (__class_MTLTextureDescriptor = objc_getClass("MTLTextureDescriptor")) &&
+        (__class_MTLCompileOptions = objc_getClass("MTLCompileOptions"))
+        )
+    {
+      NSArray *ar = __MTLCopyAllDevices();
+      NSUInteger cnt = [ar count];
+      [ar release];
+      if (cnt>0)
+      {
+        state=1;
+        SetTimer(NULL,1,1,metalUpdateProc);
+      }
+    }
+  }
+
+  return state>0;
+}
+
+
+#ifndef __ppc__
+static void SWELL_fastDoubleUpImage(unsigned int *op, const unsigned int *ip, int w, int h, int sw, int newspan)
+{
+  int y = h;
+  while (y-->0)
+  {
+    const unsigned int *rd = ip;
+    unsigned int *wr = op;
+    int remaining = w;
+
+#if 0 // def __AVX__
+    // this isn't really any faster than SSE anyway
+    if (remaining >= 8)
+    {
+      if (!((INT_PTR)rd & 31))
+      {
+        int x = remaining/8;
+        while (x-->0)
+        {
+          const __m256 m =  _mm256_load_ps((const float *)rd);
+          rd+=8;
+
+          const __m256 p1 = _mm256_permutevar_ps(_mm256_permute2f128_ps(m,m,0),_mm256_set_epi32(3,3,2,2,1,1,0,0));
+          const __m256 p2 = _mm256_permutevar_ps(_mm256_permute2f128_ps(m,m,1|(1<<4)),_mm256_set_epi32(3,3,2,2,1,1,0,0));
+
+          unsigned int *wr2 = wr+newspan;
+          _mm256_store_ps((float*)wr,p1);
+          _mm256_store_ps((float*)wr2,p1);
+
+          _mm256_store_ps((float*)wr + 8,p2);
+          _mm256_store_ps((float*)wr2 + 8,p2);
+
+          wr += 16;
+        }
+        remaining &= 7;
+
+      }
+    }
+#endif
+
+#ifdef __SSE__
+    if (remaining >= 4)
+    {
+      // with SSE is about 2x faster than without
+      if (((INT_PTR)rd & 7))
+      {
+        // input isn't 8 byte aligned, must use unaligned reads
+        int x = remaining/4;
+        while (x-->0)
+        {
+          __m128 m =  _mm_loadu_ps((const float *)rd);
+          __m128 p1 = _mm_shuffle_ps(m,m,_MM_SHUFFLE(1,1,0,0));
+          __m128 p2 = _mm_shuffle_ps(m,m,_MM_SHUFFLE(3,3,2,2));
+
+          unsigned int *wr2 = wr+newspan;
+          rd+=4;
+
+          _mm_store_ps((float*)wr,p1);
+          _mm_store_ps((float*)wr2,p1);
+
+          _mm_store_ps((float*)wr + 4,p2);
+          _mm_store_ps((float*)wr2 + 4,p2);
+
+          wr += 8;
+        }
+      }
+      else
+      {
+        // if rd is 8 byte aligned, we can do SSE without unaligned reads
+
+        // but if it is not 16 byte aligned, we need to preprocess a pair of pixels
+        // (advancing rd by 8 bytes, and wr by 16)
+
+        if ((INT_PTR)rd & 15)
+        {
+          unsigned int *nwr = wr+newspan;
+          wr[0] = wr[1] = nwr[0] = nwr[1] = rd[0];
+          wr[2] = wr[3] = nwr[2] = nwr[3] = rd[1];
+          wr+=4;
+          rd+=2;
+          remaining-=2;
+        }
+
+        int x = remaining/4;
+        while (x-->0)
+        {
+          __m128 m =  _mm_load_ps((const float *)rd);
+          __m128 p1 = _mm_shuffle_ps(m,m,_MM_SHUFFLE(1,1,0,0));
+          __m128 p2 = _mm_shuffle_ps(m,m,_MM_SHUFFLE(3,3,2,2));
+
+          unsigned int *wr2 = wr+newspan;
+          rd+=4;
+
+          _mm_store_ps((float*)wr,p1);
+          _mm_store_ps((float*)wr2,p1);
+
+          _mm_store_ps((float*)wr + 4,p2);
+          _mm_store_ps((float*)wr2 + 4,p2);
+
+          wr += 8;
+        }
+      }
+      remaining &= 3;
+    }
+#endif //__SSE__
+
+    int x = remaining/2;
+    while (x-->0)
+    {
+      unsigned int *nwr = wr+newspan;
+      wr[0] = wr[1] = nwr[0] = nwr[1] = rd[0];
+      wr[2] = wr[3] = nwr[2] = nwr[3] = rd[1];
+      rd+=2;
+      wr+=4;
+    }
+    if (remaining&1)
+    {
+      wr[0] = wr[1] = wr[newspan] = wr[newspan+1] = *rd;
+    }
+    ip += sw;
+    op += newspan*2;
+  }
+}
+#endif
+
+static bool SWELL_Metal_ReadTex(SWELL_hwndChild *wnd, unsigned int *destbuf, int x, int y, int w, int h, int span)
+{
+  id<MTLTexture> tex = (id<MTLTexture>) wnd->m_metal_texture;
+  const int texw = (int)tex.width, texh = (int)tex.height;
+  if (WDL_NOT_NORMALLY(x<0) ||
+      WDL_NOT_NORMALLY(y<0) ||
+      WDL_NOT_NORMALLY(x+w > texw) ||
+      WDL_NOT_NORMALLY(y+h > texh) ||
+      WDL_NOT_NORMALLY(span<w) ||
+      WDL_NOT_NORMALLY(w<1) ||
+      WDL_NOT_NORMALLY(h<1)
+    ) return false;
+
+  MTLRegion region = { { (NSUInteger)x, (NSUInteger)y, 0 }, {(NSUInteger)w,(NSUInteger)h, 1} };
+  [tex getBytes:destbuf bytesPerRow:span*4 fromRegion:region mipmapLevel:0];
+  return true;
+}
+static void srcalphablend_line(unsigned int *dest, const unsigned int *src, int l)
+{
+  while (l--)
+  {
+    unsigned int v = *src++;
+    unsigned int alpha = (v>>24);
+    if (alpha)
+    {
+      if (alpha<255)
+      {
+        const unsigned int dp = *dest;
+        const unsigned int ra=256-alpha;
+        *dest++ = (((dp&0xff) * ra + (v&0xff)*alpha) >> 8) +
+                  ((((dp&0xff00) * ra + (v&0xff00)*alpha) >> 8) & 0xff00) +
+                  ((((dp&0xff0000) * ra + (v&0xff0000)*alpha) >> 8) & 0xff0000);
+      }
+      else
+        *dest++ = v;
+    }
+    else
+      dest++;
+  }
+}
+
+static void SWELL_Metal_WriteTex(SWELL_hwndChild *wnd, const unsigned int *srcbuf, int x, int y, int w, int h, int span, bool retina_hint)
+{
+  id<MTLTexture> tex = (id<MTLTexture>) wnd->m_metal_texture;
+  int texw = 0, texh = 0;
+  if (tex)
+  {
+    texw = (int)tex.width;
+    texh = (int)tex.height;
+  }
+  if (!wnd->m_metal_dc_dirty)
+  {
+    NSRect bounds = [wnd bounds];
+    if (bounds.size.width < 1 || bounds.size.height < 1) return;
+
+    wnd->m_metal_retina = retina_hint;
+    if (retina_hint)
+    {
+      bounds.size.width *= 2.0;
+      bounds.size.height *= 2.0;
+    }
+
+    if (wnd->m_use_metal == 1) // direct
+    {
+      CAMetalLayer *layer = (CAMetalLayer *)[wnd layer];
+      if (layer)
+      {
+        CGSize oldsc = layer.drawableSize;
+        if (oldsc.width != bounds.size.width || oldsc.height != bounds.size.height)
+        {
+          CGSize ns;
+          ns.width = bounds.size.width;
+          ns.height = bounds.size.height;
+          layer.drawableSize = ns;
+          layer.contentsScale = retina_hint ? 2.0 : 1.0;
+        }
+        tex = [(wnd->m_metal_drawable = [layer nextDrawable]) texture];
+        wnd->m_metal_texture = tex;
+      }
+    }
+    else
+    {
+      const int want_w = ((int)bounds.size.width + 3) & ~3, want_h = ((int)bounds.size.height  + 3)&~3;
+      //
+      if (!tex || texw < want_w || texh < want_h || texw > want_w * 2 || texh > want_h * 2)
+      {
+        [wnd->m_metal_texture release];
+        MTLTextureDescriptor *textureDescriptor = [[__class_MTLTextureDescriptor alloc] init];
+        textureDescriptor.pixelFormat = MTLPixelFormatBGRA8Unorm;
+        textureDescriptor.width = want_w;
+        textureDescriptor.height = want_h;
+        tex = [wnd->m_metal_device newTextureWithDescriptor:textureDescriptor];
+        wnd->m_metal_texture = tex;
+
+        [textureDescriptor release];
+      }
+    }
+    if (tex)
+    {
+      texw = (int)tex.width;
+      texh = (int)tex.height;
+    }
+  }
+  wnd->m_metal_dc_dirty=1;
+
+  if (!tex) return;
+
+  if (x<0) { w += x; srcbuf -= x; x=0; }
+  if (y<0) { h += y; srcbuf -= y*span; y=0; }
+  if (x+w > texw) w = texw-x;
+  if (y+h > texh) h = texh-y;
+
+  if (w<1 || h<1) return;
+
+  MTLRegion region = { { (NSUInteger)x, (NSUInteger)y, 0 }, {(NSUInteger)w,(NSUInteger)h, 1} };
+  [tex replaceRegion:region mipmapLevel:0 withBytes:srcbuf bytesPerRow:span*4];
+}
+
+static WDL_TypedBuf<unsigned int> s_metal_tmp;
+void SWELL_Metal_Blit(void *_tex, const unsigned int *srcbuf, int x, int y, int w, int h, int span, bool retina_hint, bool use_alpha)
+{
+  if (!_tex) return;
+  SWELL_hwndChild *wnd = (SWELL_hwndChild *)_tex;
+  if (wnd->m_metal_dc_dirty)
+  {
+    if (retina_hint)
+    {
+      // source is retina
+      if (!wnd->m_metal_retina)
+      {
+        if (wnd->m_use_metal > 1)
+        {
+          NSLog(@"swell-cocoa: PERFORMANCE WARNING: metal non-retina drawing followed by retina drawing, calling code should be fixed.\n");
+          if (WDL_NORMALLY(wnd->m_metal_texture))
+          {
+            id<MTLTexture> tex = (id<MTLTexture>) wnd->m_metal_texture;
+            const int texw = (int)tex.width, texh = (int)tex.height;
+            const int oldspan = (texw+3)&~3, newspan = (texw*2+3)&~3;
+            unsigned int *dblframe = s_metal_tmp.ResizeOK(oldspan*texh + newspan*texh*2,false);
+            if (WDL_NOT_NORMALLY(!dblframe)) return;
+            unsigned int *frame = dblframe + newspan*texh*2;
+            if (SWELL_Metal_ReadTex(wnd,frame,0,0,texw,texh,oldspan))
+              SWELL_fastDoubleUpImage(dblframe,frame,texw,texh,oldspan,newspan);
+            else
+              memset(dblframe,0,newspan*sizeof(int)*texh*2);
+
+            if (x<0) { w += x; srcbuf -= x; x=0; }
+            if (y<0) { h += y; srcbuf -= y*span; y=0; }
+            if (x+w > texw*2) w=texw*2-x;
+            if (y+h > texh*2) h=texh*2-y;
+
+            // blit our image into the full image
+            if (w>0 && h>0)
+            {
+              unsigned int *wr = dblframe + x + y*newspan;
+              const unsigned int *rd = srcbuf;
+              for (int i = 0; i < h; i ++)
+              {
+                if (use_alpha)
+                  srcalphablend_line(wr, rd, w);
+                else
+                  memcpy(wr, rd, w*sizeof(int));
+                wr += newspan;
+                rd += span;
+              }
+            }
+
+            // draw full image back
+            x=y=0;
+            w = texw*2;
+            h = texh*2;
+            span = newspan;
+            srcbuf = dblframe;
+            wnd->m_metal_dc_dirty = false;
+            use_alpha = false;
+          }
+        }
+        else
+        {
+          NSLog(@"swell-cocoa: DRAWING UNSUPPORTED: metal direct-mode non-retina drawing followed by retina drawing, will cause incorrect display.\n");
+        }
+      }
+    }
+    else
+    {
+      // source is not retina
+      if (wnd->m_metal_retina)
+      {
+        // upsample to retina
+        const int newspan = (w*2+3)&~3;
+        unsigned int *p = s_metal_tmp.ResizeOK(newspan*h*2 + 32/4,false);
+        if (WDL_NOT_NORMALLY(!p)) return;
+        const UINT_PTR align = (UINT_PTR)p & 31;
+        if (align) p += 32-align;
+        SWELL_fastDoubleUpImage(p,srcbuf,w,h,span,newspan);
+        srcbuf = p;
+        w*=2;
+        h*=2;
+        x*=2;
+        y*=2;
+        span = newspan;
+        retina_hint = true;
+      }
+    }
+
+    if (use_alpha && WDL_NORMALLY(wnd->m_metal_texture))
+    {
+      id<MTLTexture> tex = (id<MTLTexture>) wnd->m_metal_texture;
+      const int texw = (int)tex.width, texh = (int)tex.height;
+      if (x<0) { w += x; srcbuf -= x; x=0; }
+      if (y<0) { h += y; srcbuf -= y*span; y=0; }
+      if (x+w > texw) w=texw-x;
+      if (y+h > texh) h=texh-y;
+      if (w<0 || h<0) return;
+
+      const int lspan = (w+3)&~3;
+      static WDL_TypedBuf<unsigned int> s_metal_tmp2; // if we are in one of the corner case modes (e.g. upsampled to retina), use this
+      unsigned int *p;
+      if (srcbuf >= s_metal_tmp.Get() && srcbuf < s_metal_tmp.Get()+s_metal_tmp.GetSize()) p=s_metal_tmp2.ResizeOK(lspan*h,false);
+      else p=s_metal_tmp.ResizeOK(lspan*h,false);
+
+      if (WDL_NORMALLY(p) && SWELL_Metal_ReadTex(wnd,p,x,y,w,h,lspan))
+      {
+        unsigned int *wr = p;
+        const unsigned int *rd = srcbuf;
+        for (int i = 0; i < h; i ++)
+        {
+          srcalphablend_line(wr, rd, w);
+          wr += lspan;
+          rd += span;
+        }
+        srcbuf = p;
+        span = lspan;
+      }
+    }
+  }
+  SWELL_Metal_WriteTex(wnd, srcbuf, x, y, w, h, span, retina_hint);
+}
+
+void SWELL_Metal_FillRect(void *_tex, int x, int y, int w, int h, int colori)
+{
+  if (!_tex || w<1 || h<1) return;
+
+  SWELL_hwndChild *wnd = (SWELL_hwndChild *)_tex;
+  const bool retina_hint = wnd->m_metal_dc_dirty && wnd->m_metal_retina;
+  if (retina_hint)
+  {
+    x*=2; y*=2; w*=2; h*=2;
+  }
+
+  const int npix = w*h;
+  if (WDL_NOT_NORMALLY(npix < 0)) return; // overflow
+
+  const unsigned int color = (unsigned int)colori;
+  unsigned int tmp[4096], *buf=tmp;
+  if (((unsigned int)npix*sizeof(int)) > sizeof(tmp))
+  {
+    buf = s_metal_tmp.ResizeOK(npix);
+    if (WDL_NOT_NORMALLY(!buf)) return;
+  }
+  for (int i = 0; i < npix; i++) buf[i] = color;
+  SWELL_Metal_WriteTex(wnd,buf,x,y,w,h,w, retina_hint);
+}
+
+WDL_PtrList<SWELL_hwndChild> s_mtl_dirty_list;
+
+#endif
+
+int SWELL_EnableMetal(HWND hwnd, int mode)
+{
+#ifndef SWELL_NO_METAL
+  if (WDL_NOT_NORMALLY(!hwnd || ![(id)hwnd isKindOfClass:[SWELL_hwndChild class]])) return 0;
+
+  SWELL_hwndChild *ch = (SWELL_hwndChild *)hwnd;
+  if (g_swell_nomiddleman_cocoa_override==0 && !ch->m_use_metal)
+  {
+    if (mode < 0)
+    {
+      ch->m_use_metal = mode;
+      [ch setWantsLayer:YES];
+      if (mode == -1 && SWELL_GetOSXVersion() >= 0x1080)
+        [[ch layer] setDrawsAsynchronously:YES];
+    }
+    else if (mode>0 && mtl_init())
+    {
+      ch->m_use_metal = mode>1 ? 2 : mode;
+      [ch setWantsLayer:YES];
+      InvalidateRect(hwnd,NULL,FALSE);
+    }
+  }
+  return ch->m_use_metal;
+#else
+  return 0;
+#endif
+}
+
+
+void swell_updateAllMetalDirty() // run from a timer, or called by UpdateWindow()
+{
+#ifndef SWELL_NO_METAL
+  static bool r;
+  if (r) return;
+  r=true;
+
+  int x = s_mtl_dirty_list.GetSize();
+  while (--x>=0)
+  {
+    SWELL_hwndChild *slf = s_mtl_dirty_list.Get(x);
+    if (!slf) break; // deleted out from under us?!
+
+    const RECT tr = slf->m_metal_in_needref_rect;
+    s_mtl_dirty_list.Delete(x);
+    slf->m_metal_in_needref_list=false;
+    memset(&slf->m_metal_in_needref_rect,0,sizeof(slf->m_metal_in_needref_rect));
+
+    [slf swellDrawMetal:&tr];
+  }
+
+  r=false;
+#endif
+}
+
+
+#ifndef SWELL_NO_METAL
+
+void swell_addMetalDirty(SWELL_hwndChild *slf, const RECT *r, bool isReleaseDC)
+{
+  if (!slf) return;
+  if (isReleaseDC)
+  {
+    // just tag it dirty
+  }
+  else if (!r) 
+  {
+    slf->m_metal_in_needref_rect.left = slf->m_metal_in_needref_rect.top = 0;
+    slf->m_metal_in_needref_rect.right = slf->m_metal_in_needref_rect.bottom = (1<<28);
+  }
+  else 
+  {
+    if (r->right <= r->left || r->bottom <= r->top) return; // no rect
+
+    WinUnionRect(&slf->m_metal_in_needref_rect,&slf->m_metal_in_needref_rect,r);
+  }
+  if (!slf->m_metal_in_needref_list)
+  {
+    slf->m_metal_in_needref_list=true;
+
+    WDL_ASSERT(s_mtl_dirty_list.Find(slf)<0);
+    s_mtl_dirty_list.Add(slf);
+  }
+}
+
+void swell_removeMetalDirty(SWELL_hwndChild *slf)
+{
+  WDL_ASSERT(!slf || (slf->m_metal_in_needref_list == (s_mtl_dirty_list.Find(slf)>=0)));
+  if (slf && slf->m_metal_in_needref_list)
+  {
+    slf->m_metal_in_needref_list=false;
+    memset(&slf->m_metal_in_needref_rect,0,sizeof(slf->m_metal_in_needref_rect));
+    s_mtl_dirty_list.DeletePtr(slf);
+  }
+}
+
+#endif
 
 #endif

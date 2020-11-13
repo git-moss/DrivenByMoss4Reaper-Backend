@@ -424,6 +424,7 @@ LRESULT CALLBACK cursesWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     {
       const char la = ctx->cursor_state;
       ctx->cursor_state = (ctx->cursor_state+1)%CURSOR_BLINK_TIMER_ZEROEVERY;
+      if (!ctx->cursor_state && GetFocus() != hwnd) ctx->cursor_state=1;
 
       const int *tab = ctx->user_colortab ? ctx->user_colortab : curses_win32_global_user_colortab;
       if (tab && tab[0] != ctx->user_colortab_lastfirstval)
@@ -910,6 +911,7 @@ HWND curses_ControlCreator(HWND parent, const char *cname, int idx, const char *
   
   if (hw)
   {
+    SWELL_SetClassName(hw,WIN32CURSES_CLASS_NAME);
     SetWindowLong(hw,GWL_ID,idx);
     SetWindowPos(hw,HWND_TOP,x,y,w,h,SWP_NOZORDER|SWP_NOACTIVATE);
     ShowWindow(hw,SW_SHOWNA);

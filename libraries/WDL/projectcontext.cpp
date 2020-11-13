@@ -41,6 +41,14 @@ char *projectcontext_fastDoubleToString(double value, char *bufOut, int prec_dig
     value=-value;
     *bufOut++ = '-';
   }
+
+  if (value < 1e-20)
+  {
+    *bufOut++ = '0';
+    *bufOut = 0;
+    return bufOut;
+  }
+
   if (value > 2147483647.0)
   {
     if (value >= 1.0e40) sprintf(bufOut, "%e", value);
@@ -262,7 +270,7 @@ int ProjectContextFormatString(char *outbuf, size_t outbuf_size, const char *fmt
         {
           char v = *str++;
           if (!qc && v == '`') v = '\'';
-          outbuf[wroffs++] = v != '\n' ? v : ' ';
+          outbuf[wroffs++] = v != '\n' && v != '\r' ? v : ' ';
           outbuf_size--;
         }
 
@@ -1238,7 +1246,7 @@ char getConfigStringQuoteChar(const char *p)
     if (c=='"') flags|=1;
     else if (c=='\'') flags|=2;
     else if (c=='`') flags|=4;
-    else if (c == ' ' || c == '\t') flags |= 8;
+    else if (c == ' ' || c == '\t' || c == '\n' || c == '\r') flags |= 8;
   }
 #ifndef PROJECTCONTEXT_USE_QUOTES_WHEN_NO_SPACES
   if (!(flags & 8) && fc != '"' && fc != '\'' && fc != '`' && fc != '#' && fc != ';') return ' ';
@@ -1248,6 +1256,23 @@ char getConfigStringQuoteChar(const char *p)
   if (!(flags & 2)) return '\'';
   if (!(flags & 4)) return '`';
   return 0;
+}
+
+bool configStringWantsBlockEncoding(const char *in) // returns true if over 1k long, has newlines, or contains all quote chars
+{
+  int maxl = 1024, flags = 0;
+  while (--maxl)
+  {
+    switch (*in++)
+    {
+      case 0: return false;
+      case '\n': return true;
+      case '"': if ((flags|=1)==7) return true; break;
+      case '`': if ((flags|=2)==7) return true; break;
+      case '\'': if ((flags|=4)==7) return true; break;
+    }
+  }
+  return true;
 }
 
 void makeEscapedConfigString(const char *in, WDL_String *out)
@@ -1276,6 +1301,7 @@ void makeEscapedConfigString(const char *in, WDL_String *out)
     while (*p && p[1])
     {
       if (*p == '`') *p='\'';
+      else if (*p == '\r' || *p == '\n') *p=' ';
       p++;
     }
   }
@@ -1307,6 +1333,7 @@ void makeEscapedConfigString(const char *in, WDL_FastString *out)
     while (*p && p[1])
     {
       if (*p == '`') *p='\'';
+      else if (*p == '\r' || *p == '\n') *p=' ';
       p++;
     }
   }

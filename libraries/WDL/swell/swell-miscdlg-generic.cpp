@@ -120,6 +120,9 @@ void BrowseFile_SetTemplate(const char *dlgid, DLGPROC dlgProc, struct SWELL_Dia
   BFSF_Templ_dlgproc=dlgProc;
 }
 
+extern struct stat stat_chk;
+typedef char assert_failed_stat_not_64[sizeof(stat_chk.st_size)!=8 ? -1 : 1];
+
 class BrowseFile_State
 {
 public:
@@ -324,9 +327,10 @@ public:
           if (!*f) continue; // did not match
         }
         snprintf(tmp,sizeof(tmp),"%s/%s",path,ent->d_name);
-        struct stat64 st={0,};
-        stat64(tmp,&st);
-      
+
+        struct stat st={0,};
+        stat(tmp,&st);
+
         rec r = { st.st_size, st.st_mtime, strdup(ent->d_name), is_dir?1:2 } ;
         viewlist_store.Add(&r,1);
       }
@@ -381,7 +385,7 @@ static LRESULT WINAPI swellFileSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 
         recent_add_tmp(parms->initialdir);
 
-        if (parms->initialfile)
+        if (parms->initialfile && *parms->initialfile != '.')
         {
           lstrcpyn_safe(tmp,parms->initialfile,sizeof(tmp));
           WDL_remove_filepart(tmp);
@@ -474,7 +478,7 @@ static LRESULT WINAPI swellFileSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
         {
           char buf[maxPathLen];
           const char *filepart = "";
-          if (parms->initialfile && *parms->initialfile && strcmp(parms->initialfile,"."))
+          if (parms->initialfile && *parms->initialfile && *parms->initialfile != '.')
           { 
             lstrcpyn_safe(buf,parms->initialfile,sizeof(buf));
             char *p = (char *)WDL_get_filepart(buf);
@@ -496,7 +500,8 @@ get_dir:
             {
               lstrcpyn_safe(buf,parms->initialdir,sizeof(buf));
             }
-            else getcwd(buf,sizeof(buf));
+            else if (!getcwd(buf,sizeof(buf)))
+              buf[0]=0;
           }
 
           SetWindowText(edit,filepart);
@@ -561,9 +566,12 @@ get_dir:
 
             char buf[maxPathLen];
             const char *filt = NULL;
-            buf[0]=0;
-            int a = (int) SendDlgItemMessage(hwnd,IDC_EXT,CB_GETCURSEL,0,0);
-            if (a>=0) filt = (const char *)SendDlgItemMessage(hwnd,IDC_EXT,CB_GETITEMDATA,a,0);
+            HWND ext = GetDlgItem(hwnd,IDC_EXT);
+            if (ext)
+            {
+              LRESULT a = SendMessage(ext,CB_GETCURSEL,0,0);
+              if (a != CB_ERR) filt = (const char *)SendMessage(ext,CB_GETITEMDATA,a,0);
+            }
 
             GetDlgItemText(hwnd,IDC_DIR,buf,sizeof(buf));
             preprocess_user_path(buf,sizeof(buf));
@@ -821,7 +829,7 @@ treatAsDir:
                  if (!buf[0]) return 0;
                  else  
                  {
-                   struct stat64 st={0,};
+                   struct stat st={0,};
                    DIR *dir = opendir(buf);
                    if (dir)
                    {
@@ -832,7 +840,7 @@ treatAsDir:
                      return 0;
                    }
                    if (buf[strlen(buf)-1] == '/') goto treatAsDir;
-                   if (!stat64(buf,&st))
+                   if (!stat(buf,&st))
                    {
                      snprintf(msg,sizeof(msg),"File exists:\r\n\r\n%.1000s\r\n\r\nOverwrite?",buf);
                      if (MessageBox(hwnd,msg,"Overwrite file?",MB_OKCANCEL)==IDCANCEL) return 0;
@@ -843,7 +851,7 @@ treatAsDir:
                  if (!buf[0]) return 0;
                  else  
                  {
-                   struct stat64 st={0,};
+                   struct stat st={0,};
                    DIR *dir = opendir(buf);
                    if (dir)
                    {
@@ -853,7 +861,7 @@ treatAsDir:
                      SendMessage(hwnd,WM_UPD,1,0);
                      return 0;
                    }
-                   if (stat64(buf,&st))
+                   if (stat(buf,&st))
                    {
                      //snprintf(msg,sizeof(msg),"File does not exist:\r\n\r\n%s",buf);
                      //MessageBox(hwnd,msg,"File not found",MB_OK);
@@ -1044,6 +1052,22 @@ char *BrowseForFiles(const char *text, const char *initialdir,
   return DialogBoxParam(NULL,NULL,GetForegroundWindow(),swellFileSelectProc,(LPARAM)&state) ? state.fnout : NULL;
 }
 
+static const char *mbidtostr(int idx)
+{
+  switch (idx)
+  {
+    case IDOK: return "OK";
+    case IDCANCEL: return "Cancel";
+    case IDYES: return "Yes";
+    case IDNO: return "No";
+    case IDRETRY: return "Retry";
+    case IDABORT: return "Abort";
+    case IDIGNORE: return "Ignore";
+    default:
+      WDL_ASSERT(idx == 0);
+    return "";
+  }
+}
 
 static LRESULT WINAPI swellMessageBoxProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1060,15 +1084,30 @@ static LRESULT WINAPI swellMessageBoxProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
         if (parms[1]) SetWindowText(hwnd,(const char*)parms[1]);
 
 
-        int nbuttons=1;
-        const char *buttons[3] = { "OK", "", "" };
-        int button_ids[3] = {IDOK,0,0};
-        int button_sizes[3];
+        int b1=IDOK, b2=0,b3=0;
 
-        int mode =  ((int)(INT_PTR)parms[2]);
-        if (mode == MB_RETRYCANCEL) { buttons[0]="Retry"; button_ids[0]=IDRETRY;  }
-        if (mode == MB_YESNO || mode == MB_YESNOCANCEL) { buttons[0]="Yes"; button_ids[0] = IDYES;  buttons[nbuttons] = "No"; button_ids[nbuttons] = IDNO; nbuttons++; }
-        if (mode == MB_OKCANCEL || mode == MB_YESNOCANCEL || mode == MB_RETRYCANCEL) { buttons[nbuttons] = "Cancel"; button_ids[nbuttons] = IDCANCEL; nbuttons++; }
+        const int fmode = (int)(INT_PTR)parms[2];
+        switch (fmode & 0xf)
+        {
+          case MB_ABORTRETRYIGNORE:
+            b1 = IDABORT;
+            b2 = IDRETRY;
+            b3 = IDIGNORE;
+          break;
+          case MB_RETRYCANCEL:
+            b1 = IDRETRY;
+            // fallthrough
+          case MB_OKCANCEL:
+            b2 = IDCANCEL;
+          break;
+          case MB_YESNOCANCEL:
+            b3 = IDCANCEL;
+            // fallthrough
+          case MB_YESNO:
+            b1 = IDYES;
+            b2 = IDNO;
+          break;
+        }
 
         SWELL_MakeSetCurParms(1,1,0,0,hwnd,false,false);
         RECT labsize = {0,0,300,20};
@@ -1084,13 +1123,23 @@ static LRESULT WINAPI swellMessageBoxProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
         labsize.top += sc10;
         labsize.bottom += sc10 + sc8;
 
+        RECT vp;
+        SWELL_GetViewPort(&vp,NULL,true);
+        vp.bottom -= vp.top;
+        if (labsize.bottom > vp.bottom*7/8)
+          labsize.bottom = vp.bottom*7/8;
+
+
         int x;
         int button_height=0, button_total_w=0;;
         const int bspace = SWELL_UI_SCALE(button_spacing);
+        int button_sizes[3];
+        const int nbuttons = b3 ? 3 : b2 ? 2 : 1;
         for (x = 0; x < nbuttons; x ++)
         {
+          const int idx = x==0?b1:x==1?b2:b3;
           RECT r={0,0,35,12};
-          DrawText(dc,buttons[x],-1,&r,DT_CALCRECT|DT_NOPREFIX|DT_SINGLELINE);
+          DrawText(dc,mbidtostr(idx),-1,&r,DT_CALCRECT|DT_NOPREFIX|DT_SINGLELINE);
           button_sizes[x] = r.right-r.left + sc10;
           button_total_w += button_sizes[x] + (x ? bspace : 0);
           if (r.bottom-r.top+sc10 > button_height) button_height = r.bottom-r.top+sc10;
@@ -1099,9 +1148,12 @@ static LRESULT WINAPI swellMessageBoxProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
         if (labsize.right < button_total_w+sc8*2) labsize.right = button_total_w+sc8*2;
 
         int xpos = labsize.right/2 - button_total_w/2;
+        const int def_id = (fmode & MB_DEFBUTTON3)&&b3 ? b3 : (fmode & MB_DEFBUTTON2)&&b2 ? b2 : b1;
+
         for (x = 0; x < nbuttons; x ++)
         {
-          SWELL_MakeButton(!x,buttons[x],button_ids[x],xpos,labsize.bottom,button_sizes[x],button_height,0);
+          const int idx = x==0?b1:x==1?b2:b3;
+          SWELL_MakeButton(idx==def_id,mbidtostr(idx),idx,xpos,labsize.bottom,button_sizes[x],button_height,0);
           xpos += button_sizes[x] + bspace;
         }
 
@@ -1110,7 +1162,7 @@ static LRESULT WINAPI swellMessageBoxProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
         SetWindowPos(hwnd,NULL,0,0,
               labsize.right + sc8*2,labsize.bottom + button_height + sc8,SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOMOVE);
         if (lab) SetWindowPos(lab,NULL,sc8,0,labsize.right,labsize.bottom,SWP_NOACTIVATE|SWP_NOZORDER);
-        SetFocus(GetDlgItem(hwnd,button_ids[0]));
+        SetFocus(GetDlgItem(hwnd,def_id));
       }
     break;
     case WM_SIZE:
@@ -1136,7 +1188,7 @@ static LRESULT WINAPI swellMessageBoxProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
           h = GetWindow(h,GW_HWNDNEXT);
         }
         const int bspace = SWELL_UI_SCALE(button_spacing), sc8 = SWELL_UI_SCALE(8);
-        if (lbl) SetWindowPos(h,NULL,sc8,0,r.right,r.bottom - sc8 - button_height,  SWP_NOZORDER|SWP_NOACTIVATE);
+        if (lbl) SetWindowPos(lbl,NULL,sc8,0,r.right,r.bottom - sc8 - button_height,  SWP_NOZORDER|SWP_NOACTIVATE);
         int xo = r.right/2 - (bxwid + (tabsz-1)*bspace)/2;
         for (int x=0; x<tabsz; x++)
         {
@@ -1211,14 +1263,80 @@ int MessageBox(HWND hwndParent, const char *text, const char *caption, int type)
 #ifdef SWELL_LICE_GDI
 struct ChooseColor_State {
   int ncustom;
-  int *custom;
+  COLORREF *custom;
 
-  int h,s,v;
+  double h,s,v;
 
   LICE_IBitmap *bm;
 };
 
-// we need to make a more accurate LICE_HSV2RGB pair, this one is lossy, doh
+static double h6s2i(double h)
+{
+  h -= ((int)(h*1.0/6.0))*6.0;
+  if (h < 3)
+  {
+    if (h < 1.0) return 1.0 - h;
+    return 0.0;
+  }
+  if (h < 4.0) return h - 3.0;
+  return 1.0;
+};
+
+static void _HSV2RGB(double h, double s, double v, double *r, double *g, double *b)
+{
+  h *= 1.0 / 60.0; 
+  s *= v * 1.0 / 255.0;
+  *r = v-h6s2i(h+2)*s;
+  *g = v-h6s2i(h)*s;
+  *b = v-h6s2i(h+4)*s;
+}
+static int _HSV2RGBV(double h, double s, double v)
+{
+  double r,g,b;
+  _HSV2RGB(h,s,v,&r,&g,&b);
+  int ir = (int) (r+0.5);
+  int ig = (int) (g+0.5);
+  int ib = (int) (b+0.5);
+  if (ir<0) ir=0; else if (ir>255) ir=255;
+  if (ig<0) ig=0; else if (ig>255) ig=255;
+  if (ib<0) ib=0; else if (ib>255) ib=255;
+  return RGB(ir,ig,ib);
+}
+
+
+static void _RGB2HSV(double r, double g, double b, double *h, double *s, double *v)
+{
+  const double maxrgb=wdl_max(wdl_max(r,g),b);
+  const double df = maxrgb - wdl_min(wdl_min(r,g),b);
+  double d=r-g, degoffs = 240.0;
+
+  if (g > r)
+  {
+    if (g > b)
+    {
+      degoffs=120;
+      d=b-r;
+    }
+  }
+  else if (r > b)
+  {
+    degoffs=0.0;
+    d=g-b;
+  }
+  
+  *v = maxrgb;
+  if (df)
+  {
+    degoffs += (d*60)/df;
+    if (degoffs<0.0) degoffs+=360.0;
+    else if (degoffs >= 360.0) degoffs-=360.0;
+    *h = degoffs;
+    *s = (df*256)/(maxrgb+1);
+  }
+  else
+    *h = *s = 0;
+}
+
 static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static int s_reent,s_vmode;
@@ -1254,6 +1372,7 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 
         SWELL_MakeButton(0, "OK", IDOK,0,0,0,0, 0);
         SWELL_MakeButton(0, "Cancel", IDCANCEL,0,0,0,0, 0);
+        SWELL_MakeLabel(0, "(right click a custom color to save)", 0x500, 0,0,0,0, 0); 
 
         static const char * const lbl[] = { "R","G","B","H","S","V"};
         for (int x=0;x<6;x++)
@@ -1303,14 +1422,12 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
                 {
                   if (uMsg == WM_LBUTTONDOWN)
                   {
-                    LICE_RGB2HSV(GetRValue(cs->custom[col]),GetGValue(cs->custom[col]),GetBValue(cs->custom[col]),&cs->h,&cs->s,&cs->v);
+                    _RGB2HSV(GetRValue(cs->custom[col]),GetGValue(cs->custom[col]),GetBValue(cs->custom[col]),&cs->h,&cs->s,&cs->v);
                     SendMessage(hwnd,WM_USER+100,0,3);
                   }
                   else
                   {
-                    int rv,gv,bv;
-                    LICE_HSV2RGB(cs->h,cs->s,cs->v,&rv,&gv,&bv);
-                    cs->custom[col] = RGB(rv,gv,bv);
+                    cs->custom[col] = _HSV2RGBV(cs->h,cs->s,cs->v);
                     InvalidateRect(hwnd,NULL,FALSE);
                   }
                 }
@@ -1342,9 +1459,9 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         }
         else
         {
-          int hue = (GET_X_LPARAM(lParam) - border)*384 / (xt-border - vsize);
+          int hue = (GET_X_LPARAM(lParam) - border)*360 / (xt-border - vsize);
           if (hue<0) hue=0;
-          else if (hue>383) hue=383;
+          else if (hue>359) hue=359;
           if (cs->h != hue || cs->s != var)
           {
             cs->h=hue;
@@ -1388,9 +1505,7 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
           }
 
           {
-            int rr,g,b;
-            LICE_HSV2RGB(cs->h,cs->s,cs->v,&rr,&g,&b);
-            HBRUSH br = CreateSolidBrush(RGB(rr,g,b));
+            HBRUSH br = CreateSolidBrush(_HSV2RGBV(cs->h,cs->s,cs->v));
             RECT tr={r.right - border - psize, border, r.right-border, border+psize};
             FillRect(ps.hdc,&tr,br);
             DeleteObject(br);
@@ -1416,12 +1531,12 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
               *wr++ = LICE_HSV2Pix((int)(xx+0.5),sat,var,255);
               xx+=dx;
             }
-            LICE_pixel p = LICE_HSV2Pix(cs->h,cs->s,sat ^ (y==vary ? 128 : 0),255);
+            LICE_pixel p = LICE_HSV2Pix(cs->h * 384.0/360.0,cs->s,sat ^ (y==vary ? 128 : 0),255);
             for (;x < xt-border;x++) *wr++ = p;
           }
-          LICE_pixel p = LICE_HSV2Pix(cs->h,cs->s,(128+cs->v)&255,255);
-          const int saty = ysz - 1 - (ysz * cs->s)/256;
-          const int huex = (x1*cs->h)/384;
+          LICE_pixel p = LICE_HSV2Pix((int)(cs->h+0.5),(int)(cs->s+0.5),((int)(128.5+cs->v))&255,255);
+          const int saty = ysz - 1 - (int) (ysz * cs->s + 0.5)/256;
+          const int huex = (x1*cs->h)/360;
           LICE_Line(cs->bm,huex,saty-4,huex,saty+4,p,.75f,LICE_BLIT_MODE_COPY,false);
           LICE_Line(cs->bm,huex-4,saty,huex+4,saty,p,.75f,LICE_BLIT_MODE_COPY,false);
 
@@ -1444,13 +1559,13 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         ChooseColor_State *cs = (ChooseColor_State*)GetWindowLongPtr(hwnd,GWLP_USERDATA);
         if (cs)
         {
-          int t[6];
+          double t[6];
           t[3] = cs->h;
           t[4] = cs->s;
           t[5] = cs->v;
-          LICE_HSV2RGB(t[3],t[4],t[5],t,t+1,t+2);
+          _HSV2RGB(t[3],t[4],t[5],t,t+1,t+2);
           s_reent++;
-          for (int x=0;x<6;x++) if (lParam & ((x<3)?1:2)) SetDlgItemInt(hwnd,0x200+x,x==3 ? t[x]*360/384 : t[x],FALSE);
+          for (int x=0;x<6;x++) if (lParam & ((x<3)?1:2)) SetDlgItemInt(hwnd,0x200+x,(int) (t[x]+0.5),FALSE);
           s_reent--;
           InvalidateRect(hwnd,NULL,FALSE);
         }
@@ -1474,6 +1589,7 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         r.right -= border*2 + butw;
         SetWindowPos(GetDlgItem(hwnd,IDOK), NULL, r.right, r.bottom, butw, buth, SWP_NOZORDER|SWP_NOACTIVATE);
 
+        SetWindowPos(GetDlgItem(hwnd,0x500), NULL, border, r.bottom, r.right-border*2, buth, SWP_NOZORDER|SWP_NOACTIVATE);
       }
     break;
     case WM_COMMAND:
@@ -1496,29 +1612,27 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
             const bool ishsv = LOWORD(wParam) >= 0x203;
             int offs = ishsv ? 0x203 : 0x200;
             BOOL t = FALSE;
-            int h = GetDlgItemInt(hwnd,offs++,&t,FALSE);
+            double h = GetDlgItemInt(hwnd,offs++,&t,FALSE);
             if (!t) break;
-            int s = GetDlgItemInt(hwnd,offs++,&t,FALSE);
+            double s = GetDlgItemInt(hwnd,offs++,&t,FALSE);
             if (!t) break;
-            int v = GetDlgItemInt(hwnd,offs++,&t,FALSE);
+            double v = GetDlgItemInt(hwnd,offs++,&t,FALSE);
             if (!t) break;
+            if (s<0) s=0; else if (s>255) s=255;
+            if (v<0) v=0; else if (v>255) v=255;
+            if (h<0) h=0;
 
-            ChooseColor_State *cs = (ChooseColor_State*)GetWindowLongPtr(hwnd,GWLP_USERDATA);
             if (!ishsv) 
             {
-              if (h<0) h=0; else if (h>255) h=255;
-              if (s<0) s=0; else if (s>255) s=255;
-              if (v<0) v=0; else if (v>255) v=255;
-              LICE_RGB2HSV(h,s,v,&h,&s,&v);
+              if (h>255) h=255;
+              _RGB2HSV(h,s,v,&h,&s,&v);
             }
             else
             {
-              h = h * 384 / 360;
-              if (h<0) h=0; else if (h>384) h=384;
-              if (s<0) s=0; else if (s>255) s=255;
-              if (v<0) v=0; else if (v>255) v=255;
+              if (h>360) h=360;
             }
 
+            ChooseColor_State *cs = (ChooseColor_State*)GetWindowLongPtr(hwnd,GWLP_USERDATA);
             if (cs)
             {
               cs->h = h;
@@ -1536,19 +1650,17 @@ static LRESULT WINAPI swellColorSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 }
 #endif //SWELL_LICE_GDI
 
-bool SWELL_ChooseColor(HWND h, int *val, int ncustom, int *custom)
+bool SWELL_ChooseColor(HWND h, COLORREF *val, int ncustom, COLORREF *custom)
 {
 #ifdef SWELL_LICE_GDI
   ChooseColor_State state = { ncustom, custom };
-  int c = val ? *val : 0;
-  LICE_RGB2HSV(GetRValue(c),GetGValue(c),GetBValue(c),&state.h,&state.s,&state.v);
+  COLORREF c = val ? *val : 0;
+  _RGB2HSV(GetRValue(c),GetGValue(c),GetBValue(c),&state.h,&state.s,&state.v);
   bool rv = DialogBoxParam(NULL,NULL,h,swellColorSelectProc,(LPARAM)&state)!=0;
   delete state.bm;
   if (rv && val) 
   {
-    int r,g,b;
-    LICE_HSV2RGB(state.h,state.s,state.v,&r,&g,&b);
-    *val = RGB(r,g,b);
+    *val = _HSV2RGBV(state.h,state.s,state.v);
   }
   return rv;
 #else

@@ -25,6 +25,8 @@
 
 #include "swell.h"
 
+//#define SWELL_GDK_IMPROVE_WINDOWRECT // does not work yet (gdk_window_get_frame_extents() does not seem to be sufficiently reliable)
+
 #ifdef SWELL_PRELOAD
 #define STR(x) #x
 #define STR2(x) STR(x)
@@ -105,7 +107,7 @@ static GdkEvent *s_cur_evt;
 static GList *s_program_icon_list;
 
 static SWELL_OSWINDOW swell_dragsrc_osw;
-static DWORD swell_dragsrc_timeout;
+static DWORD swell_dragsrc_timeout_start;
 static HWND swell_dragsrc_hwnd;
 static DWORD swell_lastMessagePos;
 static int gdk_options;
@@ -450,6 +452,8 @@ static void init_options()
   
 }
 
+bool IsModalDialogBox(HWND);
+
 void swell_oswindow_manage(HWND hwnd, bool wantfocus)
 {
   if (!hwnd) return;
@@ -477,9 +481,19 @@ void swell_oswindow_manage(HWND hwnd, bool wantfocus)
         {
           HWND own = hwnd->m_owner;
           while (own->m_parent && !own->m_oswindow) own=own->m_parent;
-          transient_for = own->m_oswindow;
 
-          if (!transient_for) return; // defer
+          if (!own->m_oswindow)
+          { 
+            if (!IsModalDialogBox(hwnd)) return; // defer
+
+            // if a modal window, parent to any owner up the chain
+            while (own->m_owner && !own->m_oswindow)
+            {
+              own = own->m_owner;
+              while (own->m_parent && !own->m_oswindow) own=own->m_parent;
+            }
+          }
+          transient_for = own->m_oswindow;
         }
 
         RECT r = hwnd->m_position;
@@ -583,10 +597,7 @@ void swell_oswindow_manage(HWND hwnd, bool wantfocus)
 
           if (!hwnd->m_oswindow_fullscreen)
           {
-            if (hwnd->m_has_had_position) 
-              gdk_window_move_resize(hwnd->m_oswindow,r.left,r.top,r.right-r.left,r.bottom-r.top);
-            else 
-              gdk_window_resize(hwnd->m_oswindow,r.right-r.left,r.bottom-r.top);
+            swell_oswindow_resize(hwnd->m_oswindow,hwnd->m_has_had_position?3:2,r);
           }
 
           if ((gdk_options&OPTION_KEEP_OWNED_ABOVE) && hwnd->m_owned_list)
@@ -855,6 +866,39 @@ static void OnSelectionRequestEvent(GdkEventSelection *b)
           ptr = (guchar *)str.Get();
           len = str.GetLength();
         }
+        else if (s_clipboard_setstate_fmt == urilistatom())
+        {
+          if (len > (int)sizeof(DROPFILES))
+          {
+            DROPFILES *hdr = (DROPFILES *)ptr;
+            if (WDL_NORMALLY(hdr->pFiles < (DWORD)len) &&
+                WDL_NORMALLY(!hdr->fWide) // todo deal with UTF-16
+            )
+            {
+              const char *rd = (const char *)ptr;
+              DWORD rdo = hdr->pFiles;
+              while (rdo < (DWORD)len && rd[rdo])
+              {
+                const char *fn = rd + rdo;
+                rdo += strlen(rd+rdo)+1;
+                str.Append("file://");
+                while (*fn)
+                {
+                  if (isalnum(*fn) || *fn == '.' || *fn == '_' || *fn == '-' || *fn == '/' || *fn == '#')
+                    str.Append(fn,1);
+                  else
+                    str.AppendFormatted(8,"%%%02x",*(unsigned char *)fn);
+                  fn++;
+                }
+                str.Append("\r\n");
+              }
+            }
+          }
+
+          ptr = (guchar *)str.Get();
+          len = str.GetLength();
+        }
+
 #if SWELL_TARGET_GDK == 2
         GdkWindow *pw = gdk_window_lookup(b->requestor);
         if (!pw) pw = gdk_window_foreign_new(b->requestor);
@@ -960,20 +1004,22 @@ static void OnKeyEvent(GdkEventKey *k)
   else 
   {
     kv = k->keyval;
-    if (swell_is_virtkey_char(kv))
+    if (kv >= 'a' && kv <= 'z')
     {
-      if (kv >= 'a' && kv <= 'z') 
-      {
-        kv += 'A'-'a';
-        swell_is_likely_capslock = (modifiers&FSHIFT)!=0;
-      }
-      else if (kv >= 'A' && kv <= 'Z') 
-      {
-        swell_is_likely_capslock = (modifiers&FSHIFT)==0;
-      }
+      kv += 'A'-'a';
+      swell_is_likely_capslock = (modifiers&FSHIFT)!=0;
       modifiers |= FVIRTKEY;
     }
-    else 
+    else if (kv >= 'A' && kv <= 'Z')
+    {
+      swell_is_likely_capslock = (modifiers&FSHIFT)==0;
+      modifiers |= FVIRTKEY;
+    }
+    else if (kv >= '0' && kv <= '9')
+    {
+      modifiers |= FVIRTKEY;
+    }
+    else
     {
       if (kv >= DEF_GKY(Shift_L) ||
           (kv >= DEF_GKY(ISO_Lock) &&
@@ -1007,7 +1053,9 @@ static void OnKeyEvent(GdkEventKey *k)
   else if (foc && foc->m_oswindow && !(foc->m_style&WS_CAPTION)) hwnd=foc; // for menus, event sent to other window due to gdk_window_set_override_redirect()
 
   MSG msg = { hwnd, msgtype, kv, modifiers, };
-  if (SWELLAppMain(SWELLAPP_PROCESSMESSAGE,(INT_PTR)&msg,0)<=0)
+  INT_PTR extra_flags = 0;
+  if (DialogBoxIsActive()) extra_flags |= 1;
+  if (SWELLAppMain(SWELLAPP_PROCESSMESSAGE,(INT_PTR)&msg,extra_flags)<=0)
     SendMessage(hwnd, msg.message, kv, modifiers);
 }
 
@@ -1082,11 +1130,10 @@ static void OnButtonEvent(GdkEventButton *b)
 
   if (b->type == GDK_BUTTON_PRESS)
   {
-    DWORD now = GetTickCount();;
     HWND oldFocus=GetFocus();
     if (!oldFocus || 
         oldFocus != hwnd2 ||
-       (now >= s_last_focus_change_time && now < (s_last_focus_change_time+500)))
+        (GetTickCount()-s_last_focus_change_time) < 500)
     {
       if (IsWindowEnabled(hwnd2))
         SendMessage(hwnd2,WM_MOUSEACTIVATE,0,0);
@@ -1129,6 +1176,57 @@ static void OnButtonEvent(GdkEventButton *b)
 }
 
 
+static HANDLE urilistToDropFiles(const POINT *pt, const guchar *gptr, gint sz)
+{
+  HANDLE gobj=GlobalAlloc(0,sz+sizeof(DROPFILES));
+  if (!gobj) return NULL;
+
+  DROPFILES *df=(DROPFILES*)gobj;
+  df->pFiles = sizeof(DROPFILES);
+  if (pt) df->pt = *pt;
+  else df->pt.x = df->pt.y = 0;
+
+  df->fNC=FALSE;
+  df->fWide=FALSE;
+  guchar *pout = (guchar *)(df+1);
+  const guchar *rd = gptr;
+  const guchar *rd_end = rd + sz;
+  for (;;)
+  {
+    while (rd < rd_end && *rd && isspace(*rd)) rd++;
+    if (rd >= rd_end) break;
+
+    if (rd+7 < rd_end && !strnicmp((const char *)rd,"file://",7))
+    {
+      rd += 7;
+      int c=0;
+      while (rd < rd_end && *rd && !isspace(*rd))
+      {
+        int v1,v2;
+        if (*rd == '%' && rd+2 < rd_end && (v1=hex_parse(rd[1]))>=0 && (v2=hex_parse(rd[2]))>=0)
+        {
+          *pout++ = (v1<<4) | v2;
+          rd+=3;
+        }
+        else
+        {
+          *pout++ = *rd++;
+        }
+        c++;
+      }
+      if (c) *pout++=0;
+    }
+    else
+    {
+      while (rd < rd_end && *rd && !isspace(*rd)) rd++;
+    }
+  }
+  *pout++=0;
+  *pout++=0;
+
+  return gobj;
+}
+
 static void OnSelectionNotifyEvent(GdkEventSelection *b)
 {
   HWND hwnd = swell_oswindow_to_hwnd(b->window);
@@ -1155,51 +1253,11 @@ static void OnSelectionNotifyEvent(GdkEventSelection *b)
 
     if (sz>0 && gptr)
     {
-      HANDLE gobj=GlobalAlloc(0,sz+sizeof(DROPFILES));
+      POINT pt2 = s_ddrop_pt;
+      ScreenToClient(cw,&pt2);
+      HANDLE gobj = urilistToDropFiles(&pt2,gptr,sz);
       if (gobj)
       {
-        DROPFILES *df=(DROPFILES*)gobj;
-        df->pFiles = sizeof(DROPFILES);
-        df->pt = s_ddrop_pt;
-        ScreenToClient(cw,&df->pt);
-        df->fNC=FALSE;
-        df->fWide=FALSE;
-        guchar *pout = (guchar *)(df+1);
-        const guchar *rd = gptr;
-        const guchar *rd_end = rd + sz;
-        for (;;)
-        {
-          while (rd < rd_end && *rd && isspace(*rd)) rd++;
-          if (rd >= rd_end) break;
-
-          if (rd+7 < rd_end && !strnicmp((const char *)rd,"file://",7))
-          {
-            rd += 7;
-            int c=0;
-            while (rd < rd_end && *rd && !isspace(*rd))
-            {
-              int v1,v2;
-              if (*rd == '%' && rd+2 < rd_end && (v1=hex_parse(rd[1]))>=0 && (v2=hex_parse(rd[2]))>=0)
-              {
-                *pout++ = (v1<<4) | v2;
-                rd+=3;
-              }
-              else
-              {
-                *pout++ = *rd++;
-              }
-              c++;
-            }
-            if (c) *pout++=0;
-          }
-          else
-          {
-            while (rd < rd_end && *rd && !isspace(*rd)) rd++;
-          }
-        }
-        *pout++=0;
-        *pout++=0;
-
         SendMessage(cw,WM_DROPFILES,(WPARAM)gobj,0);
         GlobalFree(gobj);
       }
@@ -1221,44 +1279,53 @@ static void OnSelectionNotifyEvent(GdkEventSelection *b)
   {
     WDL_FastString str;
     guchar *ptr = gptr;
-    if (fmt == GDK_TARGET_STRING || fmt == utf8atom())
+    if (fmt == urilistatom())
     {
-      int lastc=0;
-      while (sz-->0)
-      {
-        int c;
-        if (unitsz==32) { c = *(unsigned int *)ptr; ptr+=4; }
-        else if (unitsz==16)  { c = *(unsigned short *)ptr; ptr+=2; }
-        else c = *ptr++;
-
-        if (!c) break;
-
-        if (c == '\n' && lastc != '\r') str.Append("\r",1);
-
-        char bv[8];
-        if (fmt != GDK_TARGET_STRING)
-        {
-          bv[0] = (char) ((unsigned char)c);
-          str.Append(bv,1);
-        } 
-        else
-        {
-          WDL_MakeUTFChar(bv,c,sizeof(bv));
-          str.Append(bv);
-        }
-
-        lastc=c;
-      }
-      ptr = (guchar*)str.Get();
-      sz=str.GetLength()+1;
+      s_clipboard_getstate = urilistToDropFiles(NULL,gptr,sz);
+      if (s_clipboard_getstate)
+        s_clipboard_getstate_fmt = fmt;
     }
-    else if (unitsz>8) sz *= (unitsz/8);
-
-    s_clipboard_getstate = GlobalAlloc(0,sz);
-    if (s_clipboard_getstate)
+    else
     {
-      memcpy(s_clipboard_getstate,ptr,sz);
-      s_clipboard_getstate_fmt = fmt;
+      if (fmt == GDK_TARGET_STRING || fmt == utf8atom())
+      {
+        int lastc=0;
+        while (sz-->0)
+        {
+          int c;
+          if (unitsz==32) { c = *(unsigned int *)ptr; ptr+=4; }
+          else if (unitsz==16)  { c = *(unsigned short *)ptr; ptr+=2; }
+          else c = *ptr++;
+
+          if (!c) break;
+
+          if (c == '\n' && lastc != '\r') str.Append("\r",1);
+
+          char bv[8];
+          if (fmt != GDK_TARGET_STRING)
+          {
+            bv[0] = (char) ((unsigned char)c);
+            str.Append(bv,1);
+          }
+          else
+          {
+            WDL_MakeUTFChar(bv,c,sizeof(bv));
+            str.Append(bv);
+          }
+
+          lastc=c;
+        }
+        ptr = (guchar*)str.Get();
+        sz=str.GetLength()+1;
+      }
+      else if (unitsz>8) sz *= (unitsz/8);
+
+      s_clipboard_getstate = GlobalAlloc(0,sz);
+      if (s_clipboard_getstate)
+      {
+        memcpy(s_clipboard_getstate,ptr,sz);
+        s_clipboard_getstate_fmt = fmt;
+      }
     }
   }
   if (gptr) g_free(gptr);
@@ -1304,6 +1371,8 @@ static void deactivateTimer(HWND hwnd, UINT uMsg, UINT_PTR tm, DWORD dwt)
     on_deactivate();
 }
 
+extern SWELL_OSWINDOW swell_ignore_focus_oswindow;
+extern DWORD swell_ignore_focus_oswindow_until;
 
 static void swell_gdkEventHandler(GdkEvent *evt, gpointer data)
 {
@@ -1324,7 +1393,11 @@ static void swell_gdkEventHandler(GdkEvent *evt, gpointer data)
           {
             s_last_focus_change_time = GetTickCount();
             swell_on_toplevel_raise(fc->window);
-            SWELL_focused_oswindow = fc->window;
+            if (swell_ignore_focus_oswindow != fc->window || 
+                (GetTickCount()-swell_ignore_focus_oswindow_until) < 0x10000000)
+            {
+              SWELL_focused_oswindow = fc->window;
+            }
             if (swell_app_is_inactive)
             {
               on_activate(0);
@@ -1332,16 +1405,7 @@ static void swell_gdkEventHandler(GdkEvent *evt, gpointer data)
           }
           else if (!swell_app_is_inactive)
           {
-            GdkWindow *window = gdk_screen_get_active_window(gdk_screen_get_default());
-            if (!is_our_oswindow(window))
-            {
-              on_deactivate();
-            }
-            else
-            {
-              s_deactivate_timer = SetTimer(NULL,0,200,deactivateTimer);
-              DestroyPopupMenus();
-            }
+            s_deactivate_timer = SetTimer(NULL,0,200,deactivateTimer);
           }
         }
     break;
@@ -1591,15 +1655,24 @@ bool GetWindowRect(HWND hwnd, RECT *r)
   if (!hwnd) return false;
   if (hwnd->m_oswindow)
   {
+#ifdef SWELL_GDK_IMPROVE_WINDOWRECT
+    GdkRectangle gr;
+    gdk_window_get_frame_extents(hwnd->m_oswindow,&gr);
+
+    r->left=gr.x;
+    r->top=gr.y;
+    r->right=gr.x + gr.width;
+    r->bottom = gr.y + gr.height;
+#else
+    // this is wrong (returns client rect in screen coordinates), but gdk_window_get_frame_extents() doesn't seem to work 
     gint x=hwnd->m_position.left,y=hwnd->m_position.top;
-
-    // need to get the origin of the frame for consistency with SetWindowPos()
     gdk_window_get_root_origin(hwnd->m_oswindow,&x,&y);
-
     r->left=x;
     r->top=y;
     r->right=x + hwnd->m_position.right - hwnd->m_position.left;
     r->bottom = y + hwnd->m_position.bottom - hwnd->m_position.top;
+#endif
+
     return true;
   }
 
@@ -1618,6 +1691,19 @@ void swell_oswindow_begin_resize(SWELL_OSWINDOW wnd)
 
 void swell_oswindow_resize(SWELL_OSWINDOW wnd, int reposflag, RECT f)
 {
+#ifdef SWELL_GDK_IMPROVE_WINDOWRECT
+  if (reposflag & 2)
+  {
+    // increase size to include titlebars etc
+    GdkRectangle gr;
+    gdk_window_get_frame_extents(wnd,&gr);
+    gint cw=gr.width, ch=gr.height;
+    gdk_window_get_geometry(wnd,NULL,NULL,&cw,&ch);
+    // when it matters, this seems to always make gr.height=ch, which is pointless
+    f.right -= gr.width - cw;
+    f.bottom -= gr.height - ch;
+  }
+#endif
   if ((reposflag&3)==3) gdk_window_move_resize(wnd,f.left,f.top,f.right-f.left,f.bottom-f.top);
   else if (reposflag&2) gdk_window_resize(wnd,f.right-f.left,f.bottom-f.top);
   else if (reposflag&1) gdk_window_move(wnd,f.left,f.top);
@@ -1629,7 +1715,7 @@ void swell_oswindow_postresize(HWND hwnd, RECT f)
   {
     gdk_window_show(hwnd->m_oswindow);
     if (hwnd->m_style & WS_CAPTION) gdk_window_unmaximize(hwnd->m_oswindow); // fixes Kwin
-    gdk_window_move_resize(hwnd->m_oswindow,f.left,f.top,f.right-f.left,f.bottom-f.top); // fixes xfce
+    swell_oswindow_resize(hwnd->m_oswindow,3,f); // fixes xfce
     hwnd->m_oswindow_private &= ~PRIVATE_NEEDSHOW;
   }
 }
@@ -1663,6 +1749,7 @@ void swell_oswindow_invalidate(HWND hwnd, const RECT *r)
 
 bool OpenClipboard(HWND hwndDlg) 
 {
+  RegisterClipboardFormat(NULL);
   s_clip_hwnd=hwndDlg ? hwndDlg : SWELL_topwindows; 
   if (s_clipboard_getstate)
   {
@@ -1711,8 +1798,7 @@ static HANDLE req_clipboard(GdkAtom type)
         return NULL;
       }
 
-      DWORD now = GetTickCount();
-      if (now < startt-1000 || now > startt+500) break;
+      if ((GetTickCount()-startt) > 500) break;
       Sleep(10);
     }
   }
@@ -1726,13 +1812,14 @@ void CloseClipboard()
 
 UINT EnumClipboardFormats(UINT lastfmt)
 {
+  if (lastfmt == CF_TEXT) return CF_HDROP;
   if (!lastfmt)
   {
     // checking this causes issues (reentrancy, I suppose?)
     //if (req_clipboard(utf8atom()))
     return CF_TEXT;
   }
-  if (lastfmt == CF_TEXT) lastfmt = 0;
+  if (lastfmt == CF_HDROP) lastfmt = 0;
 
   int x=0;
   for (;;)
@@ -1747,10 +1834,13 @@ UINT EnumClipboardFormats(UINT lastfmt)
 
 HANDLE GetClipboardData(UINT type)
 {
+  RegisterClipboardFormat(NULL);
   if (type == CF_TEXT)
-  {
     return req_clipboard(utf8atom());
-  }
+
+  if (type == CF_HDROP)
+    return req_clipboard(urilistatom());
+
   return m_clip_recs.Get(type);
 }
 
@@ -1762,7 +1852,8 @@ void EmptyClipboard()
 
 void SetClipboardData(UINT type, HANDLE h)
 {
-  if (type == CF_TEXT)
+  RegisterClipboardFormat(NULL);
+  if (type == CF_TEXT || type == CF_HDROP)
   {
     if (s_clipboard_setstate) { GlobalFree(s_clipboard_setstate); s_clipboard_setstate=NULL; }
     s_clipboard_setstate_fmt=NULL;
@@ -1778,7 +1869,7 @@ void SetClipboardData(UINT type, HANDLE h)
     }
     if (w)
     {
-      s_clipboard_setstate_fmt = utf8atom();
+      s_clipboard_setstate_fmt = type == CF_HDROP ? urilistatom() : utf8atom();
       s_clipboard_setstate = h;
       gdk_selection_owner_set(w,GDK_SELECTION_CLIPBOARD,GDK_CURRENT_TIME,TRUE);
     }
@@ -1790,6 +1881,12 @@ void SetClipboardData(UINT type, HANDLE h)
 
 UINT RegisterClipboardFormat(const char *desc)
 {
+  if (!m_clip_curfmts.GetSize())
+  {
+    m_clip_curfmts.Add(strdup("SWELL__CF_TEXT"));
+    m_clip_curfmts.Add(strdup("SWELL__CF_HDROP"));
+  }
+
   if (!desc || !*desc) return 0;
   int x;
   const int n = m_clip_curfmts.GetSize();
@@ -1869,7 +1966,11 @@ static WDL_PtrList<bridgeState> filter_windows;
 bridgeState::~bridgeState() 
 { 
   filter_windows.DeletePtr(this); 
-  if (w) gdk_window_destroy(w);
+  if (w) 
+  {
+    g_object_unref(G_OBJECT(w));
+    XDestroyWindow(native_disp,native_w);
+  }
 }
 bridgeState::bridgeState(bool needrep, GdkWindow *_w, Window _nw, Display *_disp)
 {
@@ -2156,7 +2257,7 @@ static LRESULT WINAPI dropSourceWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
           sel = gdk_drag_get_selection(inf->dragctx);
           if (sel) gdk_selection_owner_set(swell_dragsrc_osw,sel,GDK_CURRENT_TIME,TRUE);
         }
-        swell_dragsrc_timeout = GetTickCount() + 500;
+        swell_dragsrc_timeout_start = GetTickCount();
         return 0;
       }
       ReleaseCapture();
@@ -2216,7 +2317,7 @@ void SWELL_InitiateDragDrop(HWND hwnd, RECT* srcrect, const char* srcfn, void (*
   info.callback = callback;
   RECT r={0,};
   HWND__ *h = new HWND__(NULL,0,&r,NULL,false,NULL,dropSourceWndProc, NULL);
-  swell_dragsrc_timeout = 0;
+  swell_dragsrc_timeout_start = 0;
   swell_dragsrc_hwnd=h;
   h->m_private_data = (INT_PTR) &info;
   dropSourceWndProc(h,WM_CREATE,0,0);
@@ -2224,7 +2325,7 @@ void SWELL_InitiateDragDrop(HWND hwnd, RECT* srcrect, const char* srcfn, void (*
   {
     SWELL_RunEvents();
     Sleep(10);
-    if (swell_dragsrc_timeout && GetTickCount()>swell_dragsrc_timeout) ReleaseCapture();
+    if (swell_dragsrc_timeout_start && (GetTickCount()-swell_dragsrc_timeout_start) > 500) ReleaseCapture();
   }
   
   swell_dragsrc_hwnd=NULL;
@@ -2239,7 +2340,7 @@ void SWELL_InitiateDragDropOfFileList(HWND hwnd, RECT *srcrect, const char **src
   info.srccount = srccount;
   RECT r={0,};
   HWND__ *h = new HWND__(NULL,0,&r,NULL,false,NULL,dropSourceWndProc, NULL);
-  swell_dragsrc_timeout = 0;
+  swell_dragsrc_timeout_start = 0;
   swell_dragsrc_hwnd=h;
   h->m_private_data = (INT_PTR) &info;
   dropSourceWndProc(h,WM_CREATE,0,0);
@@ -2247,7 +2348,7 @@ void SWELL_InitiateDragDropOfFileList(HWND hwnd, RECT *srcrect, const char **src
   {
     SWELL_RunEvents();
     Sleep(10);
-    if (swell_dragsrc_timeout && GetTickCount()>swell_dragsrc_timeout) ReleaseCapture();
+    if (swell_dragsrc_timeout_start && (GetTickCount()-swell_dragsrc_timeout_start) > 500) ReleaseCapture();
   }
   
   swell_dragsrc_hwnd=NULL;
@@ -2368,14 +2469,16 @@ BOOL SWELL_SetCursorPos(int X, int Y)
 
 static void getHotSpotForFile(const char *fn, POINT *pt)
 {
-  FILE *fp = fopen(fn,"rb");
+  FILE *fp = WDL_fopenA(fn,"rb");
   if (!fp) return;
   unsigned char buf[32];
   if (fread(buf,1,6,fp)==6 && !buf[0] && !buf[1] && buf[2] == 2 && buf[3] == 0 && buf[4] == 1 && buf[5] == 0)
   {
-    fread(buf,1,16,fp);
-    pt->x = buf[4]|(buf[5]<<8);
-    pt->y = buf[6]|(buf[7]<<8);
+    if (fread(buf,1,16,fp)==16)
+    {
+      pt->x = buf[4]|(buf[5]<<8);
+      pt->y = buf[6]|(buf[7]<<8);
+    }
   }
   fclose(fp);
 }
