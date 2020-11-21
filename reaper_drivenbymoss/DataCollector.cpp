@@ -577,7 +577,7 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 		return;
 	this->projectState = state;
 
-	std::ostringstream clipstr;
+	std::ostringstream clipStr;
 
 	int count = CountTracks(project);
 	int trackIndex{ 0 };
@@ -597,7 +597,8 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 		const int itemCount = CountTrackMediaItems(mediaTrack);
 
-		clipstr << trackIndex << ";" << itemCount << ";";
+		int realCount{ 0 };
+		std::ostringstream allClipStr;
 
 		for (int i = 0; i < itemCount; i++)
 		{
@@ -614,25 +615,28 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 			{
 				std::string s{ buf };
 				std::replace(s.begin(), s.end(), ';', ' ');
-				clipstr << s;
+				allClipStr << s;
 			}
 			else
 			{
 				ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
-				clipstr << "Unknown";
+				allClipStr << "Unknown";
 			}
 
 			const bool isSelected = IsMediaItemSelected(item);
-			clipstr << ";" << isSelected;
+			allClipStr << ";" << isSelected;
 
 			const int clipColor = (int)GetDisplayedMediaItemColor(item);
 			ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
-			clipstr << ";" << Collectors::FormatColor(red, green, blue).c_str() << ";";
+			allClipStr << ";" << Collectors::FormatColor(red, green, blue).c_str() << ";";
+
+			realCount++;
 		}
+		clipStr << trackIndex << ";" << realCount << ";" << allClipStr.str();
 
 		trackIndex++;
 	}
-	this->formattedClips = Collectors::CollectStringValue(ss, "/clip/all", this->formattedClips, clipstr.str().c_str(), dump);
+	this->formattedClips = Collectors::CollectStringValue(ss, "/clip/all", this->formattedClips, clipStr.str().c_str(), dump);
 
 	// Collect "scenes", use Region markers
 	const std::vector<int> regions = Marker::GetRegions(project);
