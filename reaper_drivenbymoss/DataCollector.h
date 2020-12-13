@@ -141,6 +141,10 @@ private:
 	int repeatMode{ 0 };
 	int repeatVelocity{ 1 };
 
+	// Groove
+	int swingActive{ 0 };
+	double swingAmount{ 0 };
+
 
 	bool IsActive(std::string processor);
 	bool CheckDelay(std::string processor);
@@ -155,6 +159,7 @@ private:
 	void CollectClipData(std::ostringstream& ss, ReaProject* project, const bool& dump);
 	void CollectSessionData(std::ostringstream& ss, ReaProject* project, const bool& dump);
 	void CollectNoteRepeatData(std::ostringstream& ss, ReaProject* project, const bool& dump);
+	void CollectGrooveData(std::ostringstream& ss, ReaProject* project, const bool& dump);
 
 	std::string CollectClipNotes(ReaProject* project, MediaItem* item);
 	std::string CollectPlayingNotes(ReaProject* project, MediaTrack* track);

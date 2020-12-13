@@ -78,6 +78,8 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 		CollectSessionData(ss, project, dump);
 	if (IsActive("noterepeat"))
 		CollectNoteRepeatData(ss, project, dump);
+	if (IsActive("groove"))
+		CollectGrooveData(ss, project, dump);
 
 	return ss.str();
 }
@@ -681,6 +683,25 @@ void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* pr
 
 	const double repeatVelocity = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, &minVal, &maxVal) : 0;
 	this->repeatVelocity = Collectors::CollectIntValue(ss, "/noterepeat/velocity", this->repeatVelocity, repeatVelocity == 0 ? 1 : 0, dump);
+}
+
+
+/**
+ * Collect the Groove data.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param project The current Reaper project
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
+void DataCollector::CollectGrooveData(std::ostringstream& ss, ReaProject* project, const bool& dump)
+{
+	double divisionInOutOptional;
+	int swingmodeInOutOptional;
+	double swingamtInOutOptional;
+	GetSetProjectGrid(project, false, &divisionInOutOptional, &swingmodeInOutOptional, &swingamtInOutOptional);
+
+	this->swingActive = Collectors::CollectIntValue(ss, "/groove/active", this->swingActive, swingmodeInOutOptional, dump);
+	this->swingAmount = Collectors::CollectDoubleValue(ss, "/groove/amount", this->swingAmount, swingamtInOutOptional, dump);
 }
 
 

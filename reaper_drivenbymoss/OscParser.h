@@ -23,6 +23,7 @@
 #include "MarkerProcessor.h"
 #include "SceneProcessor.h"
 #include "NoteRepeatProcessor.h"
+#include "GrooveProcessor.h"
 #include "IniFileProcessor.h"
 
 
@@ -72,6 +73,7 @@ private:
 	MarkerProcessor 				 markerProcessor;
 	RefreshProcessor 				 refreshProcessor;
 	SceneProcessor 					 sceneProcessor;
+	GrooveProcessor 				 grooveProcessor;
 	IniFileProcessor                 iniFileProcessor;
 
 	std::map<std::string, OscProcessor*> processors;

@@ -33,6 +33,7 @@ OscParser::OscParser(Model& model) noexcept :
 	markerProcessor(model),
 	refreshProcessor(model),
 	sceneProcessor(model),
+	grooveProcessor(model),
 	iniFileProcessor(model),
 	theModel(model)
 {
@@ -59,6 +60,7 @@ OscParser::OscParser(Model& model) noexcept :
 		this->processors["marker"] = &markerProcessor;
 		this->processors["refresh"] = &refreshProcessor;
 		this->processors["scene"] = &sceneProcessor;
+		this->processors["groove"] = &grooveProcessor;
 		this->processors["inifile"] = &iniFileProcessor;
 	}
 	catch (...)
