@@ -183,14 +183,16 @@ bool JvmManager::LoadJvmLibrary()
 		return false;
 	}
 
+    const char* error = "";
 #ifdef _WIN32
 	this->jvmLibHandle = LoadLibrary(stringToWs(libPath).c_str());
 #else
 	this->jvmLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
+    error = dlerror();
 #endif
 	if (!this->jvmLibHandle)
 	{
-		ReaDebug() << "Could not load Java dynamic library.";
+        ReaDebug() << "Could not load Java dynamic library: "  << error;
 		return false;
 	}
 	return true;
@@ -371,6 +373,8 @@ std::string JvmManager::GetFormattedDocumentSettings()
 	if (methodID == nullptr)
 		return "";
 	jstring jdata = (jstring)this->env->CallStaticObjectMethod(clazz, methodID);
+    if (jdata == nullptr)
+        return "";
 	this->HandleException("ERROR: Could not call getFormattedDocumentSettings.");
 
 	jboolean isCopy = false;

@@ -43,6 +43,7 @@
 		85647DC224BFB2FA00576420 /* ActionProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 85647DBF24BFB2FA00576420 /* ActionProcessor.h */; };
 		85647DC324BFB2FA00576420 /* CodeAnalysis.h in Headers */ = {isa = PBXBuildFile; fileRef = 85647DC024BFB2FA00576420 /* CodeAnalysis.h */; };
 		85647DC424BFB2FA00576420 /* ActionProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85647DC124BFB2FA00576420 /* ActionProcessor.cpp */; };
+		858CD87A258AA6A60035593D /* GrooveProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858CD876258AA60A0035593D /* GrooveProcessor.cpp */; };
 		858F79F321558EA800488951 /* Track.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79E921558E9800488951 /* Track.h */; };
 		858F79F421558EA800488951 /* ReaperUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EA21558E9900488951 /* ReaperUtils.h */; };
 		858F79F521558EA800488951 /* SceneProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79EB21558E9A00488951 /* SceneProcessor.cpp */; };
@@ -50,7 +51,6 @@
 		858F79F721558EA800488951 /* Track.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79ED21558E9C00488951 /* Track.cpp */; };
 		858F79F921558EA800488951 /* Parameter.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79EF21558EA200488951 /* Parameter.h */; };
 		858F79FA21558EA800488951 /* Marker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F79F021558EA300488951 /* Marker.cpp */; };
-		858F7A0521558EBC00488951 /* de_mossgrabers_reaper_ui_MainFrame.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */; };
 		858F7A0621558EBC00488951 /* Collectors.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FE21558EB500488951 /* Collectors.h */; };
 		858F7A0721558EBC00488951 /* Marker.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F79FF21558EB600488951 /* Marker.h */; };
 		858F7A0A21558EBC00488951 /* StringUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0221558EB900488951 /* StringUtils.h */; };
@@ -112,6 +112,8 @@
 		85647DC024BFB2FA00576420 /* CodeAnalysis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CodeAnalysis.h; path = ../reaper_drivenbymoss/CodeAnalysis.h; sourceTree = "<group>"; };
 		85647DC124BFB2FA00576420 /* ActionProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ActionProcessor.cpp; path = ../reaper_drivenbymoss/ActionProcessor.cpp; sourceTree = "<group>"; };
 		85823BC220F40CD000E4CC57 /* reaper_drivenbymoss.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = reaper_drivenbymoss.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		858CD876258AA60A0035593D /* GrooveProcessor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GrooveProcessor.cpp; path = ../reaper_drivenbymoss/GrooveProcessor.cpp; sourceTree = "<group>"; };
+		858CD877258AA60A0035593D /* GrooveProcessor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GrooveProcessor.h; path = ../reaper_drivenbymoss/GrooveProcessor.h; sourceTree = "<group>"; };
 		858F79E921558E9800488951 /* Track.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Track.h; path = ../reaper_drivenbymoss/Track.h; sourceTree = "<group>"; };
 		858F79EA21558E9900488951 /* ReaperUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaperUtils.h; path = ../reaper_drivenbymoss/ReaperUtils.h; sourceTree = "<group>"; };
 		858F79EB21558E9A00488951 /* SceneProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SceneProcessor.cpp; path = ../reaper_drivenbymoss/SceneProcessor.cpp; sourceTree = "<group>"; };
@@ -121,7 +123,6 @@
 		858F79EF21558EA200488951 /* Parameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Parameter.h; path = ../reaper_drivenbymoss/Parameter.h; sourceTree = "<group>"; };
 		858F79F021558EA300488951 /* Marker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Marker.cpp; path = ../reaper_drivenbymoss/Marker.cpp; sourceTree = "<group>"; };
 		858F79F121558EA400488951 /* SceneProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SceneProcessor.h; path = ../reaper_drivenbymoss/SceneProcessor.h; sourceTree = "<group>"; };
-		858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = de_mossgrabers_reaper_ui_MainFrame.h; path = ../reaper_drivenbymoss/de_mossgrabers_reaper_ui_MainFrame.h; sourceTree = "<group>"; };
 		858F79FE21558EB500488951 /* Collectors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Collectors.h; path = ../reaper_drivenbymoss/Collectors.h; sourceTree = "<group>"; };
 		858F79FF21558EB600488951 /* Marker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Marker.h; path = ../reaper_drivenbymoss/Marker.h; sourceTree = "<group>"; };
 		858F7A0221558EB900488951 /* StringUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringUtils.h; path = ../reaper_drivenbymoss/StringUtils.h; sourceTree = "<group>"; };
@@ -170,6 +171,8 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				858CD876258AA60A0035593D /* GrooveProcessor.cpp */,
+				858CD877258AA60A0035593D /* GrooveProcessor.h */,
 				85647DC124BFB2FA00576420 /* ActionProcessor.cpp */,
 				85647DBF24BFB2FA00576420 /* ActionProcessor.h */,
 				85647DC024BFB2FA00576420 /* CodeAnalysis.h */,
@@ -207,7 +210,6 @@
 				8554F20120F40E3C00F5FF39 /* ClipProcessor.h */,
 				858F79FE21558EB500488951 /* Collectors.h */,
 				8554F20020F40E3B00F5FF39 /* DataCollector.h */,
-				858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */,
 				8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */,
 				8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */,
 				8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */,
@@ -276,7 +278,6 @@
 				8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */,
 				85647DC224BFB2FA00576420 /* ActionProcessor.h in Headers */,
 				858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */,
-				858F7A0521558EBC00488951 /* de_mossgrabers_reaper_ui_MainFrame.h in Headers */,
 				85647DC324BFB2FA00576420 /* CodeAnalysis.h in Headers */,
 				858F7A0621558EBC00488951 /* Collectors.h in Headers */,
 				855CF89720F4B8EB0001F74A /* ReaDebug.h in Headers */,
@@ -366,6 +367,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				858CD87A258AA6A60035593D /* GrooveProcessor.cpp in Sources */,
 				858F79FA21558EA800488951 /* Marker.cpp in Sources */,
 				855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */,
 				8554F23420F40E4000F5FF39 /* Model.cpp in Sources */,
@@ -524,7 +526,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/adoptopenjdk-13.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jdk/Contents/Home/include/**",
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/Visual\\ Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include/**",
 				);
 				INSTALL_PATH = /;
@@ -548,7 +550,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/adoptopenjdk-13.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jdk/Contents/Home/include/**",
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/Visual\\ Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include/**",
 				);
 				INSTALL_PATH = /;
