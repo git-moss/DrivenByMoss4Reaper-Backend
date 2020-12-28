@@ -16,7 +16,6 @@
 class Send
 {
 public:
-	int position{ 0 };
 	std::string name;
 	double volume{ 0 };
 	std::string volumeStr;
