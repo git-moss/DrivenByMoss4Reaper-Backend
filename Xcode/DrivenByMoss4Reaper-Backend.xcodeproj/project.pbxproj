@@ -10,6 +10,7 @@
 		850C4C492120173A0059A6B0 /* MarkerProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 850C4C47212017370059A6B0 /* MarkerProcessor.cpp */; };
 		850C4C4A2120173A0059A6B0 /* MarkerProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 850C4C48212017380059A6B0 /* MarkerProcessor.h */; };
 		8535241B212F470100706C88 /* swell-modstub.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8535241A212F470000706C88 /* swell-modstub.mm */; };
+		854C52C92586A010008D4F61 /* GrooveProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */; };
 		8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */; };
 		8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FC20F40E3B00F5FF39 /* stdafx.h */; };
 		8554F21F20F40E4000F5FF39 /* dllmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */; };
@@ -78,6 +79,8 @@
 		850C4C47212017370059A6B0 /* MarkerProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarkerProcessor.cpp; path = ../reaper_drivenbymoss/MarkerProcessor.cpp; sourceTree = "<group>"; };
 		850C4C48212017380059A6B0 /* MarkerProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarkerProcessor.h; path = ../reaper_drivenbymoss/MarkerProcessor.h; sourceTree = "<group>"; };
 		8535241A212F470000706C88 /* swell-modstub.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "swell-modstub.mm"; path = "../libraries/WDL/swell/swell-modstub.mm"; sourceTree = "<group>"; };
+		854C52C525869DC5008D4F61 /* GrooveProcessor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GrooveProcessor.h; path = ../reaper_drivenbymoss/GrooveProcessor.h; sourceTree = "<group>"; };
+		854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GrooveProcessor.cpp; path = ../reaper_drivenbymoss/GrooveProcessor.cpp; sourceTree = "<group>"; };
 		8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OscParser.cpp; path = ../reaper_drivenbymoss/OscParser.cpp; sourceTree = "<group>"; };
 		8554F1FC20F40E3B00F5FF39 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stdafx.h; path = ../reaper_drivenbymoss/stdafx.h; sourceTree = "<group>"; };
 		8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = dllmain.cpp; path = ../reaper_drivenbymoss/dllmain.cpp; sourceTree = "<group>"; };
@@ -170,6 +173,8 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */,
+				854C52C525869DC5008D4F61 /* GrooveProcessor.h */,
 				85647DC124BFB2FA00576420 /* ActionProcessor.cpp */,
 				85647DBF24BFB2FA00576420 /* ActionProcessor.h */,
 				85647DC024BFB2FA00576420 /* CodeAnalysis.h */,
@@ -366,6 +371,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				854C52C92586A010008D4F61 /* GrooveProcessor.cpp in Sources */,
 				858F79FA21558EA800488951 /* Marker.cpp in Sources */,
 				855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */,
 				8554F23420F40E4000F5FF39 /* Model.cpp in Sources */,
