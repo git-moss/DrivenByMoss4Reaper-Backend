@@ -379,8 +379,11 @@ void DataCollector::CollectMasterTrackData(std::ostringstream& ss, ReaProject* p
 	this->model.masterPan = Collectors::CollectDoubleValue(ss, "/master/pan", this->model.masterPan, (panVal + 1) / 2, dump);
 	this->masterPanStr = Collectors::CollectStringValue(ss, "/master/pan/str", this->masterPanStr, Collectors::FormatPan(panVal).c_str(), dump);
 
-	this->masterVULeft = Collectors::CollectDoubleValue(ss, "/master/vuleft", this->masterVULeft, DB2SLIDER(ReaperUtils::ValueToDB(Track_GetPeakInfo(master, 0))) / 1000.0, dump);
-	this->masterVURight = Collectors::CollectDoubleValue(ss, "/master/vuright", this->masterVURight, DB2SLIDER(ReaperUtils::ValueToDB(Track_GetPeakInfo(master, 1))) / 1000.0, dump);
+	double peakLeft = Track_GetPeakInfo(master, 0);
+	double peakRight = Track_GetPeakInfo(master, 1);
+	this->masterVU = Collectors::CollectDoubleValue(ss, "/master/vu", this->masterVU, ReaperUtils::ValueToVURange((peakLeft + peakRight) / 2.0), dump);
+	this->masterVULeft = Collectors::CollectDoubleValue(ss, "/master/vuleft", this->masterVULeft, ReaperUtils::ValueToVURange(peakLeft), dump);
+	this->masterVURight = Collectors::CollectDoubleValue(ss, "/master/vuright", this->masterVURight, ReaperUtils::ValueToVURange(peakRight), dump);
 
 	if (this->slowCounter == 0)
 	{

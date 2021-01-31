@@ -53,6 +53,7 @@ public:
 	std::string panStr;
 	bool isPanTouch{ false };
 
+	double vu{ 0.0 };
 	double vuLeft{ 0.0 };
 	double vuRight{ 0.0 };
 	int autoMode{ 0 };
@@ -73,6 +74,7 @@ private:
 	std::vector<Send*> sends;
 	std::mutex sendlock;
 
+	double ToNormalizedValue(const double dbValue);
 	double GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const;
 	int GetTrackLockState(char* chunk) const;
 	void ParseInputQuantize(std::ostringstream& ss, std::string& trackAddress, const bool& dump, char* chunk);

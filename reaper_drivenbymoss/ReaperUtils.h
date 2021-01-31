@@ -12,6 +12,10 @@
 #include "CodeAnalysis.h"
 #include "WrapperReaperFunctions.h"
 
+const double VU_BOTTOM{ 60.0 };
+const double VU_TOP{ 6.0 };
+const double VU_RANGE{ VU_BOTTOM + VU_TOP };
+
 
 /**
  * Helper functions for Reaper functions.
@@ -107,6 +111,29 @@ public:
 		// Added extra parenthesis necessary to distinct from Windows define version 
 		DISABLE_WARNING_DEREF_INVALID_POINTER
 		return (std::max)(-150.0, std::log(x) * 8.6858896380650365530225783783321);
+	}
+
+
+	/**
+	 * Scale the VU value to the Reaper meter display range of -60dB to 0.0dB to [0..1].
+	 * 
+	 * @param vuValue The VU value retrieved with Track_GetPeakInfo
+	 * @return The VU value as dB in the range of [0..1]
+	 */
+	static double ValueToVURange(const double vuValue)
+	{
+		const double dbValue = ReaperUtils::ValueToDB(vuValue);
+
+		// Cut above +6dB which is the highest value displayed in Reaper
+		if (dbValue >= VU_TOP)
+			return 1.0;
+
+		// Cut below -60 dB which is the lowest value displayed in Reaper
+		if (dbValue < -VU_BOTTOM)
+			return 0.0;
+
+		// Scale [-60..+6] to [0..1]
+		return (dbValue + VU_BOTTOM) / VU_RANGE;
 	}
 
 

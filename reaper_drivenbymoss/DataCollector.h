@@ -97,8 +97,9 @@ private:
 	int masterSolo{};
 	std::string masterVolumeStr{};
 	std::string masterPanStr{};
-	double masterVULeft{};
-	double masterVURight{};
+	double masterVU{ 0.0 };
+	double masterVULeft{ 0.0 };
+	double masterVURight{ 0.0 };
 	std::string masterColor;
 	int masterAutoMode{ 0 };
 	Parameter crossfaderParameter;

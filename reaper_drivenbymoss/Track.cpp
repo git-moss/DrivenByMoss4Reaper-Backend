@@ -91,10 +91,12 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->panStr = Collectors::CollectStringValue(ss, (trackAddress + "pan/str").c_str(), this->panStr, Collectors::FormatPan(panVal).c_str(), dump);
 
 	// VU and automation mode
-	double peak = Track_GetPeakInfo(track, 0);
-	this->vuLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuleft").c_str(), this->vuLeft, DB2SLIDER(ReaperUtils::ValueToDB(peak)) / 1000.0, dump);
-	peak = Track_GetPeakInfo(track, 1);
-	this->vuRight = Collectors::CollectDoubleValue(ss, (trackAddress + "vuright").c_str(), this->vuRight, DB2SLIDER(ReaperUtils::ValueToDB(peak)) / 1000.0, dump);
+	double peakLeft = Track_GetPeakInfo(track, 0);
+	double peakRight = Track_GetPeakInfo(track, 1);
+
+	this->vu = Collectors::CollectDoubleValue(ss, (trackAddress + "vu").c_str(), this->vu, ReaperUtils::ValueToVURange((peakLeft + peakRight) / 2.0), dump);
+	this->vuLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuleft").c_str(), this->vuLeft, ReaperUtils::ValueToVURange(peakLeft), dump);
+	this->vuRight = Collectors::CollectDoubleValue(ss, (trackAddress + "vuright").c_str(), this->vuRight, ReaperUtils::ValueToVURange(peakRight), dump);
 	const double automode = GetMediaTrackInfo_Value(track, "I_AUTOMODE");
 	this->autoMode = Collectors::CollectIntValue(ss, (trackAddress + "automode").c_str(), this->autoMode, static_cast<int>(automode), dump);
 
