@@ -189,38 +189,9 @@ protected:
 	/** View: Zoom in vertical. */
 	static const int    ZOOM_IN_VERT = 40111;
 
-	/** SWS/S&M: Toggle show FX chain windows for selected tracks. */
-	const char* SHOW_FX_CHAIN_WINDOWS = "_S&M_TOGLFXCHAIN";
-	/** SWS: Add item(s) to left of selected item(s) to selection. */
-	const char* ADD_LEFT_ITEM_TO_SELECTION = "_SWS_ADDLEFTITEM";
-
-	/** SWS : Bypass FX on selected tracks. */
-	const char* BYPASS_ALL_FX_ON_SELECTED_TRACKS = "_S&M_FXBYPALL2";
-	/** SWS/S&M: Unbypass all FX for selected tracks. */
-	const char* UNBYPASS_ALL_FX_ON_SELECTED_TRACKS = "_S&M_FXBYPALL3";
-
-	/** SWS: Mute all sends from selected track(s). */
-	const char* MUTE_ALL_SENDS_ON_SELECTED_TRACKS = "_SWS_MUTESENDS";
-	/** SWS: Unmute all sends from selected track(s). */
-	const char* UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS = "_SWS_UNMUTESENDS";
-
-	/** SWS: Mute all receives for selected track(s). */
-	const char* MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS = "_SWS_MUTERECVS";
-	/** SWS: Unmute all receives for selected track(s). */
-	const char* UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS = "_SWS_UNMUTERECVS";
-
-
 	const std::regex colorPattern{ "RGB\\((\\d+),(\\d+),(\\d+)\\)" };
 
 	Model& model;
-
-
-	void ExecuteActionEx(ReaProject* project, const char* action) const noexcept
-	{
-		const int actionID = NamedCommandLookup(action);
-		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, project);
-	}
 
 
 	const char* safeGet(std::deque<std::string>& path, const int index) noexcept

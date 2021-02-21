@@ -75,7 +75,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 		const int max = TrackFX_GetCount(track);
 		if (fx >= max)
 			this->model.deviceSelected = max - 1 - this->model.deviceBankOffset;
-		Undo_EndBlock2(project, "Delete device", 0);
+		Undo_EndBlock2(project, "Delete device", UNDO_STATE_FX);
 		PreventUIRefresh(-1);
 		return;
 	}

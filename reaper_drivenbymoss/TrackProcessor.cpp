@@ -63,7 +63,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 					SetTrackSelected(track, true);
 			}
 		}
-		Undo_EndBlock2(project, "Delete track", 0);
+		Undo_EndBlock2(project, "Delete track", UNDO_STATE_ALL);
 		PreventUIRefresh(-1);
 		return;
 	}
@@ -385,7 +385,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 
 			Undo_BeginBlock2(project);
 			GetSetMediaTrackInfo(track, "P_NAME", &val[0]);
-			Undo_EndBlock2(project, "Set track name", 0);
+			Undo_EndBlock2(project, "Set track name", UNDO_STATE_ALL);
 		}
 		catch (...)
 		{
@@ -437,7 +437,7 @@ void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int 
 		Main_OnCommandEx(TRANSPORT_PLAY, 0, project);
 	}
 
-	Undo_EndBlock2(project, "Create Midi Clip and Record", 0);
+	Undo_EndBlock2(project, "Create Midi Clip and Record", UNDO_STATE_ALL);
 }
 
 
@@ -458,7 +458,7 @@ void TrackProcessor::RecordMidiClip(ReaProject* project, MediaTrack* track) noex
 
 	Main_OnCommandEx(TRANSPORT_RECORD, 0, project);
 
-	Undo_EndBlock2(project, "Record Midi Clip", 0);
+	Undo_EndBlock2(project, "Record Midi Clip", UNDO_STATE_ALL);
 }
 
 
@@ -486,7 +486,7 @@ void TrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* track, con
 
 	Undo_BeginBlock2(project);
 	SetTrackColor(track, ColorToNative(red, green, blue));
-	Undo_EndBlock2(project, "Set track color", 0);
+	Undo_EndBlock2(project, "Set track color", UNDO_STATE_ALL);
 }
 
 
@@ -497,21 +497,15 @@ void TrackProcessor::SetIsActivated(ReaProject* project, bool enable) noexcept
 	{
 		Main_OnCommandEx(UNLOCK_TRACK_CONTROLS, 0, project);
 		Main_OnCommandEx(SET_ALL_FX_ONLINE, 0, project);
-		ExecuteActionEx(project, UNMUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
-		ExecuteActionEx(project, UNMUTE_ALL_SENDS_ON_SELECTED_TRACKS);
-		ExecuteActionEx(project, UNBYPASS_ALL_FX_ON_SELECTED_TRACKS);
 		Main_OnCommandEx(UNMUTE_TRACKS, 0, project);
-		Undo_EndBlock2(project, "Enable track", 0);
+		Undo_EndBlock2(project, "Enable track", UNDO_STATE_ALL);
 	}
 	else
 	{
 		Main_OnCommandEx(MUTE_TRACKS, 0, project);
-		ExecuteActionEx(project, BYPASS_ALL_FX_ON_SELECTED_TRACKS);
-		ExecuteActionEx(project, MUTE_ALL_SENDS_ON_SELECTED_TRACKS);
-		ExecuteActionEx(project, MUTE_ALL_RECEIVES_ON_SELECTED_TRACKS);
 		Main_OnCommandEx(SET_ALL_FX_OFFLINE, 0, project);
 		Main_OnCommandEx(LOCK_TRACK_CONTROLS, 0, project);
-		Undo_EndBlock2(project, "Disable track", 0);
+		Undo_EndBlock2(project, "Disable track", UNDO_STATE_ALL);
 	}
 }
 
@@ -555,6 +549,6 @@ void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject* project, MediaTrac
 		DeleteEnvelopePointRange(envelope, 0, end);
 	}
 
-	Undo_EndBlock2(project, "Delete all automation envelopes of track.", 0);
+	Undo_EndBlock2(project, "Delete all automation envelopes of track.", UNDO_STATE_TRACKCFG);
 	PreventUIRefresh(-1);
 }

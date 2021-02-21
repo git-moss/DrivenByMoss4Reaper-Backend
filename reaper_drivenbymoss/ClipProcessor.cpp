@@ -51,18 +51,21 @@ void ClipProcessor::Process(std::deque<std::string>& path) noexcept
 	{
 		Undo_BeginBlock2(project);
 
+		PreventUIRefresh(1);
+
 		// Item: Duplicate items
 		Main_OnCommandEx(DUPLICATE_ITEMS, 0, project);
 
-		// SWS: Add item(s) to left of selected item(s) to selection
-		const int actionID = NamedCommandLookup("_SWS_ADDLEFTITEM");
-		if (actionID > 0)
-			Main_OnCommandEx(actionID, 0, ReaperUtils::GetProject());
+		// Select source item
+		int iTrue = 1;
+		GetSetMediaItemInfo(item, "B_UISEL", &iTrue);
 
 		// Item: Glue items
 		Main_OnCommandEx(GLUE_ITEMS, 0, project);
 
-		Undo_EndBlock2(project, "Duplicate content of clip", 0);
+		PreventUIRefresh(-1);
+
+		Undo_EndBlock2(project, "Duplicate content of clip", UNDO_STATE_ALL);
 		return;
 	}
 

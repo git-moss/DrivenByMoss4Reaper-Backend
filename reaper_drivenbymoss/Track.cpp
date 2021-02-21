@@ -62,7 +62,7 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	{
 		// Attributes which need to be read from the track chunk...
 		char tempChunk[CHUNK_LENGTH];
-		if (slowUpdate && GetTrackStateChunk(track, tempChunk, CHUNK_LENGTH, true))
+		if (slowUpdate && GetTrackStateChunk(track, tempChunk, CHUNK_LENGTH, false))
 		{
 			// Uses "lock track" as active indication
 			this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(tempChunk) ? 0 : 1, dump);
