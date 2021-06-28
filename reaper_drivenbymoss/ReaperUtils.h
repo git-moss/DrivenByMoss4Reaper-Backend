@@ -12,9 +12,9 @@
 #include "CodeAnalysis.h"
 #include "WrapperReaperFunctions.h"
 
-const double VU_BOTTOM{ 60.0 };
-const double VU_TOP{ 6.0 };
-const double VU_RANGE{ VU_BOTTOM + VU_TOP };
+static constexpr double VU_BOTTOM{ 60.0 };
+static constexpr double VU_TOP{ 6.0 };
+static constexpr double VU_RANGE{ VU_BOTTOM + VU_TOP };
 
 
 /**
@@ -120,7 +120,7 @@ public:
 	 * @param vuValue The VU value retrieved with Track_GetPeakInfo
 	 * @return The VU value as dB in the range of [0..1]
 	 */
-	static double ValueToVURange(const double vuValue)
+	static double ValueToVURange(const double vuValue) noexcept
 	{
 		const double dbValue = ReaperUtils::ValueToDB(vuValue);
 

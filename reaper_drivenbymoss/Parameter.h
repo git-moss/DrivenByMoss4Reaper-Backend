@@ -25,6 +25,7 @@ public:
 
 	void CollectData(std::ostringstream &ss, MediaTrack *track, const int& deviceIndex, const bool &dump);
 	void CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const int& paramIndex, const bool& dump);
+	void ClearData(std::ostringstream& ss, const bool& dump);
 
 private:
 	const int parameterIndex;

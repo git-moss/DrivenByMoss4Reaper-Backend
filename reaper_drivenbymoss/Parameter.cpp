@@ -79,3 +79,17 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 		this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, newValue, dump);
 	}
 }
+
+
+/**
+ * Sets all attributes back to their initial (empty) values.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
+void Parameter::ClearData(std::ostringstream& ss, const bool& dump)
+{
+	this->name = Collectors::CollectStringValue(ss, this->addressName, this->name, "", dump);
+	this->value = Collectors::CollectDoubleValue(ss, this->addressValue, this->value, 0.0, dump);
+	this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, "", dump);
+}

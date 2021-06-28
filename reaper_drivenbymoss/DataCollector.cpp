@@ -270,11 +270,11 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	int parmidxOut;
 	for (int index = 0; index < userParamCount; index++)
 	{
+		std::shared_ptr<Parameter> parameter = this->model.GetUserParameter(index);
 		if (GetTCPFXParm(project, track, index, &fxindexOut, &parmidxOut))
-		{
-			std::shared_ptr<Parameter> parameter = this->model.GetUserParameter(index);
 			parameter->CollectData(ss, track, fxindexOut, parmidxOut, dump);
-		}
+		else
+			parameter->ClearData(ss, dump);
 	}
 }
 
