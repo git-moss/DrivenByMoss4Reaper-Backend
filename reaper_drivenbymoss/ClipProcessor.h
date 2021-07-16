@@ -31,6 +31,7 @@ private:
 	void TransposeClip(ReaProject* project, MediaItem* clip, int transpose) noexcept;
 	void ClearNotes(ReaProject* project, MediaItem* item, int channel, int pitch) noexcept;
 	bool ClearNote(ReaProject* project, MediaItem* item, int channel, int pitch, double position) noexcept;
+	int GetNoteIndex(MediaItem_Take* take, int channel, int pitch, double position) noexcept;
 };
 
 #endif /* _DBM_CLIPPROCESSOR_H_ */
