@@ -334,6 +334,7 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return notesStrNew;
 
+	bool isMuted;
 	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 
@@ -341,13 +342,13 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 
 	for (int i = 0; i < noteCount; ++i)
 	{
-		MIDI_GetNote(take, i, nullptr, nullptr, &startppqpos, &endppqpos, &channel, &pitch, &velocity);
+		MIDI_GetNote(take, i, nullptr, &isMuted, &startppqpos, &endppqpos, &channel, &pitch, &velocity);
 
 		musicalStart = MIDI_GetProjTimeFromPPQPos(take, startppqpos);
 		musicalEnd = MIDI_GetProjTimeFromPPQPos(take, endppqpos);
 
 		if (this->playPosition >= musicalStart && this->playPosition <= musicalEnd)
-			notes << musicalStart << ":" << musicalEnd << ":" << channel << ":" << pitch << ":" << velocity << ";";
+			notes << (isMuted ? 1 : 0) << ":" << musicalStart << ":" << musicalEnd << ":" << channel << ":" << pitch << ":" << velocity << ";";
 	}
 	return notes.str().c_str();
 }
