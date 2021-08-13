@@ -170,7 +170,7 @@ public:
 	void Process(std::deque<std::string>& path, int value) noexcept override
 	{
 		// 0 = absolute
-		KBD_OnMainActionEx(999, 0x40 + value, -1, 0, GetMainHwnd(), nullptr);
+		KBD_OnMainActionEx(999, value, -1, 0, GetMainHwnd(), nullptr);
 	};
 };
 
