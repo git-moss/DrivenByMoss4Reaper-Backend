@@ -191,7 +191,9 @@ bool JvmManager::LoadJvmLibrary()
 	error = ss.str();
 #else
 	this->jvmLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
-	error = dlerror();
+    char *message = dlerror();
+	if (message != nullptr)
+        error = message;
 #endif
 	if (!this->jvmLibHandle)
 	{
