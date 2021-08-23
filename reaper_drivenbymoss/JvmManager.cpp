@@ -183,9 +183,12 @@ bool JvmManager::LoadJvmLibrary()
 		return false;
 	}
 
-	const char* error = "";
+	std::string error{ "" };
 #ifdef _WIN32
 	this->jvmLibHandle = LoadLibrary(stringToWs(libPath).c_str());
+	std::ostringstream ss;
+	ss << libPath.c_str() << " Error Code: " << GetLastError();
+	error = ss.str();
 #else
 	this->jvmLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
 	error = dlerror();
