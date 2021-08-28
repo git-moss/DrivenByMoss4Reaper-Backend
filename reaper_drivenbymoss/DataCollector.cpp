@@ -813,34 +813,53 @@ void DataCollector::LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* tra
 	try
 	{
 		std::ifstream file;
-		std::string name;
-		int counter = 0;
+		std::string line;
+		int count{ 0 };
 
 		file.open(filename);
 		while (file.good())
 		{
-			std::getline(file, name);
+			std::getline(file, line);
 
-			std::cmatch result;
-			if (std::regex_search(name.c_str(), result, presetPattern))
+			// First parse the Index of the Preset from the header e.g. [Preset23]
+			std::cmatch headerResult;
+			if (!std::regex_search(line.c_str(), headerResult, presetHeaderPattern))
+				continue;
+
+			const int index = std::atoi(headerResult.str(1).c_str());
+			if (index < 0)
+				continue;
+
+			bool found{ false };
+
+			// Now find the name of the preset and store it
+			while (file.good() && !found)
 			{
-				std::string strip = result.str(1);
+				std::getline(file, line);
+
+				std::cmatch result;
+				if (!std::regex_search(line.c_str(), result, presetNamePattern))
+					continue;
+
+				std::string name = result.str(1);
 
 				std::ostringstream das;
-				das << "/browser/result/" << counter + 1 << "/name";
-				Collectors::CollectStringArrayValue(ss, das.str().c_str(), counter, this->devicePresetsStr, strip.c_str(), dump);
+				das << "/browser/result/" << index + 1 << "/name";
+				Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, this->devicePresetsStr, name.c_str(), dump);
 
-				counter += 1;
+				count = std::max(count, index);
+				found = true;
 			}
 		}
 		file.close();
 
-		while (counter < 128)
+		// Clear the rest of the presets
+		while (count < 128)
 		{
 			std::ostringstream das;
-			das << "/browser/result/" << counter + 1 << "/name";
-			Collectors::CollectStringArrayValue(ss, das.str().c_str(), counter, this->devicePresetsStr, "", dump);
-			counter += 1;
+			das << "/browser/result/" << count + 1 << "/name";
+			Collectors::CollectStringArrayValue(ss, das.str().c_str(), count, this->devicePresetsStr, "", dump);
+			count += 1;
 		}
 	}
 	catch (const std::ios_base::failure& ex)

@@ -54,7 +54,8 @@ private:
 
 
 	const std::regex trackLockPattern{ "LOCK (\\d+)" };
-	const std::regex presetPattern{ "Name=(.*)" };
+	const std::regex presetHeaderPattern{ "\\[Preset(.*)\\]" };
+	const std::regex presetNamePattern{ "Name=(.*)" };
 
 	// Project values
 	std::string projectName{};
