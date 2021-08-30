@@ -45,7 +45,7 @@ void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring com
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -73,13 +73,13 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* val = env->GetStringUTFChars(value, nullptr);
 	if (val == nullptr)
 	{
-		env->ReleaseStringUTFChars(command, proc);
+		env->ReleaseStringUTFChars(processor, proc);
 		return;
 	}
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -91,6 +91,52 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
 	env->ReleaseStringUTFChars(value, val);
+}
+
+
+/**
+ * Java callback for an OSC style command to be executed in Reaper with several string parameters.
+ *
+ * @param env       The JNI environment
+ * @param object    The JNI object
+ * @param processor The processor to execute the command
+ * @param command   The command to execute
+ * @param values    The string values
+ */
+void processStringArgsCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jobjectArray values)
+{
+	if (env == nullptr || surfaceInstance == nullptr)
+		return;
+
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
+	if (proc == nullptr)
+		return;
+
+	const int stringCount = env->GetArrayLength(values);
+	std::vector<jstring> paramsSource;
+	std::vector<std::string> params;
+	for (int i = 0; i < stringCount; i++)
+	{
+		jstring value = static_cast<jstring>(env->GetObjectArrayElement(values, i));
+		const char* val = env->GetStringUTFChars(value, nullptr);
+		if (val == nullptr)
+			continue;
+		paramsSource.push_back(value);
+		params.push_back(val);
+
+		env->ReleaseStringUTFChars(value, val);
+	}
+
+	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
+
+	std::string procstr(proc);
+	std::string path(cmd == nullptr ? "" : cmd);
+
+	surfaceInstance->GetOscParser().Process(procstr, path, params);
+
+	env->ReleaseStringUTFChars(processor, proc);
+	if (cmd != nullptr)
+		env->ReleaseStringUTFChars(command, cmd);
 }
 
 
@@ -109,7 +155,7 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -137,7 +183,7 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -164,7 +210,7 @@ void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean e
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
@@ -187,7 +233,7 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-	const char* proc = env->GetStringUTFChars(processor, nullptr);
+		const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
@@ -237,39 +283,46 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-		case WM_INITDIALOG:
-		{
-			std::string path = jvmManager ? jvmManager->GetJavaHomePath() : "Filled when the dialog is opened again...";
+	case WM_INITDIALOG:
+	{
+		std::string path = jvmManager ? jvmManager->GetJavaHomePath() : "Filled when the dialog is opened again...";
 #ifdef _WIN32
-			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(path).c_str());
+		SetDlgItemText(hwndDlg, IDC_JAVA_HOME, stringToWs(path).c_str());
 #else
-			SetDlgItemText(hwndDlg, IDC_JAVA_HOME, path.c_str());
+		SetDlgItemText(hwndDlg, IDC_JAVA_HOME, path.c_str());
 #endif
-			if (jvmManager)
-			{
-				ShowWindow(GetDlgItem(hwndDlg, IDC_REOPEN_INFO), SW_HIDE);
-			}
-			else
-			{
-				ShowWindow(GetDlgItem(hwndDlg, IDC_JAVA_HOME_LBL), SW_HIDE);
-				ShowWindow(GetDlgItem(hwndDlg, IDC_JAVA_HOME), SW_HIDE);
-				ShowWindow(GetDlgItem(hwndDlg, IDC_BUTTON_CONFIGURE), SW_HIDE);
-			}
-		}
-		break;
-
-		case WM_COMMAND:
+		if (jvmManager)
 		{
-			DISABLE_WARNING_NO_C_STYLE_CONVERSION
-				const WORD value = LOWORD(wParam);
-			switch (value)
-			{
-			case IDC_BUTTON_CONFIGURE:
-				if (jvmManager && jvmManager->isRunning())
-					jvmManager->DisplayWindow();
-				break;
-			}
+			ShowWindow(GetDlgItem(hwndDlg, IDC_REOPEN_INFO), SW_HIDE);
 		}
+		else
+		{
+			ShowWindow(GetDlgItem(hwndDlg, IDC_JAVA_HOME_LBL), SW_HIDE);
+			ShowWindow(GetDlgItem(hwndDlg, IDC_JAVA_HOME), SW_HIDE);
+			ShowWindow(GetDlgItem(hwndDlg, IDC_BUTTON_CONFIGURE), SW_HIDE);
+		}
+	}
+	break;
+
+	case WM_COMMAND:
+	{
+		DISABLE_WARNING_NO_C_STYLE_CONVERSION
+			const WORD value = LOWORD(wParam);
+		switch (value)
+		{
+		case IDC_BUTTON_CONFIGURE:
+			if (jvmManager && jvmManager->isRunning())
+				jvmManager->DisplayWindow();
+			break;
+		default:
+			// Ignore the rest
+			break;
+		}
+	}
+	break;
+
+	default:
+		// Ignore the rest
 		break;
 	}
 	return 0;
@@ -291,9 +344,10 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 			return nullptr;
 
 		DISABLE_WARNING_PUSH
-		DISABLE_WARNING_REINTERPRET_CAST
-		void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
+			DISABLE_WARNING_REINTERPRET_CAST
+			void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
 		void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
+		void* processStringArgsPtr = reinterpret_cast<void*>(&processStringArgsCPP);
 		void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
 		void* processDoubleArgPtr = reinterpret_cast<void*>(&processDoubleArgCPP);
 		void* enableUpdatesPtr = reinterpret_cast<void*>(&enableUpdatesCPP);
@@ -301,10 +355,10 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 		void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
 		DISABLE_WARNING_POP
 
-		// Nullcheck above is not picked up
-		DISABLE_WARNING_PUSH
-		DISABLE_WARNING_DANGLING_POINTER
-		jvmManager->init(processNoArgPtr, processStringArgPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
+			// Nullcheck above is not picked up
+			DISABLE_WARNING_PUSH
+			DISABLE_WARNING_DANGLING_POINTER
+			jvmManager->init(processNoArgPtr, processStringArgPtr, processStringArgsPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
 		DISABLE_WARNING_POP
 	}
 
@@ -319,7 +373,7 @@ static HWND configFunc(const char* type_string, HWND parent, const char* initCon
 {
 	// No way to prevent the LPARAM cast
 	DISABLE_WARNING_REINTERPRET_CAST
-	return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
+		return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
 }
 
 // Description for DrivenByMoss surfaceInstance extension
@@ -426,7 +480,7 @@ extern "C"
 
 		// False positive, null check above is not detected
 		DISABLE_WARNING_DANGLING_POINTER
-		REAPERAPI_LoadAPI(rec->GetFunc);
+			REAPERAPI_LoadAPI(rec->GetFunc);
 
 		// Register extension
 		const int result = rec->Register("csurf", &drivenbymoss_reg);

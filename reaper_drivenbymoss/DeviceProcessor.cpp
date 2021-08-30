@@ -6,6 +6,7 @@
 
 #include "DeviceProcessor.h"
 #include "ReaperUtils.h"
+#include "StringUtils.h"
 
 
 /**
@@ -24,11 +25,11 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 {
 	if (path.empty())
 		return;
-	const char* part = safeGet(path, 0);
+	const char* part = SafeGet(path, 0);
 
 	if (std::strcmp(part, "page") == 0)
 	{
-		part = safeGet(path, 1);
+		part = SafeGet(path, 1);
 		if (std::strcmp(part, "+") == 0)
 		{
 			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + this->model.DEVICE_BANK_SIZE);
@@ -65,7 +66,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 
 	const int fx = atoi(part) - 1;
 
-	const char* cmd = safeGet(path, 1);
+	const char* cmd = SafeGet(path, 1);
 	if (std::strcmp(cmd, "remove") == 0)
 	{
 		PreventUIRefresh(1);
@@ -93,7 +94,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 {
 	if (path.empty())
 		return;
-	const char* part = safeGet(path, 0);
+	const char* part = SafeGet(path, 0);
 
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetSelectedTrack2(project, 0, true);
@@ -142,7 +143,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 
 	if (std::strcmp(part, "page") == 0)
 	{
-		part = safeGet(path, 1);
+		part = SafeGet(path, 1);
 		if (std::strcmp(part, "selected") == 0)
 		{
 			this->model.deviceSelected = (value - 1) * this->model.DEVICE_BANK_SIZE;
@@ -169,7 +170,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path, double value) noexc
 {
 	if (path.empty())
 		return;
-	const char* part = safeGet(path, 0);
+	const char* part = SafeGet(path, 0);
 
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetSelectedTrack2(project, 0, true);
@@ -181,8 +182,8 @@ void DeviceProcessor::Process(std::deque<std::string>& path, double value) noexc
 	if (std::strcmp(part, "param") == 0)
 	{
 		PreventUIRefresh(1);
-		const int paramNo = atoi(safeGet(path, 1));
-		if (std::strcmp(safeGet(path, 2), "value") == 0)
+		const int paramNo = atoi(SafeGet(path, 1));
+		if (std::strcmp(SafeGet(path, 2), "value") == 0)
 			TrackFX_SetParamNormalized(track, selDevice, paramNo, value);
 		PreventUIRefresh(-1);
 	}
@@ -194,17 +195,20 @@ void DeviceProcessor::Process(std::deque<std::string>& path, const std::string& 
 {
 	if (path.empty())
 		return;
-	const char* part = safeGet(path, 0);
+	const char* part = SafeGet(path, 0);
 
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetSelectedTrack2(project, 0, true);
+	if (track == nullptr)
+		return;
 
 	if (std::strcmp(part, "add") == 0)
 	{
-		const int position = TrackFX_AddByName(track, value.c_str(), false, -1);
+		const char *deviceName = value.c_str();
+		const int position = TrackFX_AddByName(track, deviceName, false, -1);
 		if (position < 0)
 			return;
-		const int insert = atoi(safeGet(path, 1));
+		const int insert = atoi(SafeGet(path, 1));
 		TrackFX_CopyToTrack(track, position, track, insert, true);
 	}
 
@@ -214,19 +218,17 @@ void DeviceProcessor::Process(std::deque<std::string>& path, const std::string& 
 		if (eqIndex < 0)
 			return;
 
-		const int bandNo = atoi(safeGet(path, 1));
+		const int bandNo = atoi(SafeGet(path, 1));
 
 		// Off?
 		const bool isOff = std::strcmp(value.c_str(), "-1") == 0;
 		if (!isOff)
 		{
-			std::ostringstream btss;
-			btss << "BANDTYPE" << bandNo;
-			TrackFX_SetNamedConfigParm(track, eqIndex, btss.str().c_str(), value.c_str());
+			std::string btss = MakeString() << "BANDTYPE" << bandNo;
+			TrackFX_SetNamedConfigParm(track, eqIndex, btss.c_str(), value.c_str());
 		}
-		std::ostringstream bess;
-		bess << "BANDENABLED" << bandNo;
-		TrackFX_SetNamedConfigParm(track, eqIndex, bess.str().c_str(), isOff ? "0" : "1");
+		std::string bess = MakeString() << "BANDENABLED" << bandNo;
+		TrackFX_SetNamedConfigParm(track, eqIndex, bess.c_str(), isOff ? "0" : "1");
 		return;
 	}
 }

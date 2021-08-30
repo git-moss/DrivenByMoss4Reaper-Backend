@@ -10,6 +10,7 @@
 #include "OscProcessor.h"
 #include "ReaperUtils.h"
 #include "ReaDebug.h"
+#include "StringUtils.h"
 
 /**
  * Constructor.
@@ -29,14 +30,14 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
-	if (trackIndex < 0)
-		return;
+	const char* param = SafeGet(path, 0);
+	const int dawIndex = atoi(param);
+	int trackIndex = GetTrackIndex(project, dawIndex);
 	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char* cmd = safeGet(path, 1);
+	const char* cmd = SafeGet(path, 1);
 
 	if (std::strcmp(cmd, "scrollto") == 0)
 	{
@@ -85,12 +86,12 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 	{
 		if (path.size() < 4)
 			return;
-		const int clipIndex = atoi(safeGet(path, 2));
+		const int clipIndex = atoi(SafeGet(path, 2));
 		MediaItem* item = GetTrackMediaItem(track, clipIndex);
 		if (item == nullptr)
 			return;
 
-		const char* subcmd = safeGet(path, 3);
+		const char* subcmd = SafeGet(path, 3);
 
 		if (std::strcmp(subcmd, "select") == 0)
 		{
@@ -148,14 +149,14 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
+	const int trackIndex = GetTrackIndex(project, atoi(SafeGet(path, 0)));
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char* cmd = safeGet(path, 1);
+	const char* cmd = SafeGet(path, 1);
 
 	if (std::strcmp(cmd, "select") == 0)
 	{
@@ -250,7 +251,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
+	const int trackIndex = GetTrackIndex(project, atoi(SafeGet(path, 0)));
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
@@ -258,7 +259,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		return;
 
 	std::shared_ptr <Track> trackData = this->model.GetTrack(trackIndex);
-	const char* cmd = safeGet(path, 1);
+	const char* cmd = SafeGet(path, 1);
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
@@ -269,7 +270,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 			return;
 		}
 
-		const char* touchCmd = safeGet(path, 2);
+		const char* touchCmd = SafeGet(path, 2);
 		if (std::strcmp(touchCmd, "touch") == 0)
 		{
 			trackData->isVolumeTouch = value > 0;
@@ -286,7 +287,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 			return;
 		}
 
-		const char* touchCmd = safeGet(path, 2);
+		const char* touchCmd = SafeGet(path, 2);
 		if (std::strcmp(touchCmd, "touch") == 0)
 		{
 			trackData->isPanTouch = value > 0;
@@ -296,8 +297,8 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 
 	if (std::strcmp(cmd, "send") == 0)
 	{
-		const int sendIndex = atoi(safeGet(path, 2));
-		const char* subcmd = safeGet(path, 3);
+		const int sendIndex = atoi(SafeGet(path, 2));
+		const char* subcmd = SafeGet(path, 3);
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
 			DISABLE_WARNING_DANGLING_POINTER
@@ -341,15 +342,15 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 	{
 		if (path.empty())
 			return;
-		const char* part = safeGet(path, 2);
+		const char* part = SafeGet(path, 2);
 		if (std::strcmp(part, "param") == 0)
 		{
-			const int userParamNo = atoi(safeGet(path, 3));
+			const int userParamNo = atoi(SafeGet(path, 3));
 			int fxindexOut;
 			int parmidxOut;
 			if (!GetTCPFXParm(project, track, userParamNo, &fxindexOut, &parmidxOut))
 				return;
-			if (std::strcmp(safeGet(path, 4), "value") == 0)
+			if (std::strcmp(SafeGet(path, 4), "value") == 0)
 				TrackFX_SetParamNormalized(track, fxindexOut, parmidxOut, value);
 		}
 		return;
@@ -363,14 +364,16 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 		return;
 
 	ReaProject* project = ReaperUtils::GetProject();
-	const int trackIndex = GetTrackIndex(project, atoi(safeGet(path, 0)));
+	const char* param = SafeGet(path, 0);
+	const int dawIndex = atoi(param);
+	const int trackIndex = GetTrackIndex(project, dawIndex);
 	if (trackIndex < 0)
 		return;
 	MediaTrack* track = GetTrack(project, trackIndex);
 	if (!track)
 		return;
 
-	const char* cmd = safeGet(path, 1);
+	const char* cmd = SafeGet(path, 1);
 	if (std::strcmp(cmd, "color") == 0)
 	{
 		SetColorOfTrack(project, track, value);
@@ -393,6 +396,99 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 			return;
 		}
 
+		return;
+	}
+}
+
+
+void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept
+{
+	if (path.empty())
+		return;
+
+	ReaProject* project = ReaperUtils::GetProject();
+
+	const char* cmd = SafeGet(path, 0);
+
+	if (std::strcmp(cmd, "addTrack") == 0)
+	{
+		PreventUIRefresh(1);
+		Undo_BeginBlock2(project);
+
+		// Add track
+		MediaTrack* track = GetSelectedTrack(project, 0);
+		const int trackID = std::max(0, std::min(GetNumTracks(), track == nullptr ? 0 : CSurf_TrackToID(track, false) + 1));
+		InsertTrackAtIndex(trackID, true);
+		track = GetTrack(project, trackID);
+		if (track != nullptr)
+		{
+			// Select the track and make it visible
+			SetOnlyTrackSelected(track);
+			SetMixerScroll(track);
+
+			// First parameter is the type
+			const char* type = values.at(0).c_str();
+			bool isInstrument = std::strcmp(type, "INSTRUMENT") == 0;
+
+			// Second parameter is the name, if empty generate one
+			std::string name = values.at(1);
+			if (name.length() == 0)
+			{
+				if (isInstrument)
+					name = "Instrument ";
+				else if (std::strcmp(type, "AUDIO") == 0)
+					name = "Audio ";
+				else
+					name = "Effect ";
+				name = MakeString() << name << trackID + 1;
+			}
+
+			// Give it a name
+			GetSetMediaTrackInfo_String(track, "P_NAME", const_cast<char*>(name.c_str()), true);
+
+			if (isInstrument)
+			{
+				// Set recording input to all MIDI inputs
+				SetMediaTrackInfo_Value(track, "I_RECINPUT", 4096 | (63 << 5));
+				// Activate MIDI overdub
+				SetMediaTrackInfo_Value(track, "I_RECMODE", 7);
+			}
+
+			// Set the color if present
+			if (strlen(values.at(2).c_str()) > 0)
+			{
+				int red{ 0 };
+				int green{ 0 };
+				int blue{ 0 };
+				try
+				{
+					std::cmatch result;
+					if (!std::regex_search(values.at(2).c_str(), result, colorPattern))
+						return;
+					red = std::atoi(result.str(1).c_str());
+					green = std::atoi(result.str(2).c_str());
+					blue = std::atoi(result.str(3).c_str());
+				}
+				catch (...)
+				{
+					return;
+				}
+
+				SetTrackColor(track, ColorToNative(red, green, blue));
+			}
+
+			// Add devices, if any
+			for (int i = 3; i < values.size(); i++)
+			{
+				const char* deviceName = values.at(i).c_str();
+				const int position = TrackFX_AddByName(track, deviceName, false, -1);
+				if (position >= 0)
+					TrackFX_CopyToTrack(track, position, track, i, true);
+			}
+		}
+
+		Undo_EndBlock2(project, "Add track", UNDO_STATE_ALL);
+		PreventUIRefresh(-1);
 		return;
 	}
 }

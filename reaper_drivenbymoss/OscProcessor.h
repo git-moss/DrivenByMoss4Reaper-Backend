@@ -32,6 +32,8 @@ public:
 
 	virtual void Process(std::deque<std::string>& path, const std::string& value) noexcept {};
 
+	virtual void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept {};
+
 	virtual void Process(std::deque<std::string>& path, int value) noexcept
 	{
 		if (value == 1)
@@ -194,7 +196,7 @@ protected:
 	Model& model;
 
 
-	const char* safeGet(std::deque<std::string>& path, const int index) noexcept
+	const char* SafeGet(std::deque<std::string>& path, const int index) noexcept
 	{
 		try
 		{
@@ -207,7 +209,7 @@ protected:
 	}
 
 
-	const char* safeGet(std::vector<std::string>& path, const int index) noexcept
+	const char* SafeGet(std::vector<std::string>& path, const int index) noexcept
 	{
 		try
 		{
@@ -241,6 +243,12 @@ protected:
 			// Ignore
 		}
 		return result;
+	}
+
+
+	bool IsNumber(const std::string& s) const noexcept
+	{
+		return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 	}
 };
 

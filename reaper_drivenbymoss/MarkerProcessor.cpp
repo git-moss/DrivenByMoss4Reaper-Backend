@@ -25,7 +25,7 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 {
 	if (path.empty())
 		return;
-	const char *part = safeGet(path, 0);
+	const char *part = SafeGet(path, 0);
 
 	ReaProject *project = ReaperUtils::GetProject();
 
@@ -44,7 +44,7 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 		return;
 
 	const int index = atoi(part);
-	const char *cmd = safeGet(path, 1);
+	const char *cmd = SafeGet(path, 1);
 
 	const std::vector<int> markers = Marker::GetMarkers(project);
 	if (index < 0 || index >= gsl::narrow_cast<int> (markers.size()))

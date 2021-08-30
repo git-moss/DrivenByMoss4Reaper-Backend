@@ -28,7 +28,7 @@ void GrooveProcessor::Process(std::deque<std::string>& path, double value) noexc
 
 	ReaProject* project = ReaperUtils::GetProject();
 
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 
 	if (std::strcmp(cmd, "active") == 0)
 	{

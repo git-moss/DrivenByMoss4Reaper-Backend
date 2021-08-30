@@ -89,6 +89,14 @@ void OscParser::Process(const std::string processor, const std::string command) 
 			{
 				LogError(command, oor);
 			}
+			catch (const std::exception& ex)
+			{
+				ReaDebug() << "Could not process message: " << ex.what();
+			}
+			catch (...)
+			{
+				ReaDebug() << "Could not process message.";
+			}
 		});
 }
 
@@ -112,6 +120,46 @@ void OscParser::Process(const std::string processor, const std::string command, 
 			catch (const std::out_of_range& oor)
 			{
 				LogError(command, oor);
+			}
+			catch (const std::exception& ex)
+			{
+				ReaDebug() << "Could not process message: " << ex.what();
+			}
+			catch (...)
+			{
+				ReaDebug() << "Could not process message.";
+			}
+		});
+}
+
+
+/**
+ * Process an OSC style command.
+ *
+ * @param processor The processor
+ * @param command   The command
+ * @param values    The values
+ */
+void OscParser::Process(const std::string processor, const std::string command, std::vector<std::string>& values) const
+{
+	this->theModel.AddFunction([this, processor, command, values]()
+		{
+			std::deque<std::string> elements = this->Split(command);
+			try
+			{
+				this->processors.at(processor)->Process(elements, values);
+			}
+			catch (const std::out_of_range& oor)
+			{
+				LogError(command, oor);
+			}
+			catch (const std::exception& ex)
+			{
+				ReaDebug() << "Could not process message: " << ex.what();
+			}
+			catch (...)
+			{
+				ReaDebug() << "Could not process message.";
 			}
 		});
 }
@@ -137,6 +185,14 @@ void OscParser::Process(const std::string processor, const std::string command, 
 			{
 				LogError(command, oor);
 			}
+			catch (const std::exception& ex)
+			{
+				ReaDebug() << "Could not process message: " << ex.what();
+			}
+			catch (...)
+			{
+				ReaDebug() << "Could not process message.";
+			}
 		});
 }
 
@@ -160,6 +216,14 @@ void OscParser::Process(const std::string processor, const std::string command, 
 			catch (const std::out_of_range& oor)
 			{
 				LogError(command, oor);
+			}
+			catch (const std::exception& ex)
+			{
+				ReaDebug() << "Could not process message: " << ex.what();
+			}
+			catch (...)
+			{
+				ReaDebug() << "Could not process message.";
 			}
 		});
 }

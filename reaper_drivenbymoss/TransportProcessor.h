@@ -102,7 +102,7 @@ public:
 		if (path.empty())
 			return;
 		ReaProject* project = ReaperUtils::GetProject();
-		const char* direction = safeGet(path, 0);
+		const char* direction = SafeGet(path, 0);
 		if (strcmp(direction, "+") == 0)
 			Main_OnCommandEx(TEMPO_INC_SLOW, 0, project);
 		else if (strcmp(direction, "++") == 0)
@@ -161,7 +161,7 @@ public:
 	{
 		if (path.empty())
 			return;
-		const char* direction = safeGet(path, 0);
+		const char* direction = SafeGet(path, 0);
 		const int val = strcmp(direction, "+") == 0 ? 1 : -1;
 		// 2 = relative mode 2
 		KBD_OnMainActionEx(999, 0x40 + val, -1, 2, GetMainHwnd(), nullptr);
@@ -214,7 +214,7 @@ public:
 
 	void Process(std::deque<std::string>& path, int value) noexcept override
 	{
-		if (path.empty() || std::strcmp(safeGet(path, 0), "engine") != 0)
+		if (path.empty() || std::strcmp(SafeGet(path, 0), "engine") != 0)
 			return;
 		if (value > 0)
 			Audio_Init();

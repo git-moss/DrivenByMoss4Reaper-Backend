@@ -24,7 +24,7 @@ ActionProcessor::ActionProcessor(Model& aModel) noexcept : OscProcessor(aModel),
 /** {@inheritDoc} */
 void ActionProcessor::Process(std::deque<std::string>& path) noexcept
 {
-	const char* part = safeGet(path, 0);
+	const char* part = SafeGet(path, 0);
 	if (std::strcmp(part, "select") == 0)
 	{
 		// Bring Reaper window to front

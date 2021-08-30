@@ -31,7 +31,7 @@ void ClipProcessor::Process(std::deque<std::string>& path) noexcept
 	if (item == nullptr)
 		return;
 
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 
 	if (std::strcmp(cmd, "clear") == 0)
 	{
@@ -73,13 +73,13 @@ void ClipProcessor::Process(std::deque<std::string>& path) noexcept
 	{
 		if (path.size() < 3)
 			return;
-		const int pitch = std::atoi(safeGet(path, 1));
-		const char* noteCmd = safeGet(path, 2);
+		const int pitch = std::atoi(SafeGet(path, 1));
+		const char* noteCmd = SafeGet(path, 2);
 
 		// Clear all notes with a specific pitch
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			const int channel = atoi(safeGet(path, 3));
+			const int channel = atoi(SafeGet(path, 3));
 			this->ClearNotes(project, item, channel, pitch);
 			return;
 		}
@@ -102,7 +102,7 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 	if (item == nullptr)
 		return;
 
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 
 	if (std::strcmp(cmd, "start") == 0)
 	{
@@ -141,8 +141,8 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 	{
 		if (path.size() < 3)
 			return;
-		const int pitch = std::atoi(safeGet(path, 1));
-		const char* noteCmd = safeGet(path, 2);
+		const int pitch = std::atoi(SafeGet(path, 1));
+		const char* noteCmd = SafeGet(path, 2);
 
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
@@ -151,7 +151,7 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 				return;
 			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
 			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
-			const int channel = atoi(safeGet(path, 3));
+			const int channel = atoi(SafeGet(path, 3));
 			this->ClearNote(project, item, channel, pitch, ppqPosStart);
 			return;
 		}
@@ -179,7 +179,7 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 	if (item == nullptr)
 		return;
 
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 
 	if (std::strcmp(cmd, "color") == 0)
 	{
@@ -196,18 +196,18 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 		if (take == nullptr || !TakeIsMIDI(take))
 			return;
 
-		const int pitch = std::atoi(safeGet(path, 1));
-		const char* noteCmd = safeGet(path, 2);
+		const int pitch = std::atoi(SafeGet(path, 1));
+		const char* noteCmd = SafeGet(path, 2);
 
 		std::vector<std::string> parts = this->SplitString(value, ' ');
 		if (parts.size() != 5)
 			return;
 
-		const double pos = std::atof(safeGet(parts, 0));
-		const double length = std::atof(safeGet(parts, 1));
-		const int velocity = std::atoi(safeGet(parts, 2));
-		const int channel = std::atoi(safeGet(parts, 3));
-		const bool isMuted = std::atoi(safeGet(parts, 4)) > 0;
+		const double pos = std::atof(SafeGet(parts, 0));
+		const double length = std::atof(SafeGet(parts, 1));
+		const int velocity = std::atoi(SafeGet(parts, 2));
+		const int channel = std::atoi(SafeGet(parts, 3));
+		const bool isMuted = std::atoi(SafeGet(parts, 4)) > 0;
 
 		// Subtract the start of the clip
 		const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);

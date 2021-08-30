@@ -60,7 +60,18 @@ void DrivenByMossSurface::Run()
 	if (this->jvmManager == nullptr || !this->jvmManager->isRunning() || this->isShutdown)
 		return;
 
-	this->functionExecutor.ExecuteFunctions();
+	try
+	{
+		this->functionExecutor.ExecuteFunctions();
+	}
+	catch (const std::exception& ex)
+	{
+		ReaDebug() << "Could not update device: " << ex.what();
+	}
+	catch (...)
+	{
+		ReaDebug() << "Could not update device.";
+	}
 
 	this->oscParser.GetActionProcessor().CheckActionSelection();
 

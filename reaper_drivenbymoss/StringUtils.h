@@ -7,11 +7,31 @@
 
 #include "ReaDebug.h"
 
-std::wstring stringToWs(const std::string &src) noexcept;
+std::wstring stringToWs(const std::string& src) noexcept;
 
 /**
  * Convert a string to a wide string.
  */
-std::string wstringToDefaultPlatformEncoding(const std::wstring &src);
+std::string wstringToDefaultPlatformEncoding(const std::wstring& src);
+
+// make_string
+class MakeString
+{
+public:
+	template <typename T>
+	MakeString& operator<<(T const& val)
+	{
+		buffer << val;
+		return *this;
+	}
+
+	operator std::string() const
+	{
+		return buffer.str();
+	}
+
+private:
+	std::ostringstream buffer;
+};
 
 #endif /* _DBM_STRINGUTILS_H_ */

@@ -32,7 +32,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, int value) noex
 	if (!track)
 		return;
 
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 
 	if (std::strcmp(cmd, "active") == 0)
 	{
@@ -55,7 +55,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value) n
 	if (!track)
 		return;
 
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 
 	if (std::strcmp(cmd, "rate") == 0)
 	{

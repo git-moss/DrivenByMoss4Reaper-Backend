@@ -42,6 +42,7 @@ public:
 
 	virtual void Process(const std::string processor, const std::string path) const;
 	virtual void Process(const std::string processor, const std::string path, const std::string value) const;
+	virtual void Process(const std::string processor, const std::string command, std::vector<std::string>& values) const;
 	virtual void Process(const std::string processor, const std::string path, const int value) const;
 	virtual void Process(const std::string processor, const std::string path, const double value) const;
 

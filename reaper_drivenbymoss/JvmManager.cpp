@@ -80,13 +80,14 @@ JvmManager::~JvmManager()
  *
  * @param processNoArgCPP The processing method with no arguments
  * @param processStringArgCPP The processing method with a string argument
+ * @param processStringArgsCPP The processing method with a string array argument
  * @param processIntArgCPP The processing method with an integer argument
  * @param processDoubleArgCPP The processing method with a double argument
  * @param enableUpdatesCPP Dis-/Enable processor updates
  * @param delayUpdatesCPP Delay processor updates
  * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
+void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* processStringArgsCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
 {
 	if (this->isInitialised)
 		return;
@@ -94,7 +95,7 @@ void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* pr
 	this->Create();
 	if (this->jvm == nullptr)
 		return;
-	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
+	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processStringArgsCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
 	if (ENABLE_JAVA_START)
 		this->StartApp();
 }
@@ -235,7 +236,7 @@ std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePath) const
  * @param delayUpdatesCPP Delay processor updates
  * @param processMidiArgCPP The processing method for MIDI short messages
  */
-void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
+void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processStringArgsCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
 {
 	if (this->env == nullptr)
 		return;
@@ -244,6 +245,7 @@ void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCP
 	{
 		{ (char*)"processNoArg", (char*)"(Ljava/lang/String;Ljava/lang/String;)V", processNoArgCPP },
 		{ (char*)"processStringArg", (char*)"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
+		{ (char*)"processStringArgs", (char*)"(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V", processStringArgsCPP },
 		{ (char*)"processIntArg", (char*)"(Ljava/lang/String;Ljava/lang/String;I)V", processIntArgCPP },
 		{ (char*)"processDoubleArg", (char*)"(Ljava/lang/String;Ljava/lang/String;D)V", processDoubleArgCPP },
 		{ (char*)"enableUpdates", (char*)"(Ljava/lang/String;Z)V", enableUpdatesCPP },

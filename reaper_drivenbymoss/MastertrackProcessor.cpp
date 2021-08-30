@@ -22,7 +22,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, int value) noe
 {
 	if (path.empty())
 		return;
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 	MediaTrack* track = GetMasterTrack(ReaperUtils::GetProject());
 
 	if (std::strcmp(cmd, "select") == 0)
@@ -89,7 +89,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 {
 	if (path.empty())
 		return;
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetMasterTrack(project);
 
@@ -120,15 +120,15 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 	{
 		if (path.empty())
 			return;
-		const char* part = safeGet(path, 1);
+		const char* part = SafeGet(path, 1);
 		if (std::strcmp(part, "param") == 0)
 		{
-			const int userParamNo = atoi(safeGet(path, 2));
+			const int userParamNo = atoi(SafeGet(path, 2));
 			int fxindexOut;
 			int parmidxOut;
 			if (!GetTCPFXParm(project, track, userParamNo, &fxindexOut, &parmidxOut))
 				return;
-			if (std::strcmp(safeGet(path, 3), "value") == 0)
+			if (std::strcmp(SafeGet(path, 3), "value") == 0)
 				TrackFX_SetParamNormalized(track, fxindexOut, parmidxOut, value);
 		}
 		return;
@@ -140,7 +140,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, const std::str
 {
 	if (path.empty())
 		return;
-	const char* cmd = safeGet(path, 0);
+	const char* cmd = SafeGet(path, 0);
 	ReaProject* project = ReaperUtils::GetProject();
 	MediaTrack* track = GetMasterTrack(project);
 
