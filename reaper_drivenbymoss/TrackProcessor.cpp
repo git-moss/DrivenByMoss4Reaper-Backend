@@ -478,7 +478,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<st
 			}
 
 			// Add devices, if any
-			for (int i = 3; i < values.size(); i++)
+			for (size_t i = 3; i < values.size(); i++)
 			{
 				const char* deviceName = values.at(i).c_str();
 				const int position = TrackFX_AddByName(track, deviceName, false, -1);
