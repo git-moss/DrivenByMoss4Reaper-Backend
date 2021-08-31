@@ -483,7 +483,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<st
 				const char* deviceName = values.at(i).c_str();
 				const int position = TrackFX_AddByName(track, deviceName, false, -1);
 				if (position >= 0)
-					TrackFX_CopyToTrack(track, position, track, i, true);
+					TrackFX_CopyToTrack(track, position, track, 3 - static_cast<int> (i), true);
 			}
 		}
 
