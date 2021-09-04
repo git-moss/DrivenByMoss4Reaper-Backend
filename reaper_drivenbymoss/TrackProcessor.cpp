@@ -162,7 +162,9 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	{
 		SetOnlyTrackSelected(track);
 		SetMixerScroll(track);
-		this->model.deviceSelected = 0;
+		const int deviceCount = TrackFX_GetCount(track);
+		if (this->model.deviceSelected >= deviceCount)
+			this->model.deviceSelected = 0;
 		return;
 	}
 
@@ -205,6 +207,12 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	if (std::strcmp(cmd, "autoMonitor") == 0)
 	{
 		SetMediaTrackInfo_Value(track, "I_RECMON", value > 0 ? 2 : 0);
+		return;
+	}
+
+	if (std::strcmp(cmd, "pin") == 0)
+	{
+		this->model.pinnedTrackIndex = value;
 		return;
 	}
 

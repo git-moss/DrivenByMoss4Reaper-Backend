@@ -54,7 +54,12 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 	actionProcessor.CollectData(ss);
 
 	ReaProject* project = ReaperUtils::GetProject();
-	MediaTrack* track = GetSelectedTrack2(project, 0, true);
+
+	MediaTrack* track;
+	if (this->model.pinnedTrackIndex >= 0 && this->model.pinnedTrackIndex < CountTracks(project))
+		track = GetTrack(project, this->model.pinnedTrackIndex);
+	else
+		track = GetSelectedTrack2(project, 0, true);
 
 	this->slowCounter = (this->slowCounter + 1) % SLOW_UPDATE;
 

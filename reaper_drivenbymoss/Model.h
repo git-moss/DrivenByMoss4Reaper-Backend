@@ -35,10 +35,10 @@ public:
 	int deviceParamCount{ 0 };
 	int deviceExpandedType{ 3 };
 	int deviceCount{ 0 };
-
 	int eqParamCount{ 0 };
-
 	int userParamCount{ 0 };
+
+	int pinnedTrackIndex{ -1 };
 
 
 	Model(FunctionExecutor& functionExecutor) noexcept;
