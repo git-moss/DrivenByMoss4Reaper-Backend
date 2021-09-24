@@ -37,6 +37,7 @@ public:
 	int recArmed{ 0 };
 	int monitor{ 0 };
 	int autoMonitor{ 0 };
+	int overdub{ 0 };
 
 	int isActive{ 0 };
 	int inQuantEnabled{ 0 };

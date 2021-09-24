@@ -75,6 +75,9 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->monitor = Collectors::CollectIntValue(ss, (trackAddress + "monitor").c_str(), this->monitor, monitor == 1 ? 1 : 0, dump);
 	this->autoMonitor = Collectors::CollectIntValue(ss, (trackAddress + "autoMonitor").c_str(), this->autoMonitor, monitor == 2 ? 1 : 0, dump);
 
+	const double recMode = GetMediaTrackInfo_Value(track, "I_RECMODE");
+	this->overdub = Collectors::CollectIntValue(ss, (trackAddress + "overdub").c_str(), this->overdub, recMode == 7 ? 1 : 0, dump);
+
 	// Track color
 	int red = -1, green = -1, blue = -1;
 	int nativeColor = GetTrackColor(track);

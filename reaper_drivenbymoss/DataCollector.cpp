@@ -138,6 +138,9 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	// 2 = measures.beats
 	format_timestr_pos(cursorPos, timeStr, 20, 2);
 	this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
+
+	// Additional info
+	this->followPlayback = Collectors::CollectIntValue(ss, "/followPlayback", this->followPlayback, GetToggleCommandState(40036), dump);
 }
 
 

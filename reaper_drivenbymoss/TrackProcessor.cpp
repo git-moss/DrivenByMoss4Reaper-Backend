@@ -216,6 +216,12 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 		return;
 	}
 
+	if (std::strcmp(cmd, "overdub") == 0)
+	{
+		SetMediaTrackInfo_Value(track, "I_RECMODE", value > 0 ? 7 : 8);
+		return;
+	}
+
 	if (TrackProcessor::ProcessAutomation(track, cmd, value))
 		return;
 

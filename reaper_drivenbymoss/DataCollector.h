@@ -85,6 +85,7 @@ private:
 	int record{};
 	int repeat{};
 	double tempo{};
+	int followPlayback{ 0 };
 
 	// Click / metronome values
 	int metronome{};
