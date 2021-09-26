@@ -33,8 +33,8 @@
 									<listOptionValue builtIn="false" value="&quot;/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/Visual Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include&quot;"/>
 									<listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL"/>
 									<listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/swell"/>
-									<listOptionValue builtIn="false" value="/home/mos/java/jdk-12.0.2+10/include/linux"/>
-									<listOptionValue builtIn="false" value="/home/mos/java/jdk-12.0.2+10/include"/>
+									<listOptionValue builtIn="false" value="/home/mos/java/jdk-16.0.2+7/include/linux"/>
+									<listOptionValue builtIn="false" value="/home/mos/java/jdk-16.0.2+7/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.dialect.std.675773585" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++1y" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.other.pic.739959695" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -112,8 +112,8 @@
 									<listOptionValue builtIn="false" value="&quot;/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/Visual Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include&quot;"/>
 									<listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL"/>
 									<listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/swell"/>
-									<listOptionValue builtIn="false" value="/home/mos/java/jdk-12.0.2+10/include"/>
-									<listOptionValue builtIn="false" value="/home/mos/java/jdk-12.0.2+10/include/linux"/>
+									<listOptionValue builtIn="false" value="/home/mos/java/jdk-16.0.2+7/include"/>
+									<listOptionValue builtIn="false" value="/home/mos/java/jdk-16.0.2+7/include/linux"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.1657964522" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.dialect.std.1211196558" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++1y" valueType="enumerated"/>
