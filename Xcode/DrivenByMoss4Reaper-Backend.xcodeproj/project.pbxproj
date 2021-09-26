@@ -72,6 +72,7 @@
 		85DC73F92422BBCB006F7BCD /* WrapperReaperFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 85DC73EE2422BBCB006F7BCD /* WrapperReaperFunctions.h */; };
 		85E7B72222F2052900F0B037 /* Send.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E7B72022F2052900F0B037 /* Send.cpp */; };
 		85E7B72322F2052900F0B037 /* Send.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E7B72122F2052900F0B037 /* Send.h */; };
+		85EB801D2700F35000FD31E7 /* ProjectProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85EB801C2700F35000FD31E7 /* ProjectProcessor.cpp */; };
 		85FB5BDF212F42DB00639003 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85FB5BDE212F42DA00639003 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
@@ -147,6 +148,7 @@
 		85E1A7A920F4FD0600D38CC1 /* JavaVM */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = JavaVM; path = ../../../../../../System/Library/Frameworks/JavaVM.framework/Versions/A/JavaVM; sourceTree = "<group>"; };
 		85E7B72022F2052900F0B037 /* Send.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Send.cpp; path = ../reaper_drivenbymoss/Send.cpp; sourceTree = "<group>"; };
 		85E7B72122F2052900F0B037 /* Send.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Send.h; path = ../reaper_drivenbymoss/Send.h; sourceTree = "<group>"; };
+		85EB801C2700F35000FD31E7 /* ProjectProcessor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectProcessor.cpp; path = ../reaper_drivenbymoss/ProjectProcessor.cpp; sourceTree = "<group>"; };
 		85FB5BDE212F42DA00639003 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -173,6 +175,7 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				85EB801C2700F35000FD31E7 /* ProjectProcessor.cpp */,
 				854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */,
 				854C52C525869DC5008D4F61 /* GrooveProcessor.h */,
 				85647DC124BFB2FA00576420 /* ActionProcessor.cpp */,
@@ -371,6 +374,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				85EB801D2700F35000FD31E7 /* ProjectProcessor.cpp in Sources */,
 				854C52C92586A010008D4F61 /* GrooveProcessor.cpp in Sources */,
 				858F79FA21558EA800488951 /* Marker.cpp in Sources */,
 				855CF89620F4B8EB0001F74A /* ReaDebug.cpp in Sources */,
