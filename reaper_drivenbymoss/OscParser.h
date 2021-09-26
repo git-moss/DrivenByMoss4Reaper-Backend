@@ -21,6 +21,7 @@
 #include "DeviceProcessor.h"
 #include "ClipProcessor.h"
 #include "MarkerProcessor.h"
+#include "ProjectProcessor.h"
 #include "SceneProcessor.h"
 #include "NoteRepeatProcessor.h"
 #include "GrooveProcessor.h"

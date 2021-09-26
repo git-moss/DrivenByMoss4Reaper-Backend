@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include "WrapperGSL.h"
 #include "OscProcessor.h"
 #include "ReaperUtils.h"
 #include "StringUtils.h"
@@ -204,22 +205,6 @@ public:
 	void Process(std::deque<std::string>& path, int value) noexcept override
 	{
 		CSurf_OnArrow(value, 0);
-	};
-};
-
-class ProjectProcessor : public OscProcessor
-{
-public:
-	ProjectProcessor(Model& aModel) noexcept : OscProcessor(aModel) {};
-
-	void Process(std::deque<std::string>& path, int value) noexcept override
-	{
-		if (path.empty() || std::strcmp(SafeGet(path, 0), "engine") != 0)
-			return;
-		if (value > 0)
-			Audio_Init();
-		else
-			Audio_Quit();
 	};
 };
 

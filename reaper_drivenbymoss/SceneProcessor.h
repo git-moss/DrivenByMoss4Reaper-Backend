@@ -19,6 +19,8 @@ public:
 	SceneProcessor(Model &model) noexcept;
 
 	void Process(std::deque<std::string> &path) noexcept override;
+
+	static void DuplicateScene(ReaProject* project, const int sceneID) noexcept;
 };
 
 #endif /* _DBM_SCENEPROCESSOR_H_ */
