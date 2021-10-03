@@ -157,6 +157,8 @@ void JvmManager::Create()
 		ReaDebug() << "ERROR: Could not lookup CreateJavaVm function in library with " << classpath;
 		return;
 	}
+	// Note: If the next line crashes in debugger make sure that jdwp.dll and dt_socket.dll are from the same JDK!
+	// Simply copy the whole JDK
 	DISABLE_WARNING_REINTERPRET_CAST
 		const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)

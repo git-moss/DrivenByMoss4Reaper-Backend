@@ -27,9 +27,10 @@ Track::Track() noexcept
  * @param track The track
  * @param trackIndex The index of the track
  * @param slowUpdate If true, also update the data on the slow thread
+ * @param readChunk If true, also read data only available via the track chunk (which is slow)
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& dump)
+void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& readChunk, const bool& dump)
 {
 	std::ostringstream das;
 	das << "/track/" << trackIndex << "/";
@@ -57,17 +58,20 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->solo = Collectors::CollectIntValue(ss, (trackAddress + "solo").c_str(), this->solo, (trackState & 16) > 0 ? 1 : 0, dump);
 	this->recArmed = Collectors::CollectIntValue(ss, (trackAddress + "recarm").c_str(), this->recArmed, (trackState & 64) > 0 ? 1 : 0, dump);
 
-	// Only update the performance heavy chunk analysis when playback is stopped...
-	if ((GetPlayStateEx(project) & 1) == 0)
+	if (readChunk)
 	{
-		// Attributes which need to be read from the track chunk...
-		char tempChunk[CHUNK_LENGTH];
-		if (slowUpdate && GetTrackStateChunk(track, tempChunk, CHUNK_LENGTH, false))
+		// Only update the performance heavy chunk analysis when playback is stopped...
+		if ((GetPlayStateEx(project) & 1) == 0)
 		{
-			// Uses "lock track" as active indication
-			this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(tempChunk) ? 0 : 1, dump);
+			// Attributes which need to be read from the track chunk...
+			char tempChunk[CHUNK_LENGTH];
+			if (slowUpdate && GetTrackStateChunk(track, tempChunk, CHUNK_LENGTH, false))
+			{
+				// Uses "lock track" as active indication
+				this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(tempChunk) ? 0 : 1, dump);
 
-			this->ParseInputQuantize(ss, trackAddress, dump, tempChunk);
+				this->ParseInputQuantize(ss, trackAddress, dump, tempChunk);
+			}
 		}
 	}
 

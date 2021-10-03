@@ -62,7 +62,7 @@ public:
 
 	Track() noexcept;
 
-	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool &slowUpdate, const bool& dump);
+	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool &slowUpdate, const bool& readChunk, const bool& dump);
 
 	Send* GetSend(const int index) noexcept;
 

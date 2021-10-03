@@ -302,6 +302,7 @@ void DataCollector::CollectTrackData(std::ostringstream& ss, ReaProject* project
 	std::string playingNotes{ "" };
 
 	const bool isActive = IsActive("playingnotes");
+	const bool readChunk = !IsActive("chunk");
 
 	for (int index = 0; index < count; index++)
 	{
@@ -314,7 +315,7 @@ void DataCollector::CollectTrackData(std::ostringstream& ss, ReaProject* project
 		if ((trackState & 1024) > 0)
 			continue;
 		std::shared_ptr <Track> track = this->model.GetTrack(trackIndex);
-		track->CollectData(ss, project, mediaTrack, trackIndex, this->slowCounter == 0, dump);
+		track->CollectData(ss, project, mediaTrack, trackIndex, this->slowCounter == 0, readChunk, dump);
 
 		// Only collect note information, if enabled, track is active and playback is on
 		if (isActive && this->play > 0 && track->isSelected > 0)
