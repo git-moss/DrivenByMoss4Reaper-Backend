@@ -63,6 +63,7 @@ endif()
 ################################################################################
 # Global linker options
 ################################################################################
+
 if(MSVC)
     # remove default flags provided with CMake for MSVC
     set(CMAKE_EXE_LINKER_FLAGS "")
@@ -216,12 +217,14 @@ include_directories(${JNI_INCLUDE_DIRS} ${_classDir} ${_stubDir})
 target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/GSL;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL/swell;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../reaper_drivenbymoss;"
 )
 
 ################################################################################
 # Compile definitions
 ################################################################################
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     "$<$<CONFIG:Debug>:"
         "_DEBUG;"
