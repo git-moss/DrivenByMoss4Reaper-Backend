@@ -24,9 +24,15 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // Version
 //
 
+#if !defined(VER_VERSION)
+    #define VER_VERSION             1,0,0,0
+    #define VER_VERSION_STR         "1.0.0.0\0"
+    #define VER_YEAR                "1971\0"
+#endif
+
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 14,1,0,0
- PRODUCTVERSION 14,1,0,0
+ FILEVERSION VER_VERSION
+ PRODUCTVERSION VER_VERSION
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -43,12 +49,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "MOSS"
             VALUE "FileDescription", "DrivenByMoss"
-            VALUE "FileVersion", "14.1.0.0"
+            VALUE "FileVersion", VER_VERSION_STR
             VALUE "InternalName", "res.rc"
-            VALUE "LegalCopyright", "Copyright (c) 2021"
+            VALUE "LegalCopyright", "Copyright (c) " VER_YEAR
             VALUE "OriginalFilename", "res.rc"
             VALUE "ProductName", "DrivenByMoss"
-            VALUE "ProductVersion", "14.1.0.0"
+            VALUE "ProductVersion", VER_VERSION_STR
         END
     END
     BLOCK "VarFileInfo"
