@@ -237,11 +237,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY ${MSVC_RUN
 
 include_directories(${JNI_INCLUDE_DIRS} ${_classDir} ${_stubDir})
 
-#"${CMAKE_CURRENT_SOURCE_DIR}/../libraries/GSL;"
+# "${CMAKE_CURRENT_SOURCE_DIR}/../Visual Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include;"
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL;"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../Visual Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/GSL;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL/swell;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../reaper_drivenbymoss;"
 )

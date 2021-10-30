@@ -175,29 +175,15 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
-				85EB801C2700F35000FD31E7 /* ProjectProcessor.cpp */,
-				854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */,
-				854C52C525869DC5008D4F61 /* GrooveProcessor.h */,
 				85647DC124BFB2FA00576420 /* ActionProcessor.cpp */,
-				85647DBF24BFB2FA00576420 /* ActionProcessor.h */,
-				85647DC024BFB2FA00576420 /* CodeAnalysis.h */,
-				85DC73E92422BBCA006F7BCD /* afxres.h */,
-				85DC73EA2422BBCA006F7BCD /* de_mossgrabers_reaper_MainApp.h */,
-				85DC73ED2422BBCB006F7BCD /* dllmain.h */,
-				85DC73E72422BBCA006F7BCD /* IniFileProcessor.cpp */,
-				85DC73EC2422BBCB006F7BCD /* IniFileProcessor.h */,
-				85DC73E52422BBCA006F7BCD /* jniwrapper.h */,
-				85DC73EB2422BBCA006F7BCD /* ModdedCodecvt.h */,
-				85DC73E62422BBCA006F7BCD /* StringUtils.cpp */,
-				85DC73E42422BBCA006F7BCD /* WrapperGSL.h */,
-				85DC73E82422BBCA006F7BCD /* WrapperJNI.h */,
-				85DC73EE2422BBCB006F7BCD /* WrapperReaperFunctions.h */,
 				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
 				8554F20320F40E3C00F5FF39 /* DataCollector.cpp */,
 				8554F1FF20F40E3B00F5FF39 /* DeviceProcessor.cpp */,
 				8554F1FE20F40E3B00F5FF39 /* dllmain.cpp */,
 				8554F21820F40E3F00F5FF39 /* DrivenByMossSurface.cpp */,
 				8554F20420F40E3C00F5FF39 /* FunctionExecutor.cpp */,
+				854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */,
+				85DC73E72422BBCA006F7BCD /* IniFileProcessor.cpp */,
 				8554F20820F40E3C00F5FF39 /* JvmManager.cpp */,
 				858F79F021558EA300488951 /* Marker.cpp */,
 				850C4C47212017370059A6B0 /* MarkerProcessor.cpp */,
@@ -206,23 +192,34 @@
 				85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */,
 				8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */,
 				858F7A0421558EBB00488951 /* Parameter.cpp */,
+				85EB801C2700F35000FD31E7 /* ProjectProcessor.cpp */,
 				855CF89420F4B8EA0001F74A /* ReaDebug.cpp */,
 				858F79EB21558E9A00488951 /* SceneProcessor.cpp */,
 				85E7B72022F2052900F0B037 /* Send.cpp */,
 				8554F21620F40E3F00F5FF39 /* stdafx.cpp */,
+				85DC73E62422BBCA006F7BCD /* StringUtils.cpp */,
 				858F79ED21558E9C00488951 /* Track.cpp */,
 				8554F20520F40E3C00F5FF39 /* TrackProcessor.cpp */,
+				85647DBF24BFB2FA00576420 /* ActionProcessor.h */,
+				85DC73E92422BBCA006F7BCD /* afxres.h */,
 				8554F20120F40E3C00F5FF39 /* ClipProcessor.h */,
+				85647DC024BFB2FA00576420 /* CodeAnalysis.h */,
 				858F79FE21558EB500488951 /* Collectors.h */,
 				8554F20020F40E3B00F5FF39 /* DataCollector.h */,
+				85DC73EA2422BBCA006F7BCD /* de_mossgrabers_reaper_MainApp.h */,
 				858F79FD21558EB400488951 /* de_mossgrabers_reaper_ui_MainFrame.h */,
 				8554F20F20F40E3D00F5FF39 /* DeviceProcessor.h */,
+				85DC73ED2422BBCB006F7BCD /* dllmain.h */,
 				8554F20720F40E3C00F5FF39 /* DrivenByMossSurface.h */,
 				8554F20C20F40E3D00F5FF39 /* FunctionExecutor.h */,
+				854C52C525869DC5008D4F61 /* GrooveProcessor.h */,
+				85DC73EC2422BBCB006F7BCD /* IniFileProcessor.h */,
+				85DC73E52422BBCA006F7BCD /* jniwrapper.h */,
 				8554F21120F40E3E00F5FF39 /* JvmManager.h */,
 				858F79FF21558EB600488951 /* Marker.h */,
 				850C4C48212017380059A6B0 /* MarkerProcessor.h */,
 				8554F20920F40E3D00F5FF39 /* MastertrackProcessor.h */,
+				85DC73EB2422BBCA006F7BCD /* ModdedCodecvt.h */,
 				8554F20A20F40E3D00F5FF39 /* Model.h */,
 				85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */,
 				8554F21520F40E3E00F5FF39 /* OscParser.h */,
@@ -236,16 +233,19 @@
 				858F7A0321558EBA00488951 /* SceneProcessor.h */,
 				85E7B72122F2052900F0B037 /* Send.h */,
 				8554F1FC20F40E3B00F5FF39 /* stdafx.h */,
+				858F79EE21558EA100488951 /* StringUtils.h */,
 				8554F21A20F40E3F00F5FF39 /* targetver.h */,
 				858F79E921558E9800488951 /* Track.h */,
 				8554F20E20F40E3D00F5FF39 /* TrackProcessor.h */,
 				8554F20620F40E3C00F5FF39 /* TransportProcessor.h */,
+				85DC73E42422BBCA006F7BCD /* WrapperGSL.h */,
+				85DC73E82422BBCA006F7BCD /* WrapperJNI.h */,
+				85DC73EE2422BBCB006F7BCD /* WrapperReaperFunctions.h */,
 				8535241A212F470000706C88 /* swell-modstub.mm */,
 				85E1A7A320F4FB0000D38CC1 /* Frameworks */,
 				85823BC320F40CD000E4CC57 /* Products */,
-				858F79F121558EA400488951 /* SceneProcessor.h */,
-				858F79EE21558EA100488951 /* StringUtils.h */,
 				8529D3DF23DC60000053BB6C /* Recovered References */,
+				858F79F121558EA400488951 /* SceneProcessor.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -412,8 +412,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -471,8 +471,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -521,6 +521,7 @@
 		85823BC720F40CD000E4CC57 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CODE_SIGN_STYLE = Automatic;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "~/Library/Application Support/REAPER/UserPlugins";
@@ -534,8 +535,8 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/adoptopenjdk-13.jdk/Contents/Home/include/**",
-					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/Visual\\ Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include/**",
+					"/Library/Java/JavaVirtualMachines/temurin-16.jdk/Contents/Home/include/**",
+					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/GSL",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
@@ -549,6 +550,7 @@
 		85823BC820F40CD000E4CC57 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CODE_SIGN_STYLE = Automatic;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "~/Library/Application Support/REAPER/UserPlugins";
@@ -558,8 +560,8 @@
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/adoptopenjdk-13.jdk/Contents/Home/include/**",
-					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/Visual\\ Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include/**",
+					"/Library/Java/JavaVirtualMachines/temurin-16.jdk/Contents/Home/include/**",
+					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/GSL",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
