@@ -197,7 +197,7 @@ if(APPLE)
     set(Source_Files ${Source_Files} "../libraries/WDL/swell/swell-modstub.mm")
 endif()
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
     set(Source_Files ${Source_Files} "../libraries/WDL/swell/swell-modstub-generic.cpp")
 endif()
 
@@ -296,7 +296,7 @@ if(NOT WIN32)
     )
 endif()
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         "LINUX"
     )
