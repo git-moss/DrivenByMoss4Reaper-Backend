@@ -200,7 +200,7 @@ set(ALL_FILES
 
 if(APPLE)
     add_library(${PROJECT_NAME} SHARED ${ALL_FILES})
-    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES PREFIX "")
+    set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 else()
     add_library(${PROJECT_NAME} MODULE ${ALL_FILES})
 endif()
@@ -208,9 +208,12 @@ endif()
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
 set(ROOT_NAMESPACE reaper_drivenbymoss)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    VS_GLOBAL_KEYWORD "Win32Proj"
-)
+if(WIN32)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        VS_GLOBAL_KEYWORD "Win32Proj"
+    )
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
 )
@@ -219,17 +222,19 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # MSVC runtime library
 ################################################################################
 
-get_property(MSVC_RUNTIME_LIBRARY_DEFAULT TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY)
-string(CONCAT "MSVC_RUNTIME_LIBRARY_STR"
-    $<$<CONFIG:Debug>:
-        MultiThreadedDebug
-    >
-    $<$<CONFIG:Release>:
-        MultiThreaded
-    >
-    $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:Release>>>:${MSVC_RUNTIME_LIBRARY_DEFAULT}>
-)
-set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY ${MSVC_RUNTIME_LIBRARY_STR})
+if(MSVC)
+    get_property(MSVC_RUNTIME_LIBRARY_DEFAULT TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY)
+    string(CONCAT "MSVC_RUNTIME_LIBRARY_STR"
+        $<$<CONFIG:Debug>:
+            MultiThreadedDebug
+        >
+        $<$<CONFIG:Release>:
+            MultiThreaded
+        >
+        $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:Release>>>:${MSVC_RUNTIME_LIBRARY_DEFAULT}>
+    )
+    set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY ${MSVC_RUNTIME_LIBRARY_STR})
+endif()
 
 ################################################################################
 # Include directories
@@ -237,14 +242,17 @@ set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY ${MSVC_RUN
 
 include_directories(${JNI_INCLUDE_DIRS} ${_classDir} ${_stubDir})
 
-# "${CMAKE_CURRENT_SOURCE_DIR}/../Visual Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include;"
-
 target_include_directories(${PROJECT_NAME} PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/GSL;"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL/swell;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../reaper_drivenbymoss;"
 )
+
+if(APPLE)
+    target_include_directories(${PROJECT_NAME} PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL/swell;"
+    )
+endif()
 
 ################################################################################
 # Compile definitions
@@ -334,5 +342,3 @@ endif()
 if(APPLE)
     target_link_libraries(${PROJECT_NAME} ${COCOA_LIBRARY})
 endif()
-
-#target_link_libraries(${PROJECT_NAME} ${JNI_LIBRARIES})
