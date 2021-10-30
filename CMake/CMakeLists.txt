@@ -6,6 +6,12 @@ cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 
 set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
 
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES arm64;x86_64)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Deployment target for OSX" FORCE)
+    set(CMAKE_POSITION_INDEPENDENT_CODE FALSE)
+endif()
+
 project(reaper_drivenbymoss VERSION 14.1.0.0 LANGUAGES CXX)
 
 string(REPLACE "." "," VER_VERSION "${PROJECT_VERSION}")
@@ -25,6 +31,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 find_package(Java REQUIRED)
 find_package(JNI REQUIRED)
 include(UseJava)
+
+if(APPLE)
+    find_library(COCOA_LIBRARY Cocoa)
+    message(STATUS "COCOA_LIBRARY is ${COCOA_LIBRARY}")
+endif()
 
 ################################################################################
 # Set target arch type if empty. Visual studio solution generator provides it.
@@ -167,9 +178,16 @@ set(Source_Files
     "../reaper_drivenbymoss/StringUtils.cpp"
     "../reaper_drivenbymoss/Track.cpp"
     "../reaper_drivenbymoss/TrackProcessor.cpp"
-    "../reaper_drivenbymoss/res.rc"
 )
 source_group("Source Files" FILES ${Source_Files})
+
+if(WIN32)
+    set(Source_Files ${Source_Files} "../reaper_drivenbymoss/res.rc")
+endif()
+
+if(APPLE)
+    set(Source_Files ${Source_Files} "../libraries/WDL/swell/swell-modstub.mm")
+endif()
 
 set(ALL_FILES
     ${Header_Files}
@@ -180,7 +198,12 @@ set(ALL_FILES
 # Target
 ################################################################################
 
-add_library(${PROJECT_NAME} MODULE ${ALL_FILES})
+if(APPLE)
+    add_library(${PROJECT_NAME} SHARED ${ALL_FILES})
+    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES PREFIX "")
+else()
+    add_library(${PROJECT_NAME} MODULE ${ALL_FILES})
+endif()
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
 set(ROOT_NAMESPACE reaper_drivenbymoss)
@@ -214,9 +237,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY ${MSVC_RUN
 
 include_directories(${JNI_INCLUDE_DIRS} ${_classDir} ${_stubDir})
 
+#"${CMAKE_CURRENT_SOURCE_DIR}/../libraries/GSL;"
+
 target_include_directories(${PROJECT_NAME} PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/GSL;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Visual Studio/packages/Microsoft.Gsl.0.1.2.1/build/native/include;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL/swell;"
     "${CMAKE_CURRENT_SOURCE_DIR}/../reaper_drivenbymoss;"
 )
@@ -225,20 +250,28 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 # Compile definitions
 ################################################################################
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "$<$<CONFIG:Debug>:"
-        "_DEBUG;"
-        "OSC_HOST_LITTLE_ENDIAN"
-    ">"
-    "$<$<CONFIG:Release>:"
-        "NDEBUG"
-    ">"
-    "_WINDOWS;"
-    "_USRDLL;"
-    "reaper_drivenbymoss_EXPORTS;"
-    "UNICODE;"
-    "_UNICODE"
-)
+if(MSVC)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "$<$<CONFIG:Debug>:"
+            "_DEBUG;"
+            "OSC_HOST_LITTLE_ENDIAN"
+        ">"
+        "$<$<CONFIG:Release>:"
+            "NDEBUG"
+        ">"
+        "_WINDOWS;"
+        "_USRDLL;"
+        "reaper_drivenbymoss_EXPORTS;"
+        "UNICODE;"
+        "_UNICODE"
+    )
+endif()
+
+if(APPLE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "SWELL_PROVIDED_BY_APP"
+    )
+endif()
 
 ################################################################################
 # Compile and link options
@@ -298,4 +331,8 @@ if(MSVC)
     target_link_libraries(${PROJECT_NAME} ${ADDITIONAL_LIBRARY_DEPENDENCIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${JNI_LIBRARIES})
+if(APPLE)
+    target_link_libraries(${PROJECT_NAME} ${COCOA_LIBRARY})
+endif()
+
+#target_link_libraries(${PROJECT_NAME} ${JNI_LIBRARIES})
