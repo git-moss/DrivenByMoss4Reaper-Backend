@@ -29,4 +29,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: DrivenByMoss4Reaper-Libraries
-        path: ${{github.workspace}}/build/x64/Release/reaper_drivenbymoss.dll
+        path: ${{github.workspace}}/build/x64/Release/reaper_drivenbymoss.so
