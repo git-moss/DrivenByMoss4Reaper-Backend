@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 ################################################################################
 # Create library metadata
 ################################################################################
@@ -23,6 +27,10 @@ add_definitions(-DVER_YEAR="${VER_YEAR}")
 ################################################################################
 # Set C++ version and add libraries
 ################################################################################
+
+set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
@@ -189,6 +197,10 @@ if(APPLE)
     set(Source_Files ${Source_Files} "../libraries/WDL/swell/swell-modstub.mm")
 endif()
 
+if(UNIX)
+    set(Source_Files ${Source_Files} "../libraries/WDL/swell/swell-modstub-generic.cpp")
+endif()
+
 set(ALL_FILES
     ${Header_Files}
     ${Source_Files}
@@ -198,11 +210,14 @@ set(ALL_FILES
 # Target
 ################################################################################
 
-if(APPLE)
-    add_library(${PROJECT_NAME} SHARED ${ALL_FILES})
-    set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
-else()
+if(WIN32)
     add_library(${PROJECT_NAME} MODULE ${ALL_FILES})
+else()
+    add_library(${PROJECT_NAME} SHARED ${ALL_FILES})
+endif()
+
+if(NOT WIN32)
+    set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 endif()
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
@@ -248,7 +263,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../reaper_drivenbymoss;"
 )
 
-if(APPLE)
+if(NOT WIN32)
     target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/../libraries/WDL/swell;"
     )
@@ -275,11 +290,18 @@ if(MSVC)
     )
 endif()
 
-if(APPLE)
+if(NOT WIN32)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         "SWELL_PROVIDED_BY_APP"
     )
 endif()
+
+if(UNIX)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "LINUX"
+    )
+endif()
+
 
 ################################################################################
 # Compile and link options
