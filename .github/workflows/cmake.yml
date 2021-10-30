@@ -13,7 +13,7 @@ env:
 jobs:
 
   # Build and publish Windows library
-  publish-linux:
+  publish-windows:
     runs-on: windows-latest
 
     steps:
@@ -51,7 +51,7 @@ jobs:
         path: ${{github.workspace}}/build/x64/Release/reaper_drivenbymoss.so
 
   # Build and publish Macos library
-  publish-linux:
+  publish-macos:
     runs-on: macos-latest
 
     steps:
