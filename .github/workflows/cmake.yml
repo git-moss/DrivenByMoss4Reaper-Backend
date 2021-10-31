@@ -3,8 +3,6 @@ name: CMake
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -12,18 +10,26 @@ env:
 
 jobs:
 
-  # Build and publish Windows library
-  publish-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: reaper_drivenbymoss.so
+          - os: macos-latest
+            artifact_name: reaper_drivenbymoss.dylib
+          - os: windows-latest
+            artifact_name: reaper_drivenbymoss.dll
+    
+    name: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-java@v2
       with:
-        distribution: 'adopt'
-        java-version: 16
-        check-latest: true
-        architecture: x64
+        distribution: 'temurin'
+        java-version: 17
 
     - name: Configure CMake
       run: cmake -S "CMake" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -35,54 +41,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: DrivenByMoss4Reaper-Libraries
-        path: ${{github.workspace}}/build/x64/Release/reaper_drivenbymoss.dll
-
-  # Build and publish Ubuntu library
-  publish-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v2
-      with:
-        distribution: 'adopt'
-        java-version: 16
-        check-latest: true
-        architecture: x64
-
-    - name: Configure CMake
-      run: cmake -S "CMake" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    - name: Publish result
-      uses: actions/upload-artifact@v2
-      with:
-        name: DrivenByMoss4Reaper-Libraries
-        path: ${{github.workspace}}/build/x64/Release/reaper_drivenbymoss.so
-
-  # Build and publish Macos library
-  publish-macos:
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v2
-      with:
-        distribution: 'adopt'
-        java-version: 16
-        check-latest: true
-        architecture: x64
-
-    - name: Configure CMake
-      run: cmake -S "CMake" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    - name: Publish result
-      uses: actions/upload-artifact@v2
-      with:
-        name: DrivenByMoss4Reaper-Libraries
-        path: ${{github.workspace}}/build/x64/Release/reaper_drivenbymoss.dylib
+        path: ${{github.workspace}}/build/x64/Release/${{ matrix.artifact_name }}
