@@ -80,7 +80,6 @@ private:
 	double playPosition{};
 	std::string strPlayPosition{};
 	std::string strBeatPosition{};
-	int prerollMeasures{};
 	int play{};
 	int record{};
 	int repeat{};
@@ -129,13 +128,6 @@ private:
 	std::string devicePresetName{};
 	int devicePresetIndex{};
 	std::vector<std::string> devicePresetsStr;
-
-	// Groove values
-	int grooveStrength{};
-	int grooveVelstrength{};
-	int grooveTarget{};
-	int grooveTolerance{};
-	int quantizeStrength{};
 
 	// NoteRepeat values
 	int repeatActive{ 0 };

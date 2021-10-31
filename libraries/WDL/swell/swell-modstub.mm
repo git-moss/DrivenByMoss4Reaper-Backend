@@ -57,9 +57,10 @@ public:
     void *(*SWELLAPI_GetFunc)(const char *name)=NULL;
     void *(*send_msg)(id, SEL) = (void *(*)(id, SEL))objc_msgSend;
     
+    SEL swellGetAPPAPIFuncSelector = sel_registerName("swellGetAPPAPIFunc");
     id del = [NSApp delegate];
-    if (del && [del respondsToSelector:@selector(swellGetAPPAPIFunc)])
-      *(void **)&SWELLAPI_GetFunc = send_msg(del,@selector(swellGetAPPAPIFunc));
+    if (del && [del respondsToSelector:swellGetAPPAPIFuncSelector])
+      *(void **)&SWELLAPI_GetFunc = send_msg(del,swellGetAPPAPIFuncSelector);
 
     if (!SWELLAPI_GetFunc) NSLog(@"SWELL API provider not found\n");
     else if (SWELLAPI_GetFunc(NULL)!=(void*)0x100)
