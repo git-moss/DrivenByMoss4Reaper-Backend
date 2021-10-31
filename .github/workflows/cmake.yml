@@ -1,0 +1,44 @@
+name: CMake
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: reaper_drivenbymoss.so
+          - os: macos-11
+            artifact_name: reaper_drivenbymoss.dylib
+          - os: windows-latest
+            artifact_name: reaper_drivenbymoss.dll
+    
+    name: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'temurin'
+        java-version: 17
+
+    - name: Configure CMake
+      run: cmake -S "CMake" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Publish result
+      uses: actions/upload-artifact@v2
+      with:
+        name: DrivenByMoss4Reaper-Libraries
+        path: ${{github.workspace}}/build/x64/Release/${{ matrix.artifact_name }}
