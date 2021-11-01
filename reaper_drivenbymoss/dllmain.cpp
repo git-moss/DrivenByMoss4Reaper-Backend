@@ -45,7 +45,7 @@ void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring com
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-		const char* proc = env->GetStringUTFChars(processor, nullptr);
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -73,7 +73,7 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-		const char* proc = env->GetStringUTFChars(processor, nullptr);
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* val = env->GetStringUTFChars(value, nullptr);
@@ -155,7 +155,7 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-		const char* proc = env->GetStringUTFChars(processor, nullptr);
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -183,7 +183,7 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-		const char* proc = env->GetStringUTFChars(processor, nullptr);
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
@@ -210,7 +210,7 @@ void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean e
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-		const char* proc = env->GetStringUTFChars(processor, nullptr);
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
@@ -233,7 +233,7 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 		return;
 	// Nullcheck above is not picked up
 	DISABLE_WARNING_DANGLING_POINTER
-		const char* proc = env->GetStringUTFChars(processor, nullptr);
+	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
 	std::string procstr(proc);
@@ -344,8 +344,8 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 			return nullptr;
 
 		DISABLE_WARNING_PUSH
-			DISABLE_WARNING_REINTERPRET_CAST
-			void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
+		DISABLE_WARNING_REINTERPRET_CAST
+		void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
 		void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
 		void* processStringArgsPtr = reinterpret_cast<void*>(&processStringArgsCPP);
 		void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
@@ -480,7 +480,7 @@ extern "C"
 
 		// False positive, null check above is not detected
 		DISABLE_WARNING_DANGLING_POINTER
-			REAPERAPI_LoadAPI(rec->GetFunc);
+		REAPERAPI_LoadAPI(rec->GetFunc);
 
 		// Register extension
 		const int result = rec->Register("csurf", &drivenbymoss_reg);

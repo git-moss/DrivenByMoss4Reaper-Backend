@@ -55,7 +55,7 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 
 	ReaProject* project = ReaperUtils::GetProject();
 
-	MediaTrack* track;
+	MediaTrack* track{nullptr};
 	if (this->model.pinnedTrackIndex >= 0 && this->model.pinnedTrackIndex < CountTracks(project))
 		track = GetTrack(project, this->model.pinnedTrackIndex);
 	else
@@ -111,7 +111,7 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	this->metronome = Collectors::CollectIntValue(ss, "/click", this->metronome, GetToggleCommandState(40364), dump);
 	this->prerollClick = Collectors::CollectIntValue(ss, "/click/preroll", this->prerollClick, GetToggleCommandState(41819), dump);
 	char metroVolumeStr[20];
-	double value = get_config_var_string("projmetrov1", metroVolumeStr, 20) ? std::atof(metroVolumeStr) : 0.5;
+	const double value = get_config_var_string("projmetrov1", metroVolumeStr, 20) ? std::atof(metroVolumeStr) : 0.5;
 	const double volDB = ReaperUtils::ValueToDB(value);
 	this->metronomeVolume = Collectors::CollectDoubleValue(ss, "/click/volume", this->metronomeVolume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->metronomeVolumeStr = Collectors::CollectStringValue(ss, "/click/volumeStr", this->metronomeVolumeStr, Collectors::FormatDB(volDB).c_str(), dump);
