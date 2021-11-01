@@ -3,6 +3,8 @@ name: CMake
 on:
   push:
     branches: [ master ]
+  # Necessary to manually run the workflow
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
