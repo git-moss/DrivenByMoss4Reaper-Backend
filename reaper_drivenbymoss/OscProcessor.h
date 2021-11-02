@@ -181,6 +181,8 @@ protected:
 	static const int    GO_TO_NEXT_TRACK = 40285;
 	/** Track: Go to previous track. */
 	static const int    GO_TO_PREV_TRACK = 40286;
+	/** Track: Vertical scroll selected tracks into view. */
+	static const int    VERTICAL_SCROLL_TRACK_INTO_VIEW = 40913;
 
 	/** View: Zoom out horizontal. */
 	static const int    ZOOM_OUT_HORIZ = 1011;

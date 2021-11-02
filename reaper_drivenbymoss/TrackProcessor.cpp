@@ -42,7 +42,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 	if (std::strcmp(cmd, "scrollto") == 0)
 	{
 		SetOnlyTrackSelected(track);
-		SetMixerScroll(track);
+		ScrollTrackIntoView(track);
 		this->model.deviceSelected = 0;
 		return;
 	}
@@ -161,7 +161,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	if (std::strcmp(cmd, "select") == 0)
 	{
 		SetOnlyTrackSelected(track);
-		SetMixerScroll(track);
+		ScrollTrackIntoView(track);
 		const int deviceCount = TrackFX_GetCount(track);
 		if (this->model.deviceSelected >= deviceCount)
 			this->model.deviceSelected = 0;
@@ -438,7 +438,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<st
 		{
 			// Select the track and make it visible
 			SetOnlyTrackSelected(track);
-			SetMixerScroll(track);
+			ScrollTrackIntoView(track);
 
 			// First parameter is the type
 			const char* type = values.at(0).c_str();
@@ -661,4 +661,12 @@ void TrackProcessor::DeleteAllAutomationEnvelopes(ReaProject* project, MediaTrac
 
 	Undo_EndBlock2(project, "Delete all automation envelopes of track.", UNDO_STATE_TRACKCFG);
 	PreventUIRefresh(-1);
+}
+
+
+void TrackProcessor::ScrollTrackIntoView(MediaTrack* leftmosttrack) noexcept
+{
+	SetMixerScroll(leftmosttrack);
+	ReaProject* project = ReaperUtils::GetProject();
+	Main_OnCommandEx(VERTICAL_SCROLL_TRACK_INTO_VIEW, 0, project);
 }
