@@ -88,8 +88,33 @@ public:
 	void Process(std::deque<std::string>& path, double value) noexcept override
 	{
 		ReaProject* const project = ReaperUtils::GetProject();
-		const double end = GetProjectLength(project);
-		SetEditCurPos2(project, value < end ? value : end, true, true);
+
+		if (path.empty())
+		{
+			const double end = GetProjectLength(project);
+			SetEditCurPos2(project, value < end ? value : end, true, true);
+			return;
+		}
+
+		const char* cmd = SafeGet(path, 0);
+		if (std::strcmp(cmd, "loop") == 0)
+		{
+			double startOut;
+			double endOut;
+			GetSet_LoopTimeRange(false, true, &startOut, &endOut, false);
+
+			const char* loopCmd = SafeGet(path, 1);
+			if (std::strcmp(loopCmd, "start") == 0)
+			{
+				double offset = value - startOut;
+				double end = offset + endOut;
+				GetSet_LoopTimeRange(true, true, &value, &end, false);
+			}
+			else
+			{
+				GetSet_LoopTimeRange(true, true, &startOut, &value, false);
+			}
+		}
 	};
 };
 

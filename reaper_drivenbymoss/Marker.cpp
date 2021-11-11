@@ -44,12 +44,12 @@ void Marker::CollectData(std::ostringstream& ss, ReaProject* project, const char
 	this->exists = Collectors::CollectIntValue(ss, (markerAddress + "exists").c_str(), this->exists, true, dump);
 	this->number = Collectors::CollectIntValue(ss, (markerAddress + "number").c_str(), this->number, markerIndex, dump);
 
+	// Marker name
 	const char* name;
 	int markerColor;
 	const int result = EnumProjectMarkers3(project, markerID, nullptr, nullptr, nullptr, &name, nullptr, &markerColor);
-
-	// Marker name
-	this->name = Collectors::CollectStringValue(ss, (markerAddress + "name").c_str(), this->name, result ? name : "", dump);
+	const std::string newName = result ? name : "";
+	this->name = Collectors::CollectStringValue(ss, (markerAddress + "name").c_str(), this->name, newName, dump);
 
 	// Marker color
 	int red, green, blue;
@@ -58,6 +58,11 @@ void Marker::CollectData(std::ostringstream& ss, ReaProject* project, const char
 }
 
 
+/**
+ * Get all markers which are not regions.
+ *
+ * @return The indices of the markers
+ */
 std::vector<int> Marker::GetMarkers(ReaProject* project) noexcept
 {
 	std::vector<int> markers;
@@ -81,6 +86,11 @@ std::vector<int> Marker::GetMarkers(ReaProject* project) noexcept
 }
 
 
+/**
+ * Get all regions markers.
+ *
+ * @return The indices of the region markers
+ */
 std::vector<int> Marker::GetRegions(ReaProject* project) noexcept
 {
 	std::vector<int> regions;

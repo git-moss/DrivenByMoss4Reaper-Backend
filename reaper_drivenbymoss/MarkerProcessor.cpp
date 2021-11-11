@@ -31,12 +31,14 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 
 	if (std::strcmp(part, "add") == 0)
 	{
+		Undo_BeginBlock2(project);
 		PreventUIRefresh(1);
-		const double position = GetPlayPosition2Ex(project);
+		const double position = ReaperUtils::GetCursorPosition(project);
 		std::ostringstream markerName;
 		markerName << "Marker " << (this->model.markerCount + 1);
 		AddProjectMarker(project, false, position, 0, markerName.str().c_str(), 0);
 		PreventUIRefresh(-1);
+		Undo_EndBlock2(project, "Add project marker", UNDO_STATE_ALL);
 		return;
 	}
 
@@ -67,7 +69,9 @@ void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
 	
 	if (std::strcmp(cmd, "remove") == 0)
 	{
+		Undo_BeginBlock2(project);
 		DeleteProjectMarkerByIndex(project, markerID);
+		Undo_EndBlock2(project, "Delete project marker", UNDO_STATE_ALL);
 		return;
 	}
 }

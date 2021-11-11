@@ -80,14 +80,14 @@ void ActionProcessor::CollectData(std::ostringstream& ss)
 /**
  * Check if the user selected an action from the action dialog and/or closed the dialog.
  */
-void ActionProcessor::CheckActionSelection()
+void ActionProcessor::CheckActionSelection() noexcept
 {
 	// Only if action selection is active
 	if (!this->selectionIsActive)
 		return;
 
 	// Check if an action is selected
-	int action = PromptForAction(0, 0, 0);
+	const int action = PromptForAction(0, 0, 0);
 	if (action == -1)
 	{
 		// User wants to close the dialog and finish the selection process

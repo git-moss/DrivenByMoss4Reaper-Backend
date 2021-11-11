@@ -43,7 +43,8 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 	char name[LENGTH];
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
 	const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
-	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, result ? name : "", dump);
+	const std::string newName = result ? name : "";
+	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, newName, dump);
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
 	this->volume = Collectors::CollectDoubleValue(ss, (sendAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->volumeStr = Collectors::CollectStringValue(ss, (sendAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);

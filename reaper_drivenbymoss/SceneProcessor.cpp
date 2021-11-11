@@ -7,6 +7,7 @@
 #include "WrapperGSL.h"
 #include "SceneProcessor.h"
 #include "ReaperUtils.h"
+#include <ReaDebug.h>
 
 
 /**
@@ -101,15 +102,22 @@ void SceneProcessor::DuplicateScene(ReaProject* project, const int sceneID) noex
 		SetProjectMarkerByIndex2(project, sceneID, true, position, endPosition, markerID, name, 0, 0);
 
 		// Create a new region for the copied clips
-		std::string newName = name;
-		if (newName.length() == 0)
+		try
 		{
-			std::ostringstream buffer;
-			buffer << markerID;
-			newName = buffer.str();
+			std::string newName = name;
+			if (newName.length() == 0)
+			{
+				std::ostringstream buffer;
+				buffer << markerID;
+				newName = buffer.str();
+			}
+			newName = newName + " - Copy";
+			AddProjectMarker2(project, true, newPosition, newEndPosition, newName.c_str(), 0, color);
 		}
-		newName = newName + " - Copy";
-		AddProjectMarker2(project, true, newPosition, newEndPosition, newName.c_str(), 0, color);
+		catch (const std::exception& e)
+		{
+			ReaDebug() << "ERROR: Could not add marker: " << e.what();
+		}
 
 		Undo_EndBlock2(project, "Duplicate region", UNDO_STATE_ALL);
 	}

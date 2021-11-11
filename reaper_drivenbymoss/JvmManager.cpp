@@ -122,8 +122,8 @@ void JvmManager::Create()
 	if (opts == nullptr)
 		return;
 	DISABLE_WARNING_NO_POINTER_ARITHMETIC
-		DISABLE_WARNING_USE_GSL_AT
-		opts[0].optionString = &this->classpath[0];
+	DISABLE_WARNING_USE_GSL_AT
+	opts[0].optionString = &this->classpath[0];
 	if (this->debug)
 	{
 		DISABLE_WARNING_NO_POINTER_ARITHMETIC

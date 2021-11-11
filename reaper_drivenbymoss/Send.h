@@ -16,9 +16,9 @@
 class Send
 {
 public:
-	std::string name;
+	std::string name{ "" };
 	double volume{ 0 };
-	std::string volumeStr;
+	std::string volumeStr{ "" };
 
 	Send() noexcept;
 	Send(const Send&) = delete;

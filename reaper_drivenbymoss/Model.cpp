@@ -45,7 +45,7 @@ void Model::AddFunction(std::function<void(void)> f) noexcept
  * @param index The index of the track.
  * @return The track, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Track> Model::GetTrack(const int index) noexcept
+std::unique_ptr<Track>& Model::GetTrack(const int index) noexcept
 {
 	const std::lock_guard<std::mutex> lock(this->tracklock);
 
@@ -53,7 +53,7 @@ std::shared_ptr <Track> Model::GetTrack(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->tracks.push_back(std::make_shared<Track>());
+			this->tracks.push_back(std::make_unique<Track>());
 	}
 	return this->tracks.at(index);
 }
@@ -65,7 +65,7 @@ std::shared_ptr <Track> Model::GetTrack(const int index) noexcept
  * @param index The index of the marker.
  * @return The marker, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Marker> Model::GetMarker(const int index) noexcept
+std::unique_ptr<Marker>& Model::GetMarker(const int index) noexcept
 {
 	const std::lock_guard<std::mutex> lock(this->markerlock);
 
@@ -73,7 +73,7 @@ std::shared_ptr <Marker> Model::GetMarker(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->markers.push_back(std::make_shared<Marker>());
+			this->markers.push_back(std::make_unique<Marker>());
 	}
 	return this->markers.at(index);
 }
@@ -85,7 +85,7 @@ std::shared_ptr <Marker> Model::GetMarker(const int index) noexcept
  * @param index The index of the region.
  * @return The region, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Marker> Model::GetRegion(const int index) noexcept
+std::unique_ptr<Marker>& Model::GetRegion(const int index) noexcept
 {
 	const std::lock_guard<std::mutex> lock(this->regionlock);
 
@@ -93,7 +93,7 @@ std::shared_ptr <Marker> Model::GetRegion(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->regions.push_back(std::make_shared<Marker>());
+			this->regions.push_back(std::make_unique<Marker>());
 	}
 	return this->regions.at(index);
 }
@@ -105,7 +105,7 @@ std::shared_ptr <Marker> Model::GetRegion(const int index) noexcept
  * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
+std::unique_ptr<Parameter>& Model::GetParameter(const int index) noexcept
 {
 	const std::lock_guard<std::mutex> lock(this->parameterlock);
 
@@ -113,7 +113,7 @@ std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->parameters.push_back(std::make_shared <Parameter>("/device/param/", index));
+			this->parameters.push_back(std::make_unique <Parameter>("/device/param/", index));
 	}
 	return this->parameters.at(index);
 }
@@ -125,7 +125,7 @@ std::shared_ptr <Parameter> Model::GetParameter(const int index) noexcept
  * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Parameter> Model::GetEqParameter(const int index) noexcept
+std::unique_ptr<Parameter>& Model::GetEqParameter(const int index) noexcept
 {
 	const std::lock_guard<std::mutex> lock(this->parameterlock);
 
@@ -133,7 +133,7 @@ std::shared_ptr <Parameter> Model::GetEqParameter(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->eqParameters.push_back(std::make_shared <Parameter>("/eq/param/", index));
+			this->eqParameters.push_back(std::make_unique <Parameter>("/eq/param/", index));
 	}
 	return this->eqParameters.at(index);
 }
@@ -145,7 +145,7 @@ std::shared_ptr <Parameter> Model::GetEqParameter(const int index) noexcept
  * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::shared_ptr <Parameter> Model::GetUserParameter(const int index) noexcept
+std::unique_ptr<Parameter>& Model::GetUserParameter(const int index) noexcept
 {
 	const std::lock_guard<std::mutex> lock(this->parameterlock);
 
@@ -153,7 +153,7 @@ std::shared_ptr <Parameter> Model::GetUserParameter(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->userParameters.push_back(std::make_shared <Parameter>("/user/param/", index));
+			this->userParameters.push_back(std::make_unique <Parameter>("/user/param/", index));
 	}
 	return this->userParameters.at(index);
 }

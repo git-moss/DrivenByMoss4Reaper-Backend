@@ -168,6 +168,13 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 		return;
 	}
 
+	if (std::strcmp(cmd, "isGroupExpanded") == 0)
+	{
+		int folderCompact = value > 0 ? 0 : 2;
+		GetSetMediaTrackInfo(track, "I_FOLDERCOMPACT", static_cast<void*> (&folderCompact));
+		return;
+	}
+
 	if (std::strcmp(cmd, "createClip") == 0)
 	{
 		CreateMidiClip(project, track, value);
@@ -272,7 +279,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 	if (!track)
 		return;
 
-	std::shared_ptr <Track> trackData = this->model.GetTrack(trackIndex);
+	std::unique_ptr<Track>& trackData = this->model.GetTrack(trackIndex);
 	const char* cmd = SafeGet(path, 1);
 
 	if (std::strcmp(cmd, "volume") == 0)
@@ -316,7 +323,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
 			DISABLE_WARNING_DANGLING_POINTER
-				Send* send = trackData->GetSend(sendIndex);
+			const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
 			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
 		}
@@ -442,7 +449,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<st
 
 			// First parameter is the type
 			const char* type = values.at(0).c_str();
-			bool isInstrument = std::strcmp(type, "INSTRUMENT") == 0;
+			const bool isInstrument = std::strcmp(type, "INSTRUMENT") == 0;
 
 			// Second parameter is the name, if empty generate one
 			std::string name = values.at(1);

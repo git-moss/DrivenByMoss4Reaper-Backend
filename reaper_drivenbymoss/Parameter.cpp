@@ -19,7 +19,7 @@ Parameter::Parameter(const char* prefixPath, const int index) noexcept : paramet
 	{
 		std::ostringstream das;
 		DISABLE_WARNING_CAN_THROW
-			das << prefixPath << index << "/";
+		das << prefixPath << index << "/";
 		const std::string paramAddress = das.str();
 
 		this->addressName = paramAddress + "name";
@@ -63,7 +63,7 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 	char nameBuf[LENGTH];
 
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-		bool result = TrackFX_GetParamName(track, deviceIndex, paramIndex, nameBuf, LENGTH);
+	bool result = TrackFX_GetParamName(track, deviceIndex, paramIndex, nameBuf, LENGTH);
 	const std::string newName{ result ? nameBuf : "" };
 	this->name = Collectors::CollectStringValue(ss, this->addressName, this->name, newName, dump);
 
@@ -74,7 +74,7 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 	if (valueHasChanged)
 	{
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-			result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, paramValue, nameBuf, LENGTH);
+		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, paramValue, nameBuf, LENGTH);
 		const std::string newValue{ result ? nameBuf : "" };
 		this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, newValue, dump);
 	}

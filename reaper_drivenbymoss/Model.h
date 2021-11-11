@@ -45,12 +45,12 @@ public:
 
 	void AddFunction(std::function<void(void)> f) noexcept;
 
-	std::shared_ptr <Track> GetTrack(const int index) noexcept;
-	std::shared_ptr <Marker> GetMarker(const int index) noexcept;
-	std::shared_ptr <Marker> GetRegion(const int index) noexcept;
-	std::shared_ptr <Parameter> GetParameter(const int index) noexcept;
-	std::shared_ptr <Parameter> GetEqParameter(const int index) noexcept;
-	std::shared_ptr <Parameter> GetUserParameter(const int index) noexcept;
+	std::unique_ptr<Track>& GetTrack(const int index) noexcept;
+	std::unique_ptr<Marker>& GetMarker(const int index) noexcept;
+	std::unique_ptr<Marker>& GetRegion(const int index) noexcept;
+	std::unique_ptr<Parameter>& GetParameter(const int index) noexcept;
+	std::unique_ptr<Parameter>& GetEqParameter(const int index) noexcept;
+	std::unique_ptr<Parameter>& GetUserParameter(const int index) noexcept;
 
 	void SetDump()
 	{
@@ -73,12 +73,12 @@ public:
 
 private:
 	FunctionExecutor& functionExecutor;
-	std::vector<std::shared_ptr<Track>> tracks;
-	std::vector<std::shared_ptr<Marker>> markers;
-	std::vector<std::shared_ptr<Marker>> regions;
-	std::vector<std::shared_ptr<Parameter>> parameters;
-	std::vector<std::shared_ptr<Parameter>> eqParameters;
-	std::vector<std::shared_ptr<Parameter>> userParameters;
+	std::vector<std::unique_ptr<Track>> tracks;
+	std::vector<std::unique_ptr<Marker>> markers;
+	std::vector<std::unique_ptr<Marker>> regions;
+	std::vector<std::unique_ptr<Parameter>> parameters;
+	std::vector<std::unique_ptr<Parameter>> eqParameters;
+	std::vector<std::unique_ptr<Parameter>> userParameters;
 	std::mutex tracklock;
 	std::mutex markerlock;
 	std::mutex regionlock;

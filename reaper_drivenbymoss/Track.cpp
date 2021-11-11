@@ -36,7 +36,7 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	das << "/track/" << trackIndex << "/";
 	std::string trackAddress = das.str();
 
-	double cursorPos = ReaperUtils::GetCursorPosition(project);
+	const double cursorPos = ReaperUtils::GetCursorPosition(project);
 
 	// Track exists flag and number of track
 	this->exists = Collectors::CollectIntValue(ss, (trackAddress + "exists").c_str(), this->exists, 1, dump);
@@ -45,13 +45,16 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 
 	// Track name
 	char tempName[NAME_LENGTH];
-	bool result = GetTrackName(track, tempName, NAME_LENGTH);
+	const bool result = GetTrackName(track, tempName, NAME_LENGTH);
 	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, result ? tempName : "", dump);
 
-	// Track type (GROUP or HYBRID), select, mute, solo, recarm and monitor states
+	// Track type (GROUP or HYBRID), isGroupExpanded, select, mute, solo, recarm and monitor states
 	int trackState{};
 	GetTrackState(track, &trackState);
-	this->type = Collectors::CollectStringValue(ss, (trackAddress + "type").c_str(), this->type, (trackState & 1) > 0 ? "GROUP" : "HYBRID", dump);
+	const bool isGroup = (trackState & 1) > 0;
+	this->type = Collectors::CollectStringValue(ss, (trackAddress + "type").c_str(), this->type, isGroup ? "GROUP" : "HYBRID", dump);
+	const int* folderCompact = static_cast<int*> (GetSetMediaTrackInfo(track, "I_FOLDERCOMPACT", nullptr));
+	this->isGroupExpanded = Collectors::CollectIntValue(ss, (trackAddress + "isGroupExpanded").c_str(), this->isGroupExpanded, *folderCompact == 0 ? 1 : 0, dump);
 	const int selected = (trackState & 2) > 0 ? 1 : 0;
 	this->isSelected = Collectors::CollectIntValue(ss, (trackAddress + "select").c_str(), this->isSelected, selected, dump);
 	this->mute = Collectors::CollectIntValue(ss, (trackAddress + "mute").c_str(), this->mute, this->GetMute(track, cursorPos, trackState), dump);
@@ -84,13 +87,13 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 
 	// Track color
 	int red = -1, green = -1, blue = -1;
-	int nativeColor = GetTrackColor(track);
+	const int nativeColor = GetTrackColor(track);
 	if (nativeColor != 0)
 		ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
 	this->color = Collectors::CollectStringValue(ss, (trackAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
 
 	// Track volume and pan
-	double volDB = this->GetVolume(track, cursorPos);
+	const double volDB = this->GetVolume(track, cursorPos);
 	this->volume = Collectors::CollectDoubleValue(ss, (trackAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->volumeStr = Collectors::CollectStringValue(ss, (trackAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
 	const double panVal = this->GetPan(track, cursorPos);
@@ -98,8 +101,8 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->panStr = Collectors::CollectStringValue(ss, (trackAddress + "pan/str").c_str(), this->panStr, Collectors::FormatPan(panVal).c_str(), dump);
 
 	// VU and automation mode
-	double peakLeft = Track_GetPeakInfo(track, 0);
-	double peakRight = Track_GetPeakInfo(track, 1);
+	const double peakLeft = Track_GetPeakInfo(track, 0);
+	const double peakRight = Track_GetPeakInfo(track, 1);
 
 	this->vu = Collectors::CollectDoubleValue(ss, (trackAddress + "vu").c_str(), this->vu, ReaperUtils::ValueToVURange((peakLeft + peakRight) / 2.0), dump);
 	this->vuLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuleft").c_str(), this->vuLeft, ReaperUtils::ValueToVURange(peakLeft), dump);
@@ -121,7 +124,7 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
  * @param index The index of the send.
  * @return The send, if none exists at the index a new instance is created automatically
  */
-Send* Track::GetSend(const int index) noexcept
+std::unique_ptr<Send>& Track::GetSend(const int index) noexcept
 {
 	const std::lock_guard<std::mutex> lock(this->sendlock);
 
@@ -129,7 +132,7 @@ Send* Track::GetSend(const int index) noexcept
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->sends.push_back(new Send());
+			this->sends.push_back(std::make_unique<Send>());
 	}
 	return this->sends.at(index);
 }
@@ -165,7 +168,7 @@ int Track::GetMute(MediaTrack* track, double position, int trackState) const
 }
 
 
-int Track::GetTrackLockState(char* chunk) const
+int Track::GetTrackLockState(const char* chunk) const
 {
 	std::cmatch result{};
 	if (!std::regex_search(chunk, result, LOCK_PATTERN))
@@ -174,7 +177,7 @@ int Track::GetTrackLockState(char* chunk) const
 }
 
 
-void Track::ParseInputQuantize(std::ostringstream& ss, std::string& trackAddress, const bool& dump, char* chunk)
+void Track::ParseInputQuantize(std::ostringstream& ss, const std::string& trackAddress, const bool& dump, const char* chunk)
 {
 	std::cmatch result{};
 	if (!std::regex_search(chunk, result, INPUT_QUANTIZE_PATTERN))

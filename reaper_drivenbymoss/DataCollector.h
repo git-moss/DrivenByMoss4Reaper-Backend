@@ -60,6 +60,8 @@ private:
 	// Project values
 	std::string projectName{};
 	int projectEngine{};
+	int canUndo{ 1 };
+	int canRedo{ 1 };
 
 	// Clip values
 	int clipExists{ -1 };
@@ -85,6 +87,12 @@ private:
 	int repeat{};
 	double tempo{};
 	int followPlayback{ 0 };
+	double loopStart{};
+	double loopLength{};
+	std::string strLoopStart{};
+	std::string strLoopLength{};
+	std::string strLoopStartBeat{};
+	std::string strLoopLengthBeat{};
 
 	// Click / metronome values
 	int metronome{};
@@ -118,6 +126,7 @@ private:
 	int instrumentExists{ -1 };
 	int instrumentPosition{ -1 };
 	std::string instrumentName{};
+	int instrumentParameterCount{ 0 };
 	Parameter instrumentParameter;
 
 	// Equalizer device values

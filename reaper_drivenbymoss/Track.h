@@ -30,6 +30,7 @@ public:
 	int depth{ 0 };
 	std::string name{ "" };
 	std::string type;
+	int isGroupExpanded{ 1 };
 
 	int isSelected{ 0 };
 	int mute{ 0 };
@@ -62,9 +63,9 @@ public:
 
 	Track() noexcept;
 
-	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool &slowUpdate, const bool& readChunk, const bool& dump);
+	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& readChunk, const bool& dump);
 
-	Send* GetSend(const int index) noexcept;
+	std::unique_ptr<Send>& GetSend(const int index) noexcept;
 
 	double GetVolume(MediaTrack* track, double position) const;
 	double GetPan(MediaTrack* track, double position) const;
@@ -72,13 +73,11 @@ public:
 
 private:
 	int sendCount{ 0 };
-	std::vector<Send*> sends;
+	std::vector<std::unique_ptr<Send>> sends;
 	std::mutex sendlock;
 
-	double ToNormalizedValue(const double dbValue);
-	double GetValue(MediaTrack* track, double position, const char* envelopeName, const char* infoName) const;
-	int GetTrackLockState(char* chunk) const;
-	void ParseInputQuantize(std::ostringstream& ss, std::string& trackAddress, const bool& dump, char* chunk);
+	int GetTrackLockState(const char* chunk) const;
+	void ParseInputQuantize(std::ostringstream& ss, const std::string& trackAddress, const bool& dump, const char* chunk);
 };
 
 #endif /* _DBM_TRACK_H_ */

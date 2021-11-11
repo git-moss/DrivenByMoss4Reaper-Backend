@@ -24,7 +24,7 @@ public:
 
 	void CollectData(std::ostringstream& ss);
 
-	void CheckActionSelection();
+	void CheckActionSelection() noexcept;
 
 private:
 	bool selectionIsActive;
