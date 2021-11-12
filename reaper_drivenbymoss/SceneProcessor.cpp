@@ -7,7 +7,7 @@
 #include "WrapperGSL.h"
 #include "SceneProcessor.h"
 #include "ReaperUtils.h"
-#include <ReaDebug.h>
+#include "ReaDebug.h"
 
 
 /**
