@@ -53,8 +53,8 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	GetTrackState(track, &trackState);
 	const bool isGroup = (trackState & 1) > 0;
 	this->type = Collectors::CollectStringValue(ss, (trackAddress + "type").c_str(), this->type, isGroup ? "GROUP" : "HYBRID", dump);
-	const int* folderCompact = static_cast<int*> (GetSetMediaTrackInfo(track, "I_FOLDERCOMPACT", nullptr));
-	this->isGroupExpanded = Collectors::CollectIntValue(ss, (trackAddress + "isGroupExpanded").c_str(), this->isGroupExpanded, *folderCompact == 0 ? 1 : 0, dump);
+	const int folderCompact = *static_cast<int*> (GetSetMediaTrackInfo(track, "I_FOLDERCOMPACT", nullptr));
+	this->isGroupExpanded = Collectors::CollectIntValue(ss, (trackAddress + "isGroupExpanded").c_str(), this->isGroupExpanded, folderCompact == 0 ? 1 : 0, dump);
 	const int selected = (trackState & 2) > 0 ? 1 : 0;
 	this->isSelected = Collectors::CollectIntValue(ss, (trackAddress + "select").c_str(), this->isSelected, selected, dump);
 	this->mute = Collectors::CollectIntValue(ss, (trackAddress + "mute").c_str(), this->mute, this->GetMute(track, cursorPos, trackState), dump);
