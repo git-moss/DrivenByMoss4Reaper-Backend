@@ -55,7 +55,7 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 
 	ReaProject* project = ReaperUtils::GetProject();
 
-	MediaTrack* track{nullptr};
+	MediaTrack* track{ nullptr };
 	if (this->model.pinnedTrackIndex >= 0 && this->model.pinnedTrackIndex < CountTracks(project))
 		track = GetTrack(project, this->model.pinnedTrackIndex);
 	else
@@ -206,6 +206,11 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 	if (this->slowCounter == 0 || dump)
 	{
+		char guidString[64];
+		const GUID* guid = TrackFX_GetFXGUID(track, deviceIndex);
+		guidToString(guid, guidString);
+		this->deviceGUID = Collectors::CollectStringValue(ss, "/device/guid", this->deviceGUID, guidString, dump);
+
 		bool result = TrackFX_GetFXName(track, deviceIndex, name, LENGTH);
 		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
 		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
@@ -224,10 +229,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	const int paramCount = TrackFX_GetNumParams(track, deviceIndex);
 	this->model.deviceParamCount = Collectors::CollectIntValue(ss, "/device/param/count", this->model.deviceParamCount, paramCount, dump);
 	for (int index = 0; index < paramCount; index++)
-	{
-		std::unique_ptr<Parameter>& parameter = this->model.GetParameter(index);
-		parameter->CollectData(ss, track, deviceIndex, dump);
-	}
+		this->model.GetParameter(index)->CollectData(ss, track, deviceIndex, dump);
 
 	// 
 	// First instrument (primary) data

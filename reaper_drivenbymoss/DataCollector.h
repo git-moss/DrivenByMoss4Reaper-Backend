@@ -118,6 +118,7 @@ private:
 	int devicePosition{ -1 };
 	int deviceWindow{ -1 };
 	int deviceExpanded{ -1 };
+	std::string deviceGUID{};
 	std::string deviceName{};
 	int deviceBypass{};
 	std::vector<std::string> deviceSiblings;
