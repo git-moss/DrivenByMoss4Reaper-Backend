@@ -201,7 +201,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	this->deviceWindow = Collectors::CollectIntValue(ss, "/device/window", this->deviceWindow, TrackFX_GetOpen(track, deviceIndex), dump);
 	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpandedType == 1, dump);
 
-	constexpr int LENGTH = 30;
+	constexpr int LENGTH = 50;
 	char name[LENGTH];
 
 	if (this->slowCounter == 0 || dump)
