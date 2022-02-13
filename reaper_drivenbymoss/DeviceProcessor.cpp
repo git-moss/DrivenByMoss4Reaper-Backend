@@ -105,7 +105,18 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 
 	if (std::strcmp(part, "selected") == 0)
 	{
-		this->model.deviceSelected = value - 1;
+		const int fxSel = value - 1;
+		if (fxSel >= 0 && fxSel < TrackFX_GetCount(track))
+		{
+			this->model.deviceSelected = fxSel;
+			const bool isWindowVisible = this->model.deviceExpandedType ? TrackFX_GetChainVisible(track) != -1 : TrackFX_GetOpen(track, fxSel);
+
+			PreventUIRefresh(1);
+			TrackFX_Show(track, fxSel, this->model.deviceExpandedType ? 1 : 3);
+			if (!isWindowVisible)
+				TrackFX_Show(track, fxSel, this->model.deviceExpandedType ? 0 : 2);
+			PreventUIRefresh(-1);
+		}
 		return;
 	}
 

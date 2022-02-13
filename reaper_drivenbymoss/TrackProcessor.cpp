@@ -98,6 +98,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 			Main_OnCommandEx(UNSELECT_ALL_ITEMS, 0, project);
 			SetMediaItemSelected(item, true);
 			UpdateTimeline();
+			TrackFX_Show(track, this->model.deviceSelected, this->model.deviceExpandedType ? 1 : 3);
 			return;
 		}
 

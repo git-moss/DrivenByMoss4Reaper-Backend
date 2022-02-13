@@ -206,11 +206,6 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 	if (this->slowCounter == 0 || dump)
 	{
-		char guidString[64];
-		const GUID* guid = TrackFX_GetFXGUID(track, deviceIndex);
-		guidToString(guid, guidString);
-		this->deviceGUID = Collectors::CollectStringValue(ss, "/device/guid", this->deviceGUID, guidString, dump);
-
 		bool result = TrackFX_GetFXName(track, deviceIndex, name, LENGTH);
 		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
 		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
