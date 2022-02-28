@@ -164,6 +164,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\DeviceProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\dllmain.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\DrivenByMossSurface.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\EqDeviceProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\FunctionExecutor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\GrooveProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\IniFileProcessor.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="..\reaper_drivenbymoss\de_mossgrabers_reaper_MainApp.h" />
     <ClInclude Include="..\reaper_drivenbymoss\dllmain.h" />
     <ClInclude Include="..\reaper_drivenbymoss\DrivenByMossSurface.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\EqDeviceProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\FunctionExecutor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\GrooveProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\IniFileProcessor.h" />

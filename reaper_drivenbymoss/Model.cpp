@@ -16,6 +16,24 @@ Model::Model(FunctionExecutor& aFunctionExecutor)  noexcept :
 	// Intentionally empty
 }
 
+void Model::SetDump()
+{
+	const std::lock_guard<std::mutex> lock(this->dumplock);
+	this->dump = true;
+}
+
+bool Model::ShouldDump()
+{
+	const std::lock_guard<std::mutex> lock(this->dumplock);
+
+	bool d{ false };
+	if (this->dump)
+	{
+		this->dump = false;
+		d = true;
+	}
+	return d;
+}
 
 void Model::AddFunction(std::function<void(void)> f) noexcept
 {
@@ -125,7 +143,7 @@ std::unique_ptr<Parameter>& Model::GetParameter(const int index) noexcept
  * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Parameter>& Model::GetEqParameter(const int index) noexcept
+std::unique_ptr<Parameter>& Model::GetEqParameter(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->parameterlock);
 
@@ -156,4 +174,35 @@ std::unique_ptr<Parameter>& Model::GetUserParameter(const int index) noexcept
 			this->userParameters.push_back(std::make_unique <Parameter>("/user/param/", index));
 	}
 	return this->userParameters.at(index);
+}
+
+
+/**
+ * Set the selected device on the selected track, if any.
+ *
+ * @param position The position of the device to select
+ */
+void Model::SetDeviceSelection(int position) noexcept
+{
+	MediaTrack* track = GetSelectedTrack2(ReaperUtils::GetProject(), 0, true);
+	if (track == nullptr)
+	{
+		this->deviceSelected = 0;
+		this->deviceBankOffset = 0;
+		return;
+	}
+
+	const int numDevice = TrackFX_GetCount(track);
+
+	const int pos = (std::min)((std::max)(0, position), numDevice - 1);
+	this->deviceSelected = pos % this->DEVICE_BANK_SIZE;
+	this->deviceBankOffset = static_cast<int>(std::floor(pos / this->DEVICE_BANK_SIZE) * this->DEVICE_BANK_SIZE);
+
+	const bool isWindowVisible = this->deviceExpandedType ? TrackFX_GetChainVisible(track) != -1 : TrackFX_GetOpen(track, this->deviceSelected);
+
+	PreventUIRefresh(1);
+	TrackFX_Show(track, this->deviceSelected, this->deviceExpandedType ? 1 : 3);
+	if (!isWindowVisible)
+		TrackFX_Show(track, this->deviceSelected, this->deviceExpandedType ? 0 : 2);
+	PreventUIRefresh(-1);
 }

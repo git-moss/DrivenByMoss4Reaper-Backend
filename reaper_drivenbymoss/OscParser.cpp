@@ -29,6 +29,7 @@ OscParser::OscParser(Model& model) noexcept :
 	trackProcessor(model),
 	noteRepeatProcessor(model),
 	deviceProcessor(model),
+	eqDeviceProcessor(model),
 	clipProcessor(model),
 	markerProcessor(model),
 	refreshProcessor(model),
@@ -56,6 +57,7 @@ OscParser::OscParser(Model& model) noexcept :
 		this->processors["track"] = &trackProcessor;
 		this->processors["noterepeat"] = &noteRepeatProcessor;
 		this->processors["device"] = &deviceProcessor;
+		this->processors["eq"] = &eqDeviceProcessor;
 		this->processors["clip"] = &clipProcessor;
 		this->processors["marker"] = &markerProcessor;
 		this->processors["refresh"] = &refreshProcessor;
@@ -83,7 +85,8 @@ void OscParser::Process(const std::string processor, const std::string command) 
 			std::deque<std::string> elements = this->Split(command);
 			try
 			{
-				this->processors.at(processor)->Process(elements);
+				OscProcessor* oscProcessor = this->processors.at(processor);
+				oscProcessor->Process(elements);
 			}
 			catch (const std::out_of_range& oor)
 			{

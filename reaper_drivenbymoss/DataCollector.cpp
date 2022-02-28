@@ -285,7 +285,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 		for (int index = 0; index < eqParamCount; index++)
 		{
-			std::unique_ptr<Parameter>& parameter = this->model.GetEqParameter(index);
+			const std::unique_ptr<Parameter>& parameter = this->model.GetEqParameter(index);
 			parameter->CollectData(ss, track, eqIndex, dump);
 		}
 	}
@@ -297,7 +297,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	int parmidxOut;
 	for (int index = 0; index < userParamCount; index++)
 	{
-		std::unique_ptr<Parameter>& parameter = this->model.GetUserParameter(index);
+		const std::unique_ptr<Parameter>& parameter = this->model.GetUserParameter(index);
 		if (GetTCPFXParm(project, track, index, &fxindexOut, &parmidxOut))
 			parameter->CollectData(ss, track, fxindexOut, parmidxOut, dump);
 		else
@@ -333,7 +333,7 @@ void DataCollector::CollectTrackData(std::ostringstream& ss, ReaProject* project
 		GetTrackState(mediaTrack, &trackState);
 		if ((trackState & 1024) > 0)
 			continue;
-		std::unique_ptr<Track>& track = this->model.GetTrack(trackIndex);
+		const std::unique_ptr<Track>& track = this->model.GetTrack(trackIndex);
 		track->CollectData(ss, project, mediaTrack, trackIndex, this->slowCounter == 0, readChunk, dump);
 
 		// Only collect note information, if enabled, track is active and playback is on
@@ -679,7 +679,7 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 	this->model.sceneCount = Collectors::CollectIntValue(ss, "/scene/count", this->model.sceneCount, count, dump);
 	for (int index = 0; index < count; index++)
 	{
-		std::unique_ptr<Marker>& scene = this->model.GetRegion(regions.at(index));
+		const std::unique_ptr<Marker>& scene = this->model.GetRegion(regions.at(index));
 		scene->CollectData(ss, project, "scene", index, regions.at(index), dump);
 	}
 }

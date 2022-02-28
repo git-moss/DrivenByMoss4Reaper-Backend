@@ -22,6 +22,9 @@ public:
 	void Process(std::deque<std::string>& path, double value) noexcept override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
 
+protected:
+	virtual int GetDeviceSelection() noexcept;
+
 private:
 	void SetDeviceSelection(int position) noexcept;
 };

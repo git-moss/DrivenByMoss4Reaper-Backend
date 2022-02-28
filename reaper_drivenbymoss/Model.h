@@ -49,27 +49,13 @@ public:
 	std::unique_ptr<Marker>& GetMarker(const int index) noexcept;
 	std::unique_ptr<Marker>& GetRegion(const int index) noexcept;
 	std::unique_ptr<Parameter>& GetParameter(const int index) noexcept;
-	std::unique_ptr<Parameter>& GetEqParameter(const int index) noexcept;
+	std::unique_ptr<Parameter>& GetEqParameter(const int index);
 	std::unique_ptr<Parameter>& GetUserParameter(const int index) noexcept;
 
-	void SetDump()
-	{
-		const std::lock_guard<std::mutex> lock(this->dumplock);
-		this->dump = true;
-	}
+	void SetDump();
+	bool ShouldDump();
 
-	bool ShouldDump()
-	{
-		const std::lock_guard<std::mutex> lock(this->dumplock);
-
-		bool d{ false };
-		if (this->dump)
-		{
-			this->dump = false;
-			d = true;
-		}
-		return d;
-	}
+	void SetDeviceSelection(int position) noexcept;
 
 private:
 	FunctionExecutor& functionExecutor;

@@ -106,7 +106,7 @@ public:
 			const char* loopCmd = SafeGet(path, 1);
 			if (std::strcmp(loopCmd, "start") == 0)
 			{
-				double offset = value - startOut;
+				const double offset = value - startOut;
 				double end = offset + endOut;
 				GetSet_LoopTimeRange(true, true, &value, &end, false);
 			}

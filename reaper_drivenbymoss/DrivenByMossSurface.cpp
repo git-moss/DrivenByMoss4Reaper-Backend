@@ -142,7 +142,7 @@ bool DrivenByMossSurface::GetTouchState(MediaTrack* trackid, int isPan) noexcept
 	if (position < 0)
 		return false;
 
-	std::unique_ptr<Track>& trackPtr = model.GetTrack(position);
+	const std::unique_ptr<Track>& trackPtr = model.GetTrack(position);
 	return isPan ? trackPtr->isPanTouch : trackPtr->isVolumeTouch;
 }
 

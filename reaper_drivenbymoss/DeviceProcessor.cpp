@@ -20,6 +20,15 @@ DeviceProcessor::DeviceProcessor(Model& aModel) noexcept : OscProcessor(aModel)
 }
 
 
+/**
+ * Get the index of the device which is selected on the controller.
+ */
+int DeviceProcessor::GetDeviceSelection() noexcept
+{
+	return this->model.deviceBankOffset + this->model.deviceSelected;
+}
+
+
 /** {@inheritDoc} */
 void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 {
@@ -27,29 +36,32 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 		return;
 	const char* part = SafeGet(path, 0);
 
+	int devicePosition = this->GetDeviceSelection();
+
 	if (std::strcmp(part, "page") == 0)
 	{
 		part = SafeGet(path, 1);
 		if (std::strcmp(part, "+") == 0)
 		{
-			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + this->model.DEVICE_BANK_SIZE);
+			devicePosition += this->model.DEVICE_BANK_SIZE;
 		}
 		else if (std::strcmp(part, "-") == 0)
 		{
-			SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - this->model.DEVICE_BANK_SIZE);
+			devicePosition -= this->model.DEVICE_BANK_SIZE;
 		}
+		this->model.SetDeviceSelection(devicePosition);
 		return;
 	}
 
 	if (std::strcmp(part, "+") == 0)
 	{
-		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected + 1);
+		this->model.SetDeviceSelection(devicePosition + 1);
 		return;
 	}
 
 	if (std::strcmp(part, "-") == 0)
 	{
-		SetDeviceSelection(this->model.deviceBankOffset + this->model.deviceSelected - 1);
+		this->model.SetDeviceSelection(devicePosition - 1);
 		return;
 	}
 
@@ -57,12 +69,6 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 	MediaTrack* track = GetSelectedTrack2(project, 0, true);
 	if (track == nullptr)
 		return;
-
-	if (std::strcmp(part, "eq-add") == 0)
-	{
-		TrackFX_GetEQ(track, true);
-		return;
-	}
 
 	const int fx = atoi(part) - 1;
 
@@ -74,8 +80,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 		TrackFX_Delete(track, fx);
 		// Make sure a device is selected
 		const int max = TrackFX_GetCount(track);
-		if (fx >= max)
-			this->model.deviceSelected = max - 1 - this->model.deviceBankOffset;
+		this->model.SetDeviceSelection(fx < max ? devicePosition : max - 1);
 		Undo_EndBlock2(project, "Delete device", UNDO_STATE_FX);
 		PreventUIRefresh(-1);
 		return;
@@ -101,54 +106,11 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	if (track == nullptr)
 		return;
 
-	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
-
 	if (std::strcmp(part, "selected") == 0)
 	{
 		const int fxSel = value - 1;
 		if (fxSel >= 0 && fxSel < TrackFX_GetCount(track))
-		{
-			this->model.deviceSelected = fxSel;
-			const bool isWindowVisible = this->model.deviceExpandedType ? TrackFX_GetChainVisible(track) != -1 : TrackFX_GetOpen(track, fxSel);
-
-			PreventUIRefresh(1);
-			TrackFX_Show(track, fxSel, this->model.deviceExpandedType ? 1 : 3);
-			if (!isWindowVisible)
-				TrackFX_Show(track, fxSel, this->model.deviceExpandedType ? 0 : 2);
-			PreventUIRefresh(-1);
-		}
-		return;
-	}
-
-	if (std::strcmp(part, "bypass") == 0)
-	{
-		if (selDevice >= 0)
-			TrackFX_SetEnabled(track, selDevice, value > 0 ? 0 : 1);
-		return;
-	}
-
-	if (std::strcmp(part, "window") == 0)
-	{
-		if (selDevice < 0)
-			return;
-		const bool open = value > 0;
-		if (open)
-			TrackFX_Show(track, selDevice, this->model.deviceExpandedType);
-		TrackFX_SetOpen(track, selDevice, open);
-		return;
-	}
-
-	if (std::strcmp(part, "expand") == 0)
-	{
-		if (selDevice < 0)
-			return;
-		const bool isOpen = TrackFX_GetOpen(track, selDevice);
-		const int expandedType = value > 0 ? 1 : 3;
-		this->model.deviceExpandedType = expandedType;
-		if (!isOpen)
-			return;
-		TrackFX_SetOpen(track, selDevice, 0);
-		TrackFX_Show(track, selDevice, expandedType);
+			this->model.SetDeviceSelection(this->model.deviceBankOffset + fxSel);
 		return;
 	}
 
@@ -156,15 +118,47 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	{
 		part = SafeGet(path, 1);
 		if (std::strcmp(part, "selected") == 0)
-		{
-			this->model.deviceSelected = (value - 1) * this->model.DEVICE_BANK_SIZE;
-		}
+			this->model.SetDeviceSelection(this->model.deviceBankOffset + (value - 1) * this->model.DEVICE_BANK_SIZE);
 		return;
 	}
 
+	const int devicePosition = this->GetDeviceSelection();
+
 	if (std::strcmp(part, "preset") == 0)
 	{
-		TrackFX_SetPresetByIndex(track, this->model.deviceBankOffset + this->model.deviceSelected, value);
+		TrackFX_SetPresetByIndex(track, devicePosition, value);
+		return;
+	}
+
+	if (std::strcmp(part, "bypass") == 0)
+	{
+		if (devicePosition >= 0)
+			TrackFX_SetEnabled(track, devicePosition, value > 0 ? 0 : 1);
+		return;
+	}
+
+	if (std::strcmp(part, "window") == 0)
+	{
+		if (devicePosition < 0)
+			return;
+		const bool open = value > 0;
+		if (open)
+			TrackFX_Show(track, devicePosition, this->model.deviceExpandedType);
+		TrackFX_SetOpen(track, devicePosition, open);
+		return;
+	}
+
+	if (std::strcmp(part, "expand") == 0)
+	{
+		if (devicePosition < 0)
+			return;
+		const bool isOpen = TrackFX_GetOpen(track, devicePosition);
+		const int expandedType = value > 0 ? 1 : 3;
+		this->model.deviceExpandedType = expandedType;
+		if (!isOpen)
+			return;
+		TrackFX_SetOpen(track, devicePosition, 0);
+		TrackFX_Show(track, devicePosition, expandedType);
 		return;
 	}
 
@@ -188,14 +182,14 @@ void DeviceProcessor::Process(std::deque<std::string>& path, double value) noexc
 	if (track == nullptr)
 		return;
 
-	const int selDevice = this->model.deviceBankOffset + this->model.deviceSelected;
+	const int devicePosition = this->GetDeviceSelection();
 
 	if (std::strcmp(part, "param") == 0)
 	{
 		PreventUIRefresh(1);
 		const int paramNo = atoi(SafeGet(path, 1));
 		if (std::strcmp(SafeGet(path, 2), "value") == 0)
-			TrackFX_SetParamNormalized(track, selDevice, paramNo, value);
+			TrackFX_SetParamNormalized(track, devicePosition, paramNo, value);
 		PreventUIRefresh(-1);
 	}
 }
@@ -222,32 +216,4 @@ void DeviceProcessor::Process(std::deque<std::string>& path, const std::string& 
 		const int insert = atoi(SafeGet(path, 1));
 		TrackFX_CopyToTrack(track, position, track, insert, true);
 	}
-
-	if (std::strcmp(part, "eq-band") == 0)
-	{
-		const int eqIndex = TrackFX_GetEQ(track, false);
-		if (eqIndex < 0)
-			return;
-
-		const int bandNo = atoi(SafeGet(path, 1));
-
-		// Off?
-		const bool isOff = std::strcmp(value.c_str(), "-1") == 0;
-		if (!isOff)
-		{
-			std::string btss = MakeString() << "BANDTYPE" << bandNo;
-			TrackFX_SetNamedConfigParm(track, eqIndex, btss.c_str(), value.c_str());
-		}
-		std::string bess = MakeString() << "BANDENABLED" << bandNo;
-		TrackFX_SetNamedConfigParm(track, eqIndex, bess.c_str(), isOff ? "0" : "1");
-		return;
-	}
-}
-
-
-void DeviceProcessor::SetDeviceSelection(int position) noexcept
-{
-	const int pos = (std::min)((std::max)(0, position), this->model.deviceCount - 1);
-	this->model.deviceSelected = pos % this->model.DEVICE_BANK_SIZE;
-	this->model.deviceBankOffset = static_cast<int>(std::floor(pos / this->model.DEVICE_BANK_SIZE) * this->model.DEVICE_BANK_SIZE);
 }

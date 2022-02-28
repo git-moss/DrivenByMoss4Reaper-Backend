@@ -317,12 +317,31 @@ void JvmManager::DisplayProjectWindow()
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;
-	// Call displayWindow method
+	// Call displayProjectWindow method
 	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayProjectWindow", "()V");
 	if (methodID == nullptr)
 		return;
 	this->env->CallStaticVoidMethod(clazz, methodID);
 	this->HandleException("ERROR: Could not call displayProjectWindow.");
+}
+
+
+/**
+ * Call the displayParameterWindow method in the main class of the JVM.
+ */
+void JvmManager::DisplayParameterWindow()
+{
+	if (this->env == nullptr)
+		return;
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
+	// Call displayParameterWindow method
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayParameterWindow", "()V");
+	if (methodID == nullptr)
+		return;
+	this->env->CallStaticVoidMethod(clazz, methodID);
+	this->HandleException("ERROR: Could not call displayParameterWindow.");
 }
 
 

@@ -39,6 +39,7 @@ public:
 
 	void DisplayWindow();
 	void DisplayProjectWindow();
+	void DisplayParameterWindow();
 	void UpdateModel(const std::string& data);
 
 	void SetDefaultDocumentSettings();

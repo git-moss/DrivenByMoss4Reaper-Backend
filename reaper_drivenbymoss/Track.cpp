@@ -34,7 +34,7 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 {
 	std::ostringstream das;
 	das << "/track/" << trackIndex << "/";
-	std::string trackAddress = das.str();
+	const std::string trackAddress = das.str();
 
 	const double cursorPos = ReaperUtils::GetCursorPosition(project);
 

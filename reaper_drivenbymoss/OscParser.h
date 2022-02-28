@@ -19,6 +19,7 @@
 #include "MastertrackProcessor.h"
 #include "TrackProcessor.h"
 #include "DeviceProcessor.h"
+#include "EqDeviceProcessor.h"
 #include "ClipProcessor.h"
 #include "MarkerProcessor.h"
 #include "ProjectProcessor.h"
@@ -71,6 +72,7 @@ private:
 	TrackProcessor 					 trackProcessor;
 	NoteRepeatProcessor              noteRepeatProcessor;
 	DeviceProcessor 				 deviceProcessor;
+	EqDeviceProcessor 				 eqDeviceProcessor;
 	ClipProcessor 					 clipProcessor;
 	MarkerProcessor 				 markerProcessor;
 	RefreshProcessor 				 refreshProcessor;

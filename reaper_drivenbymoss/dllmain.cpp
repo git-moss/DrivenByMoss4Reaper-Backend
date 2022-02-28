@@ -25,6 +25,7 @@
 REAPER_PLUGIN_HINSTANCE pluginInstanceHandle = nullptr;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
 gaccel_register_t openDBMProjectWindowAccel = { {0,0,0}, "DrivenByMoss: Open the project settings window." };
+gaccel_register_t openDBMParameterWindowAccel = { {0,0,0}, "DrivenByMoss: Open the parameter settings window." };
 std::unique_ptr <JvmManager> jvmManager;
 
 // Defined in DrivenByMossSurface.cpp
@@ -274,6 +275,11 @@ bool hookCommandProc(int command, int flag)
 		jvmManager->DisplayProjectWindow();
 		return true;
 	}
+	if (openDBMParameterWindowAccel.accel.cmd != 0 && openDBMParameterWindowAccel.accel.cmd == command)
+	{
+		jvmManager->DisplayParameterWindow();
+		return true;
+	}
 	return false;
 }
 
@@ -514,7 +520,19 @@ extern "C"
 		}
 		if (!rec->Register("gaccel", &openDBMProjectWindowAccel))
 		{
-			ReaDebug() << "Could not register DrivenByMoss open project action.";
+			ReaDebug() << "Could not register DrivenByMoss open project window action.";
+			return 0;
+		}
+
+		openDBMParameterWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_PARAMETER_WINDOW_ACTION");
+		if (!openDBMParameterWindowAccel.accel.cmd)
+		{
+			ReaDebug() << "Could not register ID for DrivenByMoss open parameter mapping window action.";
+			return 0;
+		}
+		if (!rec->Register("gaccel", &openDBMParameterWindowAccel))
+		{
+			ReaDebug() << "Could not register DrivenByMoss open parameter window action.";
 			return 0;
 		}
 
