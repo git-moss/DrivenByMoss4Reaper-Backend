@@ -92,7 +92,7 @@ public:
 		if (path.empty())
 		{
 			const double end = GetProjectLength(project);
-			SetEditCurPos2(project, value < end ? value : end, true, true);
+			SetEditCurPos2(project, SnapToGrid (project, value < end ? value : end), true, true);
 			return;
 		}
 
@@ -104,15 +104,16 @@ public:
 			GetSet_LoopTimeRange(false, true, &startOut, &endOut, false);
 
 			const char* loopCmd = SafeGet(path, 1);
+			double adjusted = SnapToGrid(project, value);
 			if (std::strcmp(loopCmd, "start") == 0)
 			{
-				const double offset = value - startOut;
+				const double offset = adjusted - startOut;
 				double end = offset + endOut;
-				GetSet_LoopTimeRange(true, true, &value, &end, false);
+				GetSet_LoopTimeRange(true, true, &adjusted, &end, false);
 			}
 			else
 			{
-				GetSet_LoopTimeRange(true, true, &startOut, &value, false);
+				GetSet_LoopTimeRange(true, true, &startOut, &adjusted, false);
 			}
 		}
 	};
