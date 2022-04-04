@@ -120,6 +120,7 @@ private:
 	int deviceExpanded{ -1 };
 	std::string deviceName{};
 	int deviceBypass{};
+	std::vector<int> deviceBypasses;
 	std::vector<std::string> deviceSiblings;
 
 	// Instrument device values

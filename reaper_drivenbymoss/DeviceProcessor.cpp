@@ -73,6 +73,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 	const int fx = atoi(part) - 1;
 
 	const char* cmd = SafeGet(path, 1);
+
 	if (std::strcmp(cmd, "remove") == 0)
 	{
 		PreventUIRefresh(1);
@@ -165,6 +166,16 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	if (std::strcmp(part, "param") == 0)
 	{
 		Process(path, static_cast<double> (value));
+		return;
+	}
+
+	const int fx = atoi(part) - 1;
+
+	const char* cmd = SafeGet(path, 1);
+	if (std::strcmp(cmd, "bypass") == 0)
+	{
+		if (devicePosition >= 0)
+			TrackFX_SetEnabled(track, fx, value > 0 ? 0 : 1);
 		return;
 	}
 }

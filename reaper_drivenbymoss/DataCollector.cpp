@@ -21,6 +21,7 @@
 DataCollector::DataCollector(Model& aModel) noexcept :
 	model(aModel),
 	crossfaderParameter("/master/user/param/", 0),
+	deviceBypasses(aModel.DEVICE_BANK_SIZE, 0),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	instrumentParameter("/primary/param/", 0),
 	devicePresetsStr(128, "")
@@ -214,13 +215,19 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 		{
 			std::ostringstream das;
 			das << "/device/sibling/" << bankDeviceIndex << "/name";
-			const std::string deviceAddress = das.str();
 			result = TrackFX_GetFXName(track, this->model.deviceBankOffset + index, name, LENGTH);
 			Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? name : "", dump);
+
+			std::ostringstream bys;
+			bys << "/device/sibling/" << bankDeviceIndex << "/bypass";
+			int isBypassed = TrackFX_GetEnabled(track, this->model.deviceBankOffset + index) ? 0 : 1;
+			Collectors::CollectIntArrayValue(ss, bys.str().c_str(), index, deviceBypasses, isBypassed, dump);
+
 			bankDeviceIndex++;
 		}
 	}
 
+	// Cursor device parameters
 	const int paramCount = TrackFX_GetNumParams(track, deviceIndex);
 	this->model.deviceParamCount = Collectors::CollectIntValue(ss, "/device/param/count", this->model.deviceParamCount, paramCount, dump);
 	for (int index = 0; index < paramCount; index++)
