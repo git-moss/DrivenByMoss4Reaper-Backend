@@ -21,8 +21,9 @@
 DataCollector::DataCollector(Model& aModel) noexcept :
 	model(aModel),
 	crossfaderParameter("/master/user/param/", 0),
-	deviceBypasses(aModel.DEVICE_BANK_SIZE, 0),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
+	deviceSiblingsSelection(aModel.DEVICE_BANK_SIZE, 0),
+	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0),
 	instrumentParameter("/primary/param/", 0),
 	devicePresetsStr(128, "")
 {
@@ -194,8 +195,7 @@ void DataCollector::CollectProjectData(std::ostringstream& ss, ReaProject* proje
  */
 void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, const bool& dump)
 {
-	const int deviceIndex = this->model.deviceBankOffset + this->model.deviceSelected;
-	int bankDeviceIndex = 1;
+	const int deviceIndex = this->model.GetDeviceSelection();
 	this->model.deviceCount = Collectors::CollectIntValue(ss, "/device/count", this->model.deviceCount, TrackFX_GetCount(track), dump);
 	this->deviceExists = Collectors::CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex < this->model.deviceCount ? 1 : 0, dump);
 	this->devicePosition = Collectors::CollectIntValue(ss, "/device/position", this->devicePosition, deviceIndex, dump);
@@ -213,17 +213,22 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 		for (int index = 0; index < this->model.DEVICE_BANK_SIZE; index++)
 		{
+			const int position = this->model.deviceBankOffset + index;
+			const int bankDeviceIndex = index + 1;
+
 			std::ostringstream das;
 			das << "/device/sibling/" << bankDeviceIndex << "/name";
-			result = TrackFX_GetFXName(track, this->model.deviceBankOffset + index, name, LENGTH);
+			result = TrackFX_GetFXName(track, position, name, LENGTH);
 			Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? name : "", dump);
 
 			std::ostringstream bys;
 			bys << "/device/sibling/" << bankDeviceIndex << "/bypass";
-			int isBypassed = TrackFX_GetEnabled(track, this->model.deviceBankOffset + index) ? 0 : 1;
-			Collectors::CollectIntArrayValue(ss, bys.str().c_str(), index, deviceBypasses, isBypassed, dump);
+			int isBypassed = TrackFX_GetEnabled(track, position) ? 0 : 1;
+			Collectors::CollectIntArrayValue(ss, bys.str().c_str(), index, deviceSiblingsBypass, isBypassed, dump);
 
-			bankDeviceIndex++;
+			std::ostringstream sys;
+			sys << "/device/sibling/" << bankDeviceIndex << "/selected";
+			Collectors::CollectIntArrayValue(ss, sys.str().c_str(), index, deviceSiblingsSelection, deviceIndex == position ? 1 : 0, dump);
 		}
 	}
 
@@ -567,7 +572,7 @@ void DataCollector::CollectBrowserData(std::ostringstream& ss, MediaTrack* track
 	if (this->slowCounter != 0)
 		return;
 
-	const int sel = this->model.deviceBankOffset + this->model.deviceSelected;
+	const int sel = this->model.GetDeviceSelection();
 
 	LoadDevicePresetFile(ss, track, sel, dump);
 
@@ -576,7 +581,7 @@ void DataCollector::CollectBrowserData(std::ostringstream& ss, MediaTrack* track
 	TrackFX_GetPreset(track, sel, presetname, LENGTH);
 	this->devicePresetName = Collectors::CollectStringValue(ss, "/browser/selected/name", this->devicePresetName, presetname, dump);
 	int numberOfPresets;
-	const int selectedIndex = TrackFX_GetPresetIndex(track, this->model.deviceBankOffset + this->model.deviceSelected, &numberOfPresets);
+	const int selectedIndex = TrackFX_GetPresetIndex(track, sel, &numberOfPresets);
 	this->devicePresetIndex = Collectors::CollectIntValue(ss, "/browser/selected/index", this->devicePresetIndex, selectedIndex, dump);
 }
 

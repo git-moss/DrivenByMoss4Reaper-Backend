@@ -92,6 +92,19 @@ void DeviceProcessor::Process(std::deque<std::string>& path) noexcept
 		TrackFX_CopyToTrack(track, fx, track, fx + 1, false);
 		return;
 	}
+
+	if (std::strcmp(cmd, "movePrev") == 0)
+	{
+		if (fx > 0)
+			TrackFX_CopyToTrack(track, fx, track, fx - 1, true);
+		return;
+	}
+
+	if (std::strcmp(cmd, "moveNext") == 0)
+	{
+		TrackFX_CopyToTrack(track, fx, track, fx + 1, true);
+		return;
+	}
 }
 
 

@@ -64,8 +64,37 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 					SetTrackSelected(track, true);
 			}
 		}
+		UpdateArrange();
 		Undo_EndBlock2(project, "Delete track", UNDO_STATE_ALL);
 		PreventUIRefresh(-1);
+		return;
+	}
+
+	if (std::strcmp(cmd, "movePrev") == 0)
+	{
+		if (trackIndex > 0)
+		{
+			PreventUIRefresh(1);
+			Undo_BeginBlock2(project);
+			ReorderSelectedTracks(trackIndex - 1, 0);
+			UpdateArrange();
+			Undo_EndBlock2(project, "Move track", UNDO_STATE_ALL);
+			PreventUIRefresh(-1);
+		}
+		return;
+	}
+
+	if (std::strcmp(cmd, "moveNext") == 0)
+	{
+		//if (trackIndex + 2 < CountTracks(project))
+		//{
+			PreventUIRefresh(1);
+			Undo_BeginBlock2(project);
+			ReorderSelectedTracks(trackIndex + 2, 0);
+			UpdateArrange();
+			Undo_EndBlock2(project, "Move track", UNDO_STATE_ALL);
+			PreventUIRefresh(-1);
+//		}
 		return;
 	}
 
@@ -98,7 +127,6 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 			Main_OnCommandEx(UNSELECT_ALL_ITEMS, 0, project);
 			SetMediaItemSelected(item, true);
 			UpdateTimeline();
-			TrackFX_Show(track, this->model.deviceSelected, this->model.deviceExpandedType ? 1 : 3);
 			return;
 		}
 

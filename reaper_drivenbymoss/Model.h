@@ -55,6 +55,7 @@ public:
 	void SetDump();
 	bool ShouldDump();
 
+	int GetDeviceSelection() noexcept;
 	void SetDeviceSelection(int position) noexcept;
 
 private:

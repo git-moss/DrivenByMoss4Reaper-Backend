@@ -178,6 +178,15 @@ std::unique_ptr<Parameter>& Model::GetUserParameter(const int index) noexcept
 
 
 /**
+ * Get the index of the device which is selected on the controller.
+ */
+int Model::GetDeviceSelection() noexcept
+{
+	return this->deviceBankOffset + this->deviceSelected;
+}
+
+
+/**
  * Set the selected device on the selected track, if any.
  *
  * @param position The position of the device to select
