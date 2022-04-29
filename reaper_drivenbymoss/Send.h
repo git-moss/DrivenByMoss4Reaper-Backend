@@ -19,6 +19,7 @@ public:
 	std::string name{ "" };
 	double volume{ 0 };
 	std::string volumeStr{ "" };
+	std::string color;
 
 	Send() noexcept;
 	Send(const Send&) = delete;

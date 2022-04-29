@@ -163,7 +163,10 @@ int Track::GetMute(MediaTrack* track, double position, int trackState) const
 {
 	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Mute");
 	if (envelope != nullptr)
-		return (int)ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+	{
+		// The envelope is inverted!
+		return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position) > 0 ? 0 : 1;
+	}
 	return (trackState & 8) > 0 ? 1 : 0;
 }
 

@@ -48,6 +48,14 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
 	this->volume = Collectors::CollectDoubleValue(ss, (sendAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->volumeStr = Collectors::CollectStringValue(ss, (sendAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
+
+	// Get the color of the destination track
+	MediaTrack* receiveTrack = (MediaTrack*) GetSetTrackSendInfo(track, 0, sendIndex, "P_DESTTRACK", nullptr);
+	int red = -1, green = -1, blue = -1;
+	const int nativeColor = GetTrackColor(receiveTrack);
+	if (nativeColor != 0)
+		ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
+	this->color = Collectors::CollectStringValue(ss, (sendAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
 }
 
 
