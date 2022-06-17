@@ -206,14 +206,12 @@ void DeviceProcessor::Process(std::deque<std::string>& path, double value) noexc
 	if (track == nullptr)
 		return;
 
-	const int devicePosition = this->GetDeviceSelection();
-
-	if (std::strcmp(part, "param") == 0)
+	if (std::strcmp(part, "param") == 0 && std::strcmp(SafeGet(path, 2), "value") == 0)
 	{
-		PreventUIRefresh(1);
+		const int devicePosition = this->GetDeviceSelection();
 		const int paramNo = atoi(SafeGet(path, 1));
-		if (std::strcmp(SafeGet(path, 2), "value") == 0)
-			TrackFX_SetParamNormalized(track, devicePosition, paramNo, value);
+		PreventUIRefresh(1);
+		TrackFX_SetParamNormalized(track, devicePosition, paramNo, value);
 		PreventUIRefresh(-1);
 	}
 }
@@ -233,7 +231,7 @@ void DeviceProcessor::Process(std::deque<std::string>& path, const std::string& 
 
 	if (std::strcmp(part, "add") == 0)
 	{
-		const char *deviceName = value.c_str();
+		const char* deviceName = value.c_str();
 		const int position = TrackFX_AddByName(track, deviceName, false, -1);
 		if (position < 0)
 			return;

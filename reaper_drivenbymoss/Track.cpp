@@ -140,20 +140,26 @@ std::unique_ptr<Send>& Track::GetSend(const int index) noexcept
 
 double Track::GetVolume(MediaTrack* track, double position) const
 {
-	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Volume");
-	if (envelope == nullptr)
-		return ReaperUtils::ValueToDB(GetMediaTrackInfo_Value(track, "D_VOL"));
-	return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
+	{
+		TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Volume");
+		if (envelope != nullptr)
+			return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+	}
+	return ReaperUtils::ValueToDB(GetMediaTrackInfo_Value(track, "D_VOL"));
 }
 
 
 double Track::GetPan(MediaTrack* track, double position) const
 {
-	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Pan");
-	if (envelope != nullptr)
+	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
-		// Higher values are left!
-		return -1 * ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+		TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Pan");
+		if (envelope != nullptr)
+		{
+			// Higher values are left!
+			return -1 * ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+		}
 	}
 	return GetMediaTrackInfo_Value(track, "D_PAN");
 }
@@ -161,11 +167,14 @@ double Track::GetPan(MediaTrack* track, double position) const
 
 int Track::GetMute(MediaTrack* track, double position, int trackState) const
 {
-	TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Mute");
-	if (envelope != nullptr)
+	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
-		// The envelope is inverted!
-		return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position) > 0 ? 0 : 1;
+		TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Mute");
+		if (envelope != nullptr)
+		{
+			// The envelope is inverted!
+			return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position) > 0 ? 0 : 1;
+		}
 	}
 	return (trackState & 8) > 0 ? 1 : 0;
 }

@@ -42,7 +42,7 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 	constexpr int LENGTH = 20;
 	char name[LENGTH];
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-	const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
+		const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
 	const std::string newName = result ? name : "";
 	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, newName, dump);
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
@@ -50,7 +50,7 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 	this->volumeStr = Collectors::CollectStringValue(ss, (sendAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
 
 	// Get the color of the destination track
-	MediaTrack* receiveTrack = (MediaTrack*) GetSetTrackSendInfo(track, 0, sendIndex, "P_DESTTRACK", nullptr);
+	MediaTrack* receiveTrack = (MediaTrack*)GetSetTrackSendInfo(track, 0, sendIndex, "P_DESTTRACK", nullptr);
 	int red = -1, green = -1, blue = -1;
 	const int nativeColor = GetTrackColor(receiveTrack);
 	if (nativeColor != 0)
@@ -62,17 +62,20 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 double Send::GetSendVolume(MediaTrack* track, int sendCounter, double position) const noexcept
 {
 	const char* sendType = "<VOLENV";
-	DISABLE_WARNING_NO_C_STYLE_CONVERSION
-	TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
-	if (envelope != nullptr)
+	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
-		// It seems there is always a send envelope, even if not active.
-		// Therefore, check if the envelope is active
-		for (int i = 0; i < CountTrackEnvelopes(track); i++)
+		DISABLE_WARNING_NO_C_STYLE_CONVERSION
+		TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
+		if (envelope != nullptr)
 		{
-			const TrackEnvelope* te = GetTrackEnvelope(track, i);
-			if (envelope == te)
-				return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+			// It seems there is always a send envelope, even if not active.
+			// Therefore, check if the envelope is active
+			for (int i = 0; i < CountTrackEnvelopes(track); i++)
+			{
+				const TrackEnvelope* te = GetTrackEnvelope(track, i);
+				if (envelope == te)
+					return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+			}
 		}
 	}
 	return ReaperUtils::ValueToDB(GetTrackSendInfo_Value(track, 0, sendCounter, "D_VOL"));
