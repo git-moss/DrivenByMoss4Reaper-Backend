@@ -16,12 +16,12 @@
 class Send
 {
 public:
-	std::string name{ "" };
-	double volume{ 0 };
-	std::string volumeStr{ "" };
+	std::string name;
+	double volume;
+	std::string volumeStr;
 	std::string color;
 
-	Send() noexcept;
+	Send();
 	Send(const Send&) = delete;
 	Send& operator=(const Send&) = delete;
 	Send(Send&&) = delete;

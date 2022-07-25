@@ -14,7 +14,7 @@ DrivenByMossSurface* surfaceInstance = nullptr;
  * Constructor.
  */
 DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
-DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) noexcept : isShutdown(false), jvmManager(aJvmManager), model(functionExecutor), updateModel(false)
+DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) : isShutdown(false), jvmManager(aJvmManager), model(functionExecutor), updateModel(false)
 {
 	ReaDebug::setModel(&model);
 }
@@ -136,7 +136,7 @@ void DrivenByMossSurface::SetTrackTitle(MediaTrack* trackid, const char* title) 
 	// Not used
 }
 
-bool DrivenByMossSurface::GetTouchState(MediaTrack* trackid, int isPan) noexcept
+bool DrivenByMossSurface::GetTouchState(MediaTrack* trackid, int isPan)
 {
 	const int position = static_cast<int>(GetMediaTrackInfo_Value(trackid, "IP_TRACKNUMBER")) - 1;
 	if (position < 0)

@@ -21,10 +21,14 @@ public:
 	static const int MIDI_ARP_PARAM_MODE{ 2 };
 	static const int MIDI_ARP_PARAM_VELOCITY{ 7 };
 
-	NoteRepeatProcessor(Model& model) noexcept;
+	NoteRepeatProcessor(Model& model);
 
 	void Process(std::deque<std::string>& path, int value) noexcept override;
 	void Process(std::deque<std::string>& path, double value) noexcept override;
+
+	void Process(std::deque<std::string>& path) noexcept override {};
+	void Process(std::deque<std::string>& path, const std::string& value) noexcept  override {};
+	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
 
 private:
 	void EnableRepeatPlugin(ReaProject* project, MediaTrack* track, bool enable) const noexcept;

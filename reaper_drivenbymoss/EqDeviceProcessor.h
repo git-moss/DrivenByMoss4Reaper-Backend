@@ -13,13 +13,13 @@
 class EqDeviceProcessor : public DeviceProcessor
 {
 public:
-	EqDeviceProcessor(Model& model) noexcept;
+	EqDeviceProcessor(Model& model);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
 
 protected:
-	virtual int GetDeviceSelection() noexcept override;
+	int GetDeviceSelection() noexcept override;
 };
 
 #endif /* _DBM_DEVICEPROCESSOR_H_ */

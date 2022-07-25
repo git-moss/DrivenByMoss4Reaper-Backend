@@ -15,14 +15,14 @@
  *
  * @param aModel The model to share data
  */
-SceneProcessor::SceneProcessor(Model& aModel) noexcept : OscProcessor(aModel)
+SceneProcessor::SceneProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
 /** {@inheritDoc} */
-void SceneProcessor::Process(std::deque<std::string>& path) noexcept
+void SceneProcessor::Process(std::deque<std::string>& path)
 {
 	if (path.empty())
 		return;
@@ -72,7 +72,7 @@ void SceneProcessor::Process(std::deque<std::string>& path) noexcept
 	}
 }
 
-void SceneProcessor::DuplicateScene(ReaProject* project, const int sceneID) noexcept
+void SceneProcessor::DuplicateScene(ReaProject* project, const int sceneID)
 {
 	double position, endPosition;
 	const char* name;

@@ -232,4 +232,8 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
+  <PropertyGroup Condition="'$(Language)'=='C++'">
+    <IncludePath>..\libraries\WDL;..\libraries\GSL;$(IncludePath)</IncludePath>  
+    <CAExcludePath>..\libraries\WDL;..\libraries\GSL;$(CAExcludePath)</CAExcludePath>
+  </PropertyGroup>
 </Project>

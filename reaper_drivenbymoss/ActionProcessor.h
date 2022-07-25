@@ -16,11 +16,14 @@
 class ActionProcessor : public OscProcessor
 {
 public:
-	ActionProcessor(Model& model) noexcept;
+	ActionProcessor(Model& model);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 	void Process(std::deque<std::string>& path, int value) noexcept override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
+
+	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
+	void Process(std::deque<std::string>& path, double value) noexcept override {};
 
 	void CollectData(std::ostringstream& ss);
 

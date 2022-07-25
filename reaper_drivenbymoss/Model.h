@@ -43,14 +43,14 @@ public:
 
 	Model(FunctionExecutor& functionExecutor) noexcept;
 
-	void AddFunction(std::function<void(void)> f) noexcept;
+	void AddFunction(std::function<void(void)> f);
 
-	std::unique_ptr<Track>& GetTrack(const int index) noexcept;
-	std::unique_ptr<Marker>& GetMarker(const int index) noexcept;
-	std::unique_ptr<Marker>& GetRegion(const int index) noexcept;
-	std::unique_ptr<Parameter>& GetParameter(const int index) noexcept;
+	std::unique_ptr<Track>& GetTrack(const int index);
+	std::unique_ptr<Marker>& GetMarker(const int index);
+	std::unique_ptr<Marker>& GetRegion(const int index);
+	std::unique_ptr<Parameter>& GetParameter(const int index);
 	std::unique_ptr<Parameter>& GetEqParameter(const int index);
-	std::unique_ptr<Parameter>& GetUserParameter(const int index) noexcept;
+	std::unique_ptr<Parameter>& GetUserParameter(const int index);
 
 	void SetDump();
 	bool ShouldDump();

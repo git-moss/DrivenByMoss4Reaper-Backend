@@ -118,7 +118,10 @@ void processStringArgsCPP(JNIEnv* env, jobject object, jstring processor, jstrin
 	std::vector<std::string> params;
 	for (int i = 0; i < stringCount; i++)
 	{
-		jstring value = static_cast<jstring>(env->GetObjectArrayElement(values, i));
+		jobject objectValue = env->GetObjectArrayElement(values, i);
+		// jobject is not polymorphic
+		DISABLE_WARNING_NO_STATIC_DOWNCAST
+			jstring value = static_cast<jstring>(objectValue);
 		const char* val = env->GetStringUTFChars(value, nullptr);
 		if (val == nullptr)
 			continue;
@@ -162,7 +165,7 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
 	const char* cmd = command == nullptr ? nullptr : env->GetStringUTFChars(command, nullptr);
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
-	surfaceInstance->GetOscParser().Process(procstr, path, value);
+	surfaceInstance->GetOscParser().Process(procstr, path, gsl::narrow_cast<int> (value));
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
@@ -361,16 +364,16 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 		void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
 		DISABLE_WARNING_POP
 
-			// Nullcheck above is not picked up
-			DISABLE_WARNING_PUSH
-			DISABLE_WARNING_DANGLING_POINTER
-			jvmManager->init(processNoArgPtr, processStringArgPtr, processStringArgsPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
+		// Nullcheck above is not picked up
+		DISABLE_WARNING_PUSH
+		DISABLE_WARNING_DANGLING_POINTER
+		jvmManager->init(processNoArgPtr, processStringArgPtr, processStringArgsPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
 		DISABLE_WARNING_POP
 	}
 
 	// Note: delete is called from Reaper on shutdown, no need to do it ourselves
 	DISABLE_WARNING_DONT_USE_NEW
-		surfaceInstance = new DrivenByMossSurface(jvmManager);
+	surfaceInstance = new DrivenByMossSurface(jvmManager);
 	return surfaceInstance;
 }
 
@@ -379,7 +382,7 @@ static HWND configFunc(const char* type_string, HWND parent, const char* initCon
 {
 	// No way to prevent the LPARAM cast
 	DISABLE_WARNING_REINTERPRET_CAST
-		return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
+	return CreateDialogParam(pluginInstanceHandle, MAKEINTRESOURCE(IDD_SURFACEEDIT_DRIVENBYMOSS), parent, dlgProc, reinterpret_cast<LPARAM>(initConfigString));
 }
 
 // Description for DrivenByMoss surfaceInstance extension
@@ -410,16 +413,22 @@ bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUnd
 	if (strcmp(lp.gettoken_str(0), "<DRIVEN_BY_MOSS") != 0)
 		return false;
 
-	char linebuf[8000]{};
+	constexpr int LENGTH = 8000;
+	std::string data(LENGTH, 0);
+	char* dataPointer = &*data.begin();
 	while (true)
 	{
-		if (ctx->GetLine(linebuf, sizeof(linebuf)) || lp.parse(linebuf))
+		if (ctx->GetLine(dataPointer, LENGTH) || lp.parse(dataPointer))
 			break;
 
-		if (lp.gettoken_str(0)[0] == '>')
-			break;
+		const char* token = lp.gettoken_str(0);
+		if (token != nullptr)
+		{
+			std::string tokenStr = token;
+			if (tokenStr.at(0) == '>')
+				break;
+		}
 
-		std::string data{ linebuf };
 		jvmManager->SetFormattedDocumentSettings(data);
 	}
 

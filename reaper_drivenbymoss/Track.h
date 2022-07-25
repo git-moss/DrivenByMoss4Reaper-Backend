@@ -28,7 +28,7 @@ public:
 	int exists{ 0 };
 	int number{ 0 };
 	int depth{ 0 };
-	std::string name{ "" };
+	std::string name;
 	std::string type;
 	int isGroupExpanded{ 1 };
 
@@ -61,15 +61,15 @@ public:
 	int autoMode{ 0 };
 
 
-	Track() noexcept;
+	Track();
 
 	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& readChunk, const bool& dump);
 
-	std::unique_ptr<Send>& GetSend(const int index) noexcept;
+	std::unique_ptr<Send>& GetSend(const int index);
 
-	double GetVolume(MediaTrack* track, double position) const;
-	double GetPan(MediaTrack* track, double position) const;
-	int GetMute(MediaTrack* track, double position, int trackState) const;
+	double GetVolume(MediaTrack* track, double position) const noexcept;
+	double GetPan(MediaTrack* track, double position) const noexcept;
+	int GetMute(MediaTrack* track, double position, int trackState) const noexcept;
 
 private:
 	int sendCount{ 0 };

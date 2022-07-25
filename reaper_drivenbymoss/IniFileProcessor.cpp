@@ -13,7 +13,7 @@
  *
  * @param aModel The model to share data
  */
-IniFileProcessor::IniFileProcessor(Model& aModel) noexcept : OscProcessor(aModel)
+IniFileProcessor::IniFileProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }

@@ -15,14 +15,14 @@
  *
  * @param aModel The model to share data
  */
-ProjectProcessor::ProjectProcessor(Model &aModel) noexcept : OscProcessor(aModel)
+ProjectProcessor::ProjectProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
 /** {@inheritDoc} */
-void ProjectProcessor::Process(std::deque<std::string>& path) noexcept
+void ProjectProcessor::Process(std::deque<std::string>& path)
 {
 	if (path.empty())
 		return;
@@ -43,7 +43,7 @@ void ProjectProcessor::Process(std::deque<std::string>& path) noexcept
 
 
 /** {@inheritDoc} */
-void ProjectProcessor::Process(std::deque<std::string>& path, int value) noexcept
+void ProjectProcessor::Process(std::deque<std::string>& path, int value)
 {
 	if (path.empty())
 		return;

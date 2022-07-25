@@ -10,7 +10,7 @@
 /**
  * Constructor.
  */
-Send::Send() noexcept
+Send::Send() : name{ "" }, volume{ 0 }, volumeStr{ "" }, color{ "" }
 {
 	// Intentionally empty
 }
@@ -50,7 +50,7 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 	this->volumeStr = Collectors::CollectStringValue(ss, (sendAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
 
 	// Get the color of the destination track
-	MediaTrack* receiveTrack = (MediaTrack*)GetSetTrackSendInfo(track, 0, sendIndex, "P_DESTTRACK", nullptr);
+	MediaTrack* receiveTrack = static_cast<MediaTrack*> (GetSetTrackSendInfo(track, 0, sendIndex, "P_DESTTRACK", nullptr));
 	int red = -1, green = -1, blue = -1;
 	const int nativeColor = GetTrackColor(receiveTrack);
 	if (nativeColor != 0)
@@ -65,7 +65,7 @@ double Send::GetSendVolume(MediaTrack* track, int sendCounter, double position) 
 	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
 		DISABLE_WARNING_NO_C_STYLE_CONVERSION
-		TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
+			TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
 		if (envelope != nullptr)
 		{
 			// It seems there is always a send envelope, even if not active.

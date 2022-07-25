@@ -20,7 +20,7 @@ public:
 	bool isShutdown;
 
 
-	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) noexcept;
+	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager);
 	DrivenByMossSurface(const DrivenByMossSurface&) = delete;
 	DrivenByMossSurface& operator=(const DrivenByMossSurface&) = delete;
 	DrivenByMossSurface(DrivenByMossSurface&&) = delete;
@@ -53,7 +53,7 @@ public:
 	void SetPlayState(bool play, bool pause, bool rec) noexcept override;
 	void SetRepeatState(bool rep) noexcept override;
 	void SetTrackTitle(MediaTrack* trackid, const char* title) noexcept override;
-	bool GetTouchState(MediaTrack* trackid, int isPan) noexcept override;
+	bool GetTouchState(MediaTrack* trackid, int isPan) override;
 	void SetAutoMode(int mode) noexcept override;
 	void ResetCachedVolPanStates() noexcept override;
 	void OnTrackSelection(MediaTrack* trackid) noexcept override;

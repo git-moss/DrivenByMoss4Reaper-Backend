@@ -10,7 +10,7 @@
 /**
  * Constructor.
  */
-Model::Model(FunctionExecutor& aFunctionExecutor)  noexcept :
+Model::Model(FunctionExecutor& aFunctionExecutor) noexcept :
 	functionExecutor(aFunctionExecutor)
 {
 	// Intentionally empty
@@ -35,7 +35,7 @@ bool Model::ShouldDump()
 	return d;
 }
 
-void Model::AddFunction(std::function<void(void)> f) noexcept
+void Model::AddFunction(std::function<void(void)> f)
 {
 	try
 	{
@@ -63,7 +63,7 @@ void Model::AddFunction(std::function<void(void)> f) noexcept
  * @param index The index of the track.
  * @return The track, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Track>& Model::GetTrack(const int index) noexcept
+std::unique_ptr<Track>& Model::GetTrack(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->tracklock);
 
@@ -83,7 +83,7 @@ std::unique_ptr<Track>& Model::GetTrack(const int index) noexcept
  * @param index The index of the marker.
  * @return The marker, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Marker>& Model::GetMarker(const int index) noexcept
+std::unique_ptr<Marker>& Model::GetMarker(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->markerlock);
 
@@ -103,7 +103,7 @@ std::unique_ptr<Marker>& Model::GetMarker(const int index) noexcept
  * @param index The index of the region.
  * @return The region, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Marker>& Model::GetRegion(const int index) noexcept
+std::unique_ptr<Marker>& Model::GetRegion(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->regionlock);
 
@@ -123,7 +123,7 @@ std::unique_ptr<Marker>& Model::GetRegion(const int index) noexcept
  * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Parameter>& Model::GetParameter(const int index) noexcept
+std::unique_ptr<Parameter>& Model::GetParameter(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->parameterlock);
 
@@ -163,7 +163,7 @@ std::unique_ptr<Parameter>& Model::GetEqParameter(const int index)
  * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Parameter>& Model::GetUserParameter(const int index) noexcept
+std::unique_ptr<Parameter>& Model::GetUserParameter(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->parameterlock);
 

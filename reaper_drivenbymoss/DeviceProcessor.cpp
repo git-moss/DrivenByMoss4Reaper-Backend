@@ -14,7 +14,7 @@
  *
  * @param aModel The model
  */
-DeviceProcessor::DeviceProcessor(Model& aModel) noexcept : OscProcessor(aModel)
+DeviceProcessor::DeviceProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }

@@ -733,7 +733,9 @@ SWELL_IMPLEMENT_GETOSXVERSION int SWELL_GetOSXVersion()
   {
     if (NSAppKitVersionNumber >= 1266.0)
     {
-      if (NSAppKitVersionNumber >= 2022.0)
+      if (NSAppKitVersionNumber >= 2100.0)
+        v = 0x1200;
+      else if (NSAppKitVersionNumber >= 2022.0)
         v = 0x1100;
       else if (NSAppKitVersionNumber >= 1894.0)
         v = 0x10e0;
@@ -929,7 +931,7 @@ struct HDC__ {
 };
 
 HWND DialogBoxIsActive(void);
-void DestroyPopupMenus(void);
+bool DestroyPopupMenus(void);
 HWND ChildWindowFromPoint(HWND h, POINT p);
 HWND GetFocusIncludeMenus();
 
@@ -1254,7 +1256,9 @@ static void __listview_mergesort_internal(void *base, size_t nmemb, size_t size,
   f(listview_bg, RGB(255,255,255)) \
   f(listview_bg_sel, RGB(128,128, 255)) \
   f(listview_text, RGB(0,0,0)) \
-  fd(listview_text_sel, RGB(0,0,0), listview_text) \
+  fd(listview_text_sel, RGB(255,255,255), listview_text) \
+  fd(listview_bg_sel_inactive, RGB(200,200,200), listview_bg_sel) \
+  fd(listview_text_sel_inactive, RGB(0,0,0), listview_text_sel) \
   fd(listview_grid, RGB(224,224,224), _3dhilight) \
   f(listview_hdr_arrow,RGB(96,96,96)) \
   fd(listview_shadow, RGB(96,96,96), _3dshadow) \
@@ -1266,7 +1270,9 @@ static void __listview_mergesort_internal(void *base, size_t nmemb, size_t size,
   f(treeview_text,RGB( 0,0,0)) \
   f(treeview_bg, RGB(255,255,255)) \
   f(treeview_bg_sel, RGB(128,128,255)) \
-  f(treeview_text_sel, RGB(0,0,0)) \
+  f(treeview_text_sel, RGB(255,255,255)) \
+  fd(treeview_bg_sel_inactive, RGB(200,200,200), treeview_bg_sel) \
+  fd(treeview_text_sel_inactive, RGB(0,0,0), treeview_text_sel) \
   f(treeview_arrow, RGB(96,96,96)) \
   fd(treeview_shadow, RGB(96,96,96), _3dshadow) \
   fd(treeview_hilight, RGB(224,224,224), _3dhilight) \

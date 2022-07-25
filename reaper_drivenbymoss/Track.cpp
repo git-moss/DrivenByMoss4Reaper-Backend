@@ -13,7 +13,7 @@ const std::regex Track::INPUT_QUANTIZE_PATTERN{ "INQ\\s+([0-9]+(\\.[0-9]+)?)\\s+
 /**
  * Constructor.
  */
-Track::Track() noexcept
+Track::Track() : name{ "" }, type{ "" }
 {
 	// Intentionally empty
 }
@@ -44,8 +44,10 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->depth = Collectors::CollectIntValue(ss, (trackAddress + "depth").c_str(), this->depth, GetTrackDepth(track), dump);
 
 	// Track name
-	char tempName[NAME_LENGTH];
-	const bool result = GetTrackName(track, tempName, NAME_LENGTH);
+	std::string tempName(NAME_LENGTH, 0);
+	char* tempNamePointer = &*tempName.begin();
+
+	const bool result = GetTrackName(track, tempNamePointer, NAME_LENGTH);
 	this->name = Collectors::CollectStringValue(ss, (trackAddress + "name").c_str(), this->name, result ? tempName : "", dump);
 
 	// Track type (GROUP or HYBRID), isGroupExpanded, select, mute, solo, recarm and monitor states
@@ -67,13 +69,14 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 		if ((GetPlayStateEx(project) & 1) == 0)
 		{
 			// Attributes which need to be read from the track chunk...
-			char tempChunk[CHUNK_LENGTH];
-			if (slowUpdate && GetTrackStateChunk(track, tempChunk, CHUNK_LENGTH, false))
+			std::string tempChunk(CHUNK_LENGTH, 0);
+			char* tempChunkPointer = &*tempChunk.begin();
+
+			if (slowUpdate && GetTrackStateChunk(track, tempChunkPointer, CHUNK_LENGTH, false))
 			{
 				// Uses "lock track" as active indication
-				this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(tempChunk) ? 0 : 1, dump);
-
-				this->ParseInputQuantize(ss, trackAddress, dump, tempChunk);
+				this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(tempChunkPointer) ? 0 : 1, dump);
+				this->ParseInputQuantize(ss, trackAddress, dump, tempChunkPointer);
 			}
 		}
 	}
@@ -124,7 +127,7 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
  * @param index The index of the send.
  * @return The send, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Send>& Track::GetSend(const int index) noexcept
+std::unique_ptr<Send>& Track::GetSend(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->sendlock);
 
@@ -138,7 +141,7 @@ std::unique_ptr<Send>& Track::GetSend(const int index) noexcept
 }
 
 
-double Track::GetVolume(MediaTrack* track, double position) const
+double Track::GetVolume(MediaTrack* track, double position) const noexcept
 {
 	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
@@ -150,7 +153,7 @@ double Track::GetVolume(MediaTrack* track, double position) const
 }
 
 
-double Track::GetPan(MediaTrack* track, double position) const
+double Track::GetPan(MediaTrack* track, double position) const noexcept
 {
 	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
@@ -165,7 +168,7 @@ double Track::GetPan(MediaTrack* track, double position) const
 }
 
 
-int Track::GetMute(MediaTrack* track, double position, int trackState) const
+int Track::GetMute(MediaTrack* track, double position, int trackState) const noexcept
 {
 	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{

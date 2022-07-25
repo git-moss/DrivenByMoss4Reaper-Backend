@@ -16,10 +16,14 @@
 class ProjectProcessor : public OscProcessor
 {
 public:
-	ProjectProcessor(Model &model) noexcept;
+	ProjectProcessor(Model &model);
 
-	void Process(std::deque<std::string> &path) noexcept override;
-	void Process(std::deque<std::string>& path, int value) noexcept override;
+	void Process(std::deque<std::string> &path) override;
+	void Process(std::deque<std::string>& path, int value) override;
+
+	void Process(std::deque<std::string>& path, const std::string& value) noexcept  override {};
+	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
+	void Process(std::deque<std::string>& path, double value) noexcept override {};
 
 private:
 	void CreateRegion(ReaProject* project, double start, double length) noexcept;

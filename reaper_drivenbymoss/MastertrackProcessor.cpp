@@ -11,7 +11,7 @@
 *
 * @param aModel The model
 */
-MastertrackProcessor::MastertrackProcessor(Model& aModel) noexcept : OscProcessor(aModel)
+MastertrackProcessor::MastertrackProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }

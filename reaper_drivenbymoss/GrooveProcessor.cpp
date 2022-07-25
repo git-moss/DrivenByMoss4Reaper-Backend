@@ -14,7 +14,7 @@
  *
  * @param aModel The model to share data
  */
-GrooveProcessor::GrooveProcessor(Model &aModel) noexcept : OscProcessor(aModel)
+GrooveProcessor::GrooveProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }

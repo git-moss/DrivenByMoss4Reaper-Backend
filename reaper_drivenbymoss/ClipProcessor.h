@@ -14,7 +14,7 @@
 class ClipProcessor : public OscProcessor
 {
 public:
-	ClipProcessor(Model& model) noexcept;
+	ClipProcessor(Model& model);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 
@@ -25,6 +25,8 @@ public:
 
 	void Process(std::deque<std::string>& path, double value) noexcept override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
+
+	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
 
 private:
 	void SetColorOfClip(ReaProject* project, MediaItem* item, const std::string& value) noexcept;

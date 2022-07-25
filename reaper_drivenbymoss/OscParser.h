@@ -35,7 +35,7 @@
 class OscParser
 {
 public:
-	OscParser(Model& model) noexcept;
+	OscParser(Model& model);
 	OscParser(const OscParser&) = delete;
 	OscParser& operator=(const OscParser&) = delete;
 	OscParser(OscParser&&) = delete;

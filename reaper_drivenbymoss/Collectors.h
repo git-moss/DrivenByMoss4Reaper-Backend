@@ -21,7 +21,11 @@ public:
 	static std::string CollectStringValue(std::ostringstream& ss, const std::string& command, const std::string& currentValue, const std::string& newValue, const bool& dump)
 	{
 		if (currentValue.compare(newValue) != 0 || dump)
-			ss << command << " " << newValue << "\n";
+		{
+			// Note: this needs to use c_str(), otherwise additional \0 are appended as well
+			// which prevents that the string is sent
+			ss << command << " " << newValue.c_str() << "\n";
+		}
 		return newValue;
 	}
 

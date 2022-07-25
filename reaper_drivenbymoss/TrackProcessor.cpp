@@ -11,13 +11,17 @@
 #include "ReaperUtils.h"
 #include "ReaDebug.h"
 #include "StringUtils.h"
+#include "DrivenByMossSurface.h"
+
+extern DrivenByMossSurface* surfaceInstance;
+
 
 /**
  * Constructor.
  *
  * @param aModel The model to share data
  */
-TrackProcessor::TrackProcessor(Model& aModel) noexcept : OscProcessor(aModel)
+TrackProcessor::TrackProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
@@ -88,13 +92,13 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 	{
 		//if (trackIndex + 2 < CountTracks(project))
 		//{
-			PreventUIRefresh(1);
-			Undo_BeginBlock2(project);
-			ReorderSelectedTracks(trackIndex + 2, 0);
-			UpdateArrange();
-			Undo_EndBlock2(project, "Move track", UNDO_STATE_ALL);
-			PreventUIRefresh(-1);
-//		}
+		PreventUIRefresh(1);
+		Undo_BeginBlock2(project);
+		ReorderSelectedTracks(trackIndex + 2, 0);
+		UpdateArrange();
+		Undo_EndBlock2(project, "Move track", UNDO_STATE_ALL);
+		PreventUIRefresh(-1);
+		//		}
 		return;
 	}
 
@@ -172,7 +176,7 @@ void TrackProcessor::Process(std::deque<std::string>& path) noexcept
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
+void TrackProcessor::Process(std::deque<std::string>& path, int value)
 {
 	if (path.empty())
 		return;
@@ -200,7 +204,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	if (std::strcmp(cmd, "isGroupExpanded") == 0)
 	{
 		int folderCompact = value > 0 ? 0 : 2;
-		GetSetMediaTrackInfo(track, "I_FOLDERCOMPACT", static_cast<void*> (&folderCompact));
+		GetSetMediaTrackInfo(track, "I_FOLDERCOMPACT", &folderCompact);
 		return;
 	}
 
@@ -295,7 +299,7 @@ bool TrackProcessor::ProcessAutomation(MediaTrack* track, const char* cmd, const
 
 
 /** {@inheritDoc} */
-void TrackProcessor::Process(std::deque<std::string>& path, double value) noexcept
+void TrackProcessor::Process(std::deque<std::string>& path, double value)
 {
 	if (path.empty())
 		return;
@@ -308,7 +312,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 	if (!track)
 		return;
 
-	std::unique_ptr<Track>& trackData = this->model.GetTrack(trackIndex);
+	const std::unique_ptr<Track>& trackData = this->model.GetTrack(trackIndex);
 	const char* cmd = SafeGet(path, 1);
 
 	if (std::strcmp(cmd, "volume") == 0)
@@ -316,7 +320,9 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		if (path.size() == 2)
 		{
 			trackData->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			CSurf_SetSurfaceVolume(track, CSurf_OnVolumeChange(track, trackData->volume, false), nullptr);
+			const double newVolume = CSurf_OnVolumeChange(track, trackData->volume, false);
+			if (!trackData->isVolumeTouch)
+				CSurf_SetSurfaceVolume(track, newVolume, surfaceInstance);
 			return;
 		}
 
@@ -333,7 +339,9 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		if (path.size() == 2)
 		{
 			trackData->pan = value * 2 - 1;
-			CSurf_SetSurfacePan(track, CSurf_OnPanChange(track, trackData->pan, false), nullptr);
+			const double newPan = CSurf_OnPanChange(track, trackData->pan, false);
+			if (!trackData->isPanTouch)
+				CSurf_SetSurfacePan(track, newPan, nullptr);
 			return;
 		}
 
@@ -352,7 +360,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value) noexce
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
 			DISABLE_WARNING_DANGLING_POINTER
-			const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
+				const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
 			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
 		}
@@ -437,6 +445,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 			std::string val = value;
 
 			Undo_BeginBlock2(project);
+			DISABLE_WARNING_USE_GSL_AT
 			GetSetMediaTrackInfo(track, "P_NAME", &val[0]);
 			Undo_EndBlock2(project, "Set track name", UNDO_STATE_ALL);
 		}
@@ -451,7 +460,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 }
 
 
-void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept
+void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<std::string>& values)
 {
 	if (path.empty())
 		return;
@@ -533,7 +542,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<st
 				const char* deviceName = values.at(i).c_str();
 				const int position = TrackFX_AddByName(track, deviceName, false, -1);
 				if (position >= 0)
-					TrackFX_CopyToTrack(track, position, track, 3 - static_cast<int> (i), true);
+					TrackFX_CopyToTrack(track, position, track, 3 - gsl::narrow_cast<int> (i), true);
 			}
 		}
 

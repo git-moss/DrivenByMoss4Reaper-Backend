@@ -188,8 +188,6 @@ BOOL CloseHandle(HANDLE hand)
       case INTERNAL_OBJECT_THREAD:
         {
           SWELL_InternalObjectHeader_Thread *thr = (SWELL_InternalObjectHeader_Thread*)hdr;
-          void *tmp;
-          pthread_join(thr->pt,&tmp);
           pthread_detach(thr->pt);
         }
       break;
@@ -350,19 +348,16 @@ DWORD WaitForSingleObject(HANDLE hand, DWORD msTO)
     case INTERNAL_OBJECT_THREAD:
       {
         SWELL_InternalObjectHeader_Thread *thr = (SWELL_InternalObjectHeader_Thread*)hdr;
-        void *tmp;
-        if (!thr->done) 
+        if (thr->done) return WAIT_OBJECT_0;
+        if (!msTO) return WAIT_TIMEOUT;
+
+        const DWORD d=GetTickCount();
+        for (;;)
         {
-          if (!msTO) return WAIT_TIMEOUT;
-          if (msTO != INFINITE)
-          {
-            const DWORD d=GetTickCount();
-            while ((GetTickCount()-d)<msTO && !thr->done) Sleep(1);
-            if (!thr->done) return WAIT_TIMEOUT;
-          }
+          Sleep(1);
+          if (thr->done) return WAIT_OBJECT_0;
+          if (msTO != INFINITE && (GetTickCount()-d)>=msTO) return WAIT_TIMEOUT;
         }
-    
-        if (!pthread_join(thr->pt,&tmp)) return WAIT_OBJECT_0;      
       }
     break;
     case INTERNAL_OBJECT_EXTERNALSOCKET:
@@ -578,6 +573,8 @@ BOOL SetThreadPriority(HANDLE hand, int prio)
   {
     // this is for darwin, but might work elsewhere
     param.sched_priority = 31 + prio;
+    if (prio >= THREAD_PRIORITY_TIME_CRITICAL) // this could be _HIGHEST eventually
+      pol = SCHED_FIFO;
 
     int mt=sched_get_priority_min(pol);
     if (param.sched_priority<mt||param.sched_priority > (mt=sched_get_priority_max(pol)))param.sched_priority=mt;

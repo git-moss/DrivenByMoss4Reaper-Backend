@@ -18,7 +18,7 @@
 class OscProcessor
 {
 public:
-	OscProcessor(Model& aModel) noexcept : model(aModel)
+	OscProcessor(Model& aModel) : model(aModel)
 	{
 		// Intentionally empty
 	}
@@ -28,21 +28,21 @@ public:
 	OscProcessor& operator=(OscProcessor&&) = delete;
 	virtual ~OscProcessor() {};
 
-	virtual void Process(std::deque<std::string>& path) noexcept {};
+	virtual void Process(std::deque<std::string>& path) = 0;
 
-	virtual void Process(std::deque<std::string>& path, const std::string& value) noexcept {};
+	virtual void Process(std::deque<std::string>& path, const std::string& value) = 0;
 
-	virtual void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept {};
+	virtual void Process(std::deque<std::string>& path, const std::vector<std::string>& values) = 0;
 
-	virtual void Process(std::deque<std::string>& path, int value) noexcept
+	virtual void Process(std::deque<std::string>& path, int value)
 	{
 		if (value == 1)
 			this->Process(path);
 	};
 
-	virtual void Process(std::deque<std::string>& path, double value) noexcept {};
+	virtual void Process(std::deque<std::string>& path, double value) = 0;
 
-	virtual void Process(std::deque<std::string>& path, float value) noexcept
+	virtual void Process(std::deque<std::string>& path, float value)
 	{
 		this->Process(path, static_cast<double>(value));
 	};
@@ -248,7 +248,7 @@ protected:
 	}
 
 
-	bool IsNumber(const std::string& s) const noexcept
+	bool IsNumber(const std::string& s) const
 	{
 		return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 	}

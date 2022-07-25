@@ -12,7 +12,7 @@
  *
  * @param aModel The model to share data
  */
-ClipProcessor::ClipProcessor(Model& aModel) noexcept : OscProcessor(aModel)
+ClipProcessor::ClipProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }

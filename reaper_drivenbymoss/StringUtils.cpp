@@ -11,11 +11,12 @@
 #include "ModdedCodecvt.h"
 #endif
 
-std::wstring stringToWs(const std::string &src) noexcept
+std::wstring stringToWs(const std::string &src)
 {
 #ifdef _WIN32
 	const int sizeNeeded = MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, NULL, 0);
 	std::wstring dest(sizeNeeded, 0);
+	DISABLE_WARNING_USE_GSL_AT
 	MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, &dest[0], sizeNeeded);
 	return dest;
 #else

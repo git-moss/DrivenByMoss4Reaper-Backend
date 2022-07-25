@@ -21,6 +21,7 @@
 #include "../chunkalloc.h"
 #include "../fnv64.h"
 #include "../win32_utf8.h"
+#include "../wdlcstring.h"
 
 
 #define LANGPACK_SCALE_CONSTANT WDL_UINT64_CONST(0x5CA1E00000000000)
@@ -180,9 +181,7 @@ const char *__localizeFunc(const char *str, const char *subctx, int flags)
         sumtimes[1]+=startTime;
         if (!(stats[1]%100))
         {
-          char buf[512];
-          sprintf(buf,"cached, avg was %fuS\n",sumtimes[1]*10000.0);
-          OutputDebugString(buf);
+          wdl_log("cached, avg was %fuS\n",sumtimes[1]*10000.0);
           sumtimes[1]=0;
         }
 #endif
@@ -245,9 +244,7 @@ const char *__localizeFunc(const char *str, const char *subctx, int flags)
   sumtimes[0]+=startTime;
   if (!(stats[0]%100))
   {
-    char buf[512];
-    sprintf(buf,"uncached , avg was %f\n",sumtimes[0]*10000.0);
-    OutputDebugString(buf);
+    wdl_log("uncached , avg was %f\n",sumtimes[0]*10000.0);
     sumtimes[0]=0;
   }
 #endif

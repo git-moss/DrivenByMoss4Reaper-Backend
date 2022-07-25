@@ -15,13 +15,13 @@
 class TrackProcessor : public OscProcessor
 {
 public:
-	TrackProcessor(Model& model) noexcept;
+	TrackProcessor(Model& model);
 
 	void Process(std::deque<std::string>& path) noexcept override;
-	void Process(std::deque<std::string>& path, int value) noexcept override;
-	void Process(std::deque<std::string>& path, double value) noexcept override;
+	void Process(std::deque<std::string>& path, int value) override;
+	void Process(std::deque<std::string>& path, double value) override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
-	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override;
+	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) override;
 
 private:
 	void CreateMidiClip(ReaProject* project, MediaTrack* track, int beats) noexcept;

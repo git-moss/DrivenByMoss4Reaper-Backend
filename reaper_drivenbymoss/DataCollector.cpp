@@ -18,7 +18,7 @@
  *
  * @param aModel The model
  */
-DataCollector::DataCollector(Model& aModel) noexcept :
+DataCollector::DataCollector(Model& aModel) :
 	model(aModel),
 	crossfaderParameter("/master/user/param/", 0),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
@@ -112,8 +112,12 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	// Click / metronome values
 	this->metronome = Collectors::CollectIntValue(ss, "/click", this->metronome, GetToggleCommandState(40364), dump);
 	this->prerollClick = Collectors::CollectIntValue(ss, "/click/preroll", this->prerollClick, GetToggleCommandState(41819), dump);
-	char metroVolumeStr[20];
-	const double value = get_config_var_string("projmetrov1", metroVolumeStr, 20) ? std::atof(metroVolumeStr) : 0.5;
+	
+	constexpr int METRO_LENGTH = 20;
+	std::string metroVolumeStr(METRO_LENGTH, 0);
+	char* metroVolumeStrPointer = &*metroVolumeStr.begin();
+
+	const double value = get_config_var_string("projmetrov1", metroVolumeStrPointer, METRO_LENGTH) ? std::atof(metroVolumeStrPointer) : 0.5;
 	const double volDB = ReaperUtils::ValueToDB(value);
 	this->metronomeVolume = Collectors::CollectDoubleValue(ss, "/click/volume", this->metronomeVolume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->metronomeVolumeStr = Collectors::CollectStringValue(ss, "/click/volumeStr", this->metronomeVolumeStr, Collectors::FormatDB(volDB).c_str(), dump);
@@ -127,18 +131,19 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	this->globalTimesig = Collectors::CollectIntValue(ss, "/numerator", this->globalTimesig, timesig, dump);
 	this->globalDenomOut = Collectors::CollectIntValue(ss, "/denominator", this->globalDenomOut, denomOut, dump);
 
-	char timeStr[20];
+	std::string timeStr(TIME_LENGTH, 0);
+	char* timeStrPointer = &*timeStr.begin();
 
 	// Result is in seconds
 	TimeMap_GetTimeSigAtTime(project, cursorPos, &timesig, &denomOut, &startBPM);
 	this->playPosition = Collectors::CollectDoubleValue(ss, "/time", this->playPosition, cursorPos, dump);
 	// Add project offset, if configured in project settings
 	const double timeOffset = GetProjectTimeOffset(project, false);
-	format_timestr(timeOffset + cursorPos, timeStr, 20);
-	this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStr, dump);
+	format_timestr(timeOffset + cursorPos, timeStrPointer, TIME_LENGTH);
+	this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStrPointer, dump);
 	// 2 = measures.beats
-	format_timestr_pos(cursorPos, timeStr, 20, 2);
-	this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStr, dump);
+	format_timestr_pos(cursorPos, timeStrPointer, TIME_LENGTH, 2);
+	this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStrPointer, dump);
 
 	// Loop start and length
 	double startOut;
@@ -146,16 +151,16 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	GetSet_LoopTimeRange(false, true, &startOut, &endOut, false);
 
 	this->loopStart = Collectors::CollectDoubleValue(ss, "/time/loop/start", this->loopStart, startOut, dump);
-	format_timestr(timeOffset + startOut, timeStr, 20);
+	format_timestr(timeOffset + startOut, timeStrPointer, TIME_LENGTH);
 	this->strLoopStart = Collectors::CollectStringValue(ss, "/time/loop/start/str", this->strLoopStart, timeStr, dump);
-	format_timestr_pos(startOut, timeStr, 20, 2);
+	format_timestr_pos(startOut, timeStrPointer, TIME_LENGTH, 2);
 	this->strLoopStartBeat = Collectors::CollectStringValue(ss, "/time/loop/start/beat", this->strLoopStartBeat, timeStr, dump);
 
 	this->loopLength = Collectors::CollectDoubleValue(ss, "/time/loop/length", this->loopLength, endOut, dump);
 	const double length = endOut - startOut;
-	format_timestr_len(length, timeStr, 20, startOut, 0);
+	format_timestr_len(length, timeStrPointer, TIME_LENGTH, startOut, 0);
 	this->strLoopLength = Collectors::CollectStringValue(ss, "/time/loop/length/str", this->strLoopLength, timeStr, dump);
-	format_timestr_len(length, timeStr, 20, startOut, 2);
+	format_timestr_len(length, timeStrPointer, TIME_LENGTH, startOut, 2);
 	this->strLoopLengthBeat = Collectors::CollectStringValue(ss, "/time/loop/length/beat", this->strLoopLengthBeat, timeStr, dump);
 
 	// Additional info
@@ -174,8 +179,11 @@ void DataCollector::CollectProjectData(std::ostringstream& ss, ReaProject* proje
 {
 	if (this->slowCounter == 0 || dump)
 	{
-		char newProjectName[20];
-		GetProjectName(project, newProjectName, 20);
+		constexpr int LENGTH = 50;
+		std::string newProjectName(LENGTH, 0);
+		char* newProjectNamePointer = &*newProjectName.begin();
+		GetProjectName(project, newProjectNamePointer, LENGTH);
+
 		this->projectName = Collectors::CollectStringValue(ss, "/project/name", projectName, newProjectName, dump);
 		this->projectEngine = Collectors::CollectIntValue(ss, "/project/engine", projectEngine, Audio_IsRunning(), dump);
 	}
@@ -203,11 +211,12 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpandedType == 1, dump);
 
 	constexpr int LENGTH = 50;
-	char name[LENGTH];
+	std::string name(LENGTH, 0);
+	char* namePointer = &*name.begin();
 
 	if (this->slowCounter == 0 || dump)
 	{
-		bool result = TrackFX_GetFXName(track, deviceIndex, name, LENGTH);
+		bool result = TrackFX_GetFXName(track, deviceIndex, namePointer, LENGTH);
 		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? name : "", dump);
 		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
 
@@ -218,12 +227,12 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 			std::ostringstream das;
 			das << "/device/sibling/" << bankDeviceIndex << "/name";
-			result = TrackFX_GetFXName(track, position, name, LENGTH);
-			Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? name : "", dump);
+			result = TrackFX_GetFXName(track, position, namePointer, LENGTH);
+			Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? namePointer : "", dump);
 
 			std::ostringstream bys;
 			bys << "/device/sibling/" << bankDeviceIndex << "/bypass";
-			int isBypassed = TrackFX_GetEnabled(track, position) ? 0 : 1;
+			const int isBypassed = TrackFX_GetEnabled(track, position) ? 0 : 1;
 			Collectors::CollectIntArrayValue(ss, bys.str().c_str(), index, deviceSiblingsBypass, isBypassed, dump);
 
 			std::ostringstream sys;
@@ -248,7 +257,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 		const bool instrumentExists = instrumentIndex >= 0;
 		this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentExists, dump);
 		this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
-		const bool result = instrumentExists && TrackFX_GetFXName(track, instrumentIndex, name, LENGTH);
+		const bool result = instrumentExists && TrackFX_GetFXName(track, instrumentIndex, namePointer, LENGTH);
 		this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? name : "", dump);
 
 		// Currently, we only need 1 parameter for the Kontrol OSC ID
@@ -270,22 +279,28 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 		if (this->eqExists)
 		{
-			char filterType[40];
-			char filterEnabled[2];
+			constexpr int FILTER_TYPE_LENGTH = 40;
+			std::string filterType(FILTER_TYPE_LENGTH, 0);
+			char* filterTypePointer = &*filterType.begin();
+
+			constexpr int FILTER_ENABLED_LENGTH = 2;
+			std::string filterEnabled(FILTER_ENABLED_LENGTH, 0);
+			char* filterEnabledPointer = &*filterEnabled.begin();
+
 			for (int index = 0; index < 8; index++)
 			{
 				std::ostringstream btss;
 				btss << "BANDTYPE" << index;
 				const std::string bandTypeParam = btss.str();
 				std::string bandType = "-1";
-				if (TrackFX_GetNamedConfigParm(track, eqIndex, bandTypeParam.c_str(), filterType, 40))
+				if (TrackFX_GetNamedConfigParm(track, eqIndex, bandTypeParam.c_str(), filterTypePointer, FILTER_TYPE_LENGTH))
 				{
 					std::ostringstream bess;
 					bess << "BANDENABLED" << index;
 					const std::string bandEnabledParam = bess.str();
-					if (TrackFX_GetNamedConfigParm(track, eqIndex, bandEnabledParam.c_str(), filterEnabled, 2))
+					if (TrackFX_GetNamedConfigParm(track, eqIndex, bandEnabledParam.c_str(), filterEnabledPointer, FILTER_ENABLED_LENGTH))
 					{
-						if (std::atoi(filterEnabled) > 0)
+						if (std::atoi(filterEnabledPointer) > 0)
 							bandType = filterType;
 					}
 				}
@@ -305,8 +320,8 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	// Track FX Parameter (as user parameters)
 	const int userParamCount = CountTCPFXParms(project, track);
 	this->model.userParamCount = Collectors::CollectIntValue(ss, "/user/param/count", this->model.userParamCount, userParamCount, dump);
-	int fxindexOut;
-	int parmidxOut;
+	int fxindexOut = 0;
+	int parmidxOut = 0;
 	for (int index = 0; index < userParamCount; index++)
 	{
 		const std::unique_ptr<Parameter>& parameter = this->model.GetUserParameter(index);
@@ -374,7 +389,7 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return notesStrNew;
 
-	bool isMuted;
+	bool isMuted{ false };
 	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 
@@ -524,9 +539,11 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 		return notesStrNew;
 	}
 
-	// Have notes changed since last call?
-	char nhash[16];
-	if (!MIDI_GetHash(take, true, nhash, 16) || this->noteHash.compare(nhash) == 0)
+	// Did notes change since last call?
+	constexpr int HASH_LENGTH = 16;
+	std::string nhash(HASH_LENGTH, 0);
+	char* nhashPointer = &*nhash.begin();
+	if (!MIDI_GetHash(take, true, nhashPointer, HASH_LENGTH) || this->noteHash.compare(nhash) == 0)
 		return this->notesStr;
 	this->noteHash = nhash;
 
@@ -534,7 +551,7 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 	if (MIDI_CountEvts(take, &noteCount, nullptr, nullptr) == 0)
 		return notesStrNew;
 
-	bool isMuted;
+	bool isMuted{ false };
 	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
 	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
 	double bpm{};
@@ -577,8 +594,9 @@ void DataCollector::CollectBrowserData(std::ostringstream& ss, MediaTrack* track
 	LoadDevicePresetFile(ss, track, sel, dump);
 
 	constexpr int LENGTH = 20;
-	char presetname[LENGTH];
-	TrackFX_GetPreset(track, sel, presetname, LENGTH);
+	std::string presetname(TIME_LENGTH, 0);
+	char* presetnamePointer = &*presetname.begin();
+	TrackFX_GetPreset(track, sel, presetnamePointer, LENGTH);
 	this->devicePresetName = Collectors::CollectStringValue(ss, "/browser/selected/name", this->devicePresetName, presetname, dump);
 	int numberOfPresets;
 	const int selectedIndex = TrackFX_GetPresetIndex(track, sel, &numberOfPresets);
@@ -598,7 +616,7 @@ void DataCollector::CollectMarkerData(std::ostringstream& ss, ReaProject* projec
 	if (this->slowCounter == 0 || dump)
 	{
 		const std::vector<int> markers = Marker::GetMarkers(project);
-		const int count = static_cast<int> (markers.size());
+		const int count = gsl::narrow_cast<int> (markers.size());
 		this->model.markerCount = Collectors::CollectIntValue(ss, "/marker/count", this->model.markerCount, count, dump);
 		for (int index = 0; index < count; index++)
 		{
@@ -657,7 +675,7 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 				continue;
 
 			// Format track index, clip index, name, selected state and color in one string
-
+			DISABLE_WARNING_ARRAY_POINTER_DECAY
 			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
 			{
 				std::string s{ buf };
@@ -673,7 +691,7 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 			const bool isSelected = IsMediaItemSelected(item);
 			allClipStr << ";" << isSelected;
 
-			const int clipColor = (int)GetDisplayedMediaItemColor(item);
+			const int clipColor = GetDisplayedMediaItemColor(item);
 			ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
 			allClipStr << ";" << Collectors::FormatColor(red, green, blue).c_str() << ";";
 
@@ -687,7 +705,7 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 	// Collect "scenes", use Region markers
 	const std::vector<int> regions = Marker::GetRegions(project);
-	count = (int)regions.size();
+	count = gsl::narrow_cast<int>(regions.size());
 	this->model.sceneCount = Collectors::CollectIntValue(ss, "/scene/count", this->model.sceneCount, count, dump);
 	for (int index = 0; index < count; index++)
 	{
@@ -847,8 +865,10 @@ MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, Me
 void DataCollector::LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* track, int fx, const bool& dump)
 {
 	constexpr int LENGTH = 1024;
-	char filename[LENGTH];
-	TrackFX_GetUserPresetFilename(track, fx, filename, LENGTH);
+	std::string filename(LENGTH, 0);
+	char* filenamePointer = &*filename.begin();
+
+	TrackFX_GetUserPresetFilename(track, fx, filenamePointer, LENGTH);
 
 	try
 	{

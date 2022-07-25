@@ -15,7 +15,7 @@
  *
  * @param aModel The model to share data
  */
-ActionProcessor::ActionProcessor(Model& aModel) noexcept : OscProcessor(aModel), selectionIsActive(false), selectedAction(0)
+ActionProcessor::ActionProcessor(Model& aModel) : OscProcessor(aModel), selectionIsActive(false), selectedAction(0)
 {
 	// Intentionally empty
 }

@@ -11,7 +11,7 @@
 *
 * @param model The model to share data
 */
-OscParser::OscParser(Model& model) noexcept :
+OscParser::OscParser(Model& model) :
 	playProcessor(model),
 	stopProcessor(model),
 	recordProcessor(model),
@@ -86,7 +86,8 @@ void OscParser::Process(const std::string processor, const std::string command) 
 			try
 			{
 				OscProcessor* oscProcessor = this->processors.at(processor);
-				oscProcessor->Process(elements);
+				if (oscProcessor != nullptr)
+					oscProcessor->Process(elements);
 			}
 			catch (const std::out_of_range& oor)
 			{

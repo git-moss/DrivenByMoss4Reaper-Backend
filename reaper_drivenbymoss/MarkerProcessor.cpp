@@ -14,14 +14,14 @@
  *
  * @param aModel The model to share data
  */
-MarkerProcessor::MarkerProcessor(Model &aModel) noexcept : OscProcessor(aModel)
+MarkerProcessor::MarkerProcessor(Model &aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
 
 
 /** {@inheritDoc} */
-void MarkerProcessor::Process(std::deque<std::string> &path) noexcept
+void MarkerProcessor::Process(std::deque<std::string> &path)
 {
 	if (path.empty())
 		return;

@@ -16,11 +16,15 @@
 class SceneProcessor : public OscProcessor
 {
 public:
-	SceneProcessor(Model &model) noexcept;
+	SceneProcessor(Model &model);
 
-	void Process(std::deque<std::string> &path) noexcept override;
+	void Process(std::deque<std::string> &path) override;
 
-	static void DuplicateScene(ReaProject* project, const int sceneID) noexcept;
+	void Process(std::deque<std::string>& path, const std::string& value) noexcept override {};
+	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
+	void Process(std::deque<std::string>& path, double value) noexcept override {};
+
+	static void DuplicateScene(ReaProject* project, const int sceneID);
 };
 
 #endif /* _DBM_SCENEPROCESSOR_H_ */

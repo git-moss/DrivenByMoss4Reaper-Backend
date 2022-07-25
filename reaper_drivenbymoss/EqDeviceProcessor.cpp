@@ -11,7 +11,7 @@
  *
  * @param aModel The model
  */
-EqDeviceProcessor::EqDeviceProcessor(Model& aModel) noexcept : DeviceProcessor(aModel)
+EqDeviceProcessor::EqDeviceProcessor(Model& aModel) : DeviceProcessor(aModel)
 {
 	// Intentionally empty
 }
@@ -65,15 +65,22 @@ void EqDeviceProcessor::Process(std::deque<std::string>& path, const std::string
 
 		const int bandNo = atoi(SafeGet(path, 1));
 
-		// Off?
-		const bool isOff = std::strcmp(value.c_str(), "-1") == 0;
-		if (!isOff)
+		try
 		{
-			std::string btss = MakeString() << "BANDTYPE" << bandNo;
-			TrackFX_SetNamedConfigParm(track, eqIndex, btss.c_str(), value.c_str());
+			// Off?
+			const bool isOff = std::strcmp(value.c_str(), "-1") == 0;
+			if (!isOff)
+			{
+				std::string btss = MakeString() << "BANDTYPE" << bandNo;
+				TrackFX_SetNamedConfigParm(track, eqIndex, btss.c_str(), value.c_str());
+			}
+			std::string bess = MakeString() << "BANDENABLED" << bandNo;
+			TrackFX_SetNamedConfigParm(track, eqIndex, bess.c_str(), isOff ? "0" : "1");
 		}
-		std::string bess = MakeString() << "BANDENABLED" << bandNo;
-		TrackFX_SetNamedConfigParm(track, eqIndex, bess.c_str(), isOff ? "0" : "1");
+		catch (...)
+		{
+			return;
+		}
 		return;
 	}
 }

@@ -23,7 +23,9 @@
 class DataCollector
 {
 public:
-	DataCollector(Model& model) noexcept;
+	static const int TIME_LENGTH{ 20 };
+
+	DataCollector(Model& model);
 	virtual ~DataCollector();
 	DataCollector(const DataCollector&) = delete;
 	DataCollector& operator=(const DataCollector&) = delete;

@@ -58,12 +58,11 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
  */
 void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const int& paramIndex, const bool& dump)
 {
-	// The warning about array pointer decay is ignored because it cannot be fixed since we have to use the available Reaper function
 	constexpr int LENGTH = 20;
-	char nameBuf[LENGTH];
+	std::string nameBuf(LENGTH, 0);
+	char* nameBufPointer = &*nameBuf.begin();
 
-	DISABLE_WARNING_ARRAY_POINTER_DECAY
-	bool result = TrackFX_GetParamName(track, deviceIndex, paramIndex, nameBuf, LENGTH);
+	bool result = TrackFX_GetParamName(track, deviceIndex, paramIndex, nameBufPointer, LENGTH);
 	const std::string newName{ result ? nameBuf : "" };
 	this->name = Collectors::CollectStringValue(ss, this->addressName, this->name, newName, dump);
 
@@ -74,7 +73,7 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 	if (valueHasChanged)
 	{
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, paramValue, nameBuf, LENGTH);
+		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, paramValue, nameBufPointer, LENGTH);
 		const std::string newValue{ result ? nameBuf : "" };
 		this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, newValue, dump);
 	}

@@ -15,7 +15,7 @@
  *
  * @param aModel The model to share data
  */
-NoteRepeatProcessor::NoteRepeatProcessor(Model& aModel) noexcept : OscProcessor(aModel)
+NoteRepeatProcessor::NoteRepeatProcessor(Model& aModel) : OscProcessor(aModel)
 {
 	// Intentionally empty
 }
