@@ -42,7 +42,7 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 	constexpr int LENGTH = 20;
 	char name[LENGTH];
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-		const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
+	const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
 	const std::string newName = result ? name : "";
 	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, newName, dump);
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
@@ -65,7 +65,7 @@ double Send::GetSendVolume(MediaTrack* track, int sendCounter, double position) 
 	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
 		DISABLE_WARNING_NO_C_STYLE_CONVERSION
-			TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
+		TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
 		if (envelope != nullptr)
 		{
 			// It seems there is always a send envelope, even if not active.
