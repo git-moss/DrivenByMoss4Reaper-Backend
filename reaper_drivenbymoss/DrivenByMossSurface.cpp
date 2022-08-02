@@ -138,6 +138,9 @@ void DrivenByMossSurface::SetTrackTitle(MediaTrack* trackid, const char* title) 
 
 bool DrivenByMossSurface::GetTouchState(MediaTrack* trackid, int isPan)
 {
+	if (trackid == GetMasterTrack(ReaperUtils::GetProject()))
+		return isPan ? model.isMasterPanTouch : model.isMasterVolumeTouch;
+
 	const int position = static_cast<int>(GetMediaTrackInfo_Value(trackid, "IP_TRACKNUMBER")) - 1;
 	if (position < 0)
 		return false;

@@ -172,6 +172,10 @@ private:
 	std::string CollectClipNotes(ReaProject* project, MediaItem* item);
 	std::string CollectPlayingNotes(ReaProject* project, MediaTrack* track);
 
+	double GetMasterVolume(MediaTrack* master, double position) const noexcept;
+	double GetMasterPan(MediaTrack* master, double position) const noexcept;
+	int GetMasterMute(MediaTrack* master, double position, int trackState) const noexcept;
+
 	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const noexcept;
 	void LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* track, int fx, const bool& dump);
 };

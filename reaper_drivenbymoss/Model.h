@@ -25,6 +25,8 @@ public:
 
 	double masterVolume{ 0 };
 	double masterPan{ 0 };
+	bool isMasterVolumeTouch{ false };
+	bool isMasterPanTouch{ false };
 
 	int trackCount{ 0 };
 	int markerCount{ 0 };

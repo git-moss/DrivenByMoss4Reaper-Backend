@@ -418,20 +418,21 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 void DataCollector::CollectMasterTrackData(std::ostringstream& ss, ReaProject* project, const bool& dump)
 {
 	MediaTrack* master = GetMasterTrack(project);
+	const double cursorPos = ReaperUtils::GetCursorPosition(project);
 
 	int trackState;
 	GetTrackState(master, &trackState);
 
 	this->masterSelected = Collectors::CollectIntValue(ss, "/master/select", this->masterSelected, (trackState & 2) > 0, dump);
-	this->masterMute = Collectors::CollectIntValue(ss, "/master/mute", this->masterMute, (trackState & 8) > 0 ? 1 : 0, dump);
+	this->masterMute = Collectors::CollectIntValue(ss, "/master/mute", this->masterMute, this->GetMasterMute(master, cursorPos, trackState), dump);
 	this->masterSolo = Collectors::CollectIntValue(ss, "/master/solo", this->masterSolo, (trackState & 16) > 0 ? 1 : 0, dump);
 
 	// Master track volume and pan
-	const double volDB = ReaperUtils::ValueToDB(GetMediaTrackInfo_Value(master, "D_VOL"));
+	const double volDB = this->GetMasterVolume(master, cursorPos);
 	this->model.masterVolume = Collectors::CollectDoubleValue(ss, "/master/volume", this->model.masterVolume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->masterVolumeStr = Collectors::CollectStringValue(ss, "/master/volume/str", this->masterVolumeStr, Collectors::FormatDB(volDB).c_str(), dump);
 
-	const double panVal = GetMediaTrackInfo_Value(master, "D_PAN");
+	const double panVal = this->GetMasterPan(master, cursorPos);
 	this->model.masterPan = Collectors::CollectDoubleValue(ss, "/master/pan", this->model.masterPan, (panVal + 1) / 2, dump);
 	this->masterPanStr = Collectors::CollectStringValue(ss, "/master/pan/str", this->masterPanStr, Collectors::FormatPan(panVal).c_str(), dump);
 
@@ -746,6 +747,48 @@ void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* pr
 
 	const double repeatVelocity = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, &minVal, &maxVal) : 0;
 	this->repeatVelocity = Collectors::CollectIntValue(ss, "/noterepeat/velocity", this->repeatVelocity, repeatVelocity == 0 ? 1 : 0, dump);
+}
+
+
+double DataCollector::GetMasterVolume(MediaTrack* master, double position) const noexcept
+{
+	if (GetMediaTrackInfo_Value(master, "I_AUTOMODE") > 0)
+	{
+		TrackEnvelope* envelope = GetTrackEnvelopeByName(master, "Volume");
+		if (envelope != nullptr)
+			return ReaperUtils::ValueToDB(ReaperUtils::GetEnvelopeValueAtPosition(envelope, position));
+	}
+	return ReaperUtils::ValueToDB(GetMediaTrackInfo_Value(master, "D_VOL"));
+}
+
+
+double DataCollector::GetMasterPan(MediaTrack* master, double position) const noexcept
+{
+	if (GetMediaTrackInfo_Value(master, "I_AUTOMODE") > 0)
+	{
+		TrackEnvelope* envelope = GetTrackEnvelopeByName(master, "Pan");
+		if (envelope != nullptr)
+		{
+			// Higher values are left!
+			return -1 * ReaperUtils::GetEnvelopeValueAtPosition(envelope, position);
+		}
+	}
+	return GetMediaTrackInfo_Value(master, "D_PAN");
+}
+
+
+int DataCollector::GetMasterMute(MediaTrack* master, double position, int trackState) const noexcept
+{
+	if (GetMediaTrackInfo_Value(master, "I_AUTOMODE") > 0)
+	{
+		TrackEnvelope* envelope = GetTrackEnvelopeByName(master, "Mute");
+		if (envelope != nullptr)
+		{
+			// The envelope is inverted!
+			return ReaperUtils::GetEnvelopeValueAtPosition(envelope, position) > 0 ? 0 : 1;
+		}
+	}
+	return (trackState & 8) > 0 ? 1 : 0;
 }
 
 

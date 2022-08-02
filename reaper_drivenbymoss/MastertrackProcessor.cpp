@@ -4,6 +4,9 @@
 
 #include "MastertrackProcessor.h"
 #include "ReaperUtils.h"
+#include "DrivenByMossSurface.h"
+
+extern DrivenByMossSurface* surfaceInstance;
 
 
 /**
@@ -95,22 +98,38 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 
 	if (std::strcmp(cmd, "volume") == 0)
 	{
-		// Touch not supported            
 		if (path.size() == 1)
 		{
 			this->model.masterVolume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			SetMediaTrackInfo_Value(track, "D_VOL", this->model.masterVolume);
+			const double newVolume = CSurf_OnVolumeChange(track, this->model.masterVolume, false);
+			if (!this->model.isMasterVolumeTouch)
+				CSurf_SetSurfaceVolume(track, newVolume, surfaceInstance);
+			return;
+		}
+
+		const char* touchCmd = SafeGet(path, 1);
+		if (std::strcmp(touchCmd, "touch") == 0)
+		{
+			this->model.isMasterVolumeTouch = value > 0;
 		}
 		return;
 	}
 
 	if (strcmp(cmd, "pan") == 0)
 	{
-		// Touch not supported            
 		if (path.size() == 1)
 		{
 			this->model.masterPan = value * 2 - 1;
-			SetMediaTrackInfo_Value(track, "D_PAN", this->model.masterPan);
+			const double newPan = CSurf_OnPanChange(track, this->model.masterPan, false);
+			if (!this->model.isMasterPanTouch)
+				CSurf_SetSurfacePan(track, newPan, nullptr);
+			return;
+		}
+
+		const char* touchCmd = SafeGet(path, 1);
+		if (std::strcmp(touchCmd, "touch") == 0)
+		{
+			this->model.isMasterPanTouch = value > 0;
 		}
 		return;
 	}
