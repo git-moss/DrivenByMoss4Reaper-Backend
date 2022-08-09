@@ -127,8 +127,8 @@ void JvmManager::Create()
 	if (this->debug)
 	{
 		DISABLE_WARNING_NO_POINTER_ARITHMETIC
-			DISABLE_WARNING_USE_GSL_AT
-			opts[1].optionString = &this->jvmCmdOptions[0];
+		DISABLE_WARNING_USE_GSL_AT
+		opts[1].optionString = &this->jvmCmdOptions[0];
 	}
 
 	// Minimum required Java version
@@ -145,7 +145,7 @@ void JvmManager::Create()
 	// In Xcode: Create a breakpoint, edit it, add action, enter the line: pro hand -p true -s false SIGSEGV
 	// Check option: Automatically continue...
 	DISABLE_WARNING_NO_C_STYLE_CONVERSION
-		jint(*JNI_CreateJavaVM)(JavaVM**, void**, void*) = (jint(*)(JavaVM**, void**, void*))
+	jint(*JNI_CreateJavaVM)(JavaVM**, void**, void*) = (jint(*)(JavaVM**, void**, void*))
 #ifdef _WIN32
 		GetProcAddress
 #else
@@ -160,7 +160,7 @@ void JvmManager::Create()
 	// Note: If the next line crashes in debugger make sure that jdwp.dll and dt_socket.dll are from the same JDK!
 	// Simply copy the whole JDK
 	DISABLE_WARNING_REINTERPRET_CAST
-		const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
+	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
 	if (rc != JNI_OK)
 	{
 		ReaDebug() << "ERROR: Could not start Java Virtual Machine with " << classpath;
@@ -262,7 +262,7 @@ void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCP
 		return;
 	}
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-		const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
+	const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
 	if (result != 0)
 		this->HandleException("ERROR: Could not register native functions");
 }
@@ -607,7 +607,7 @@ void JvmManager::HandleException(const char* message) const
 		const jmethodID toString = this->env->GetMethodID(this->env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
 		// jstring is not a real subclass of jobject
 		DISABLE_WARNING_NO_STATIC_DOWNCAST
-			const jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
+		const jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
 		jboolean isCopy = false;
 		dbg << this->env->GetStringUTFChars(s, &isCopy);
 		this->env->ExceptionClear();
