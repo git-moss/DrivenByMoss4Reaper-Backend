@@ -57,6 +57,9 @@
 		858F7A0A21558EBC00488951 /* StringUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0221558EB900488951 /* StringUtils.h */; };
 		858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 858F7A0321558EBA00488951 /* SceneProcessor.h */; };
 		858F7A0C21558EBC00488951 /* Parameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 858F7A0421558EBB00488951 /* Parameter.cpp */; };
+		85AE263D27D4A6EB00E0711C /* EqDeviceProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85AE263A27D4A6EB00E0711C /* EqDeviceProcessor.cpp */; };
+		85AE263E27D4A6EB00E0711C /* EqDeviceProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 85AE263B27D4A6EB00E0711C /* EqDeviceProcessor.h */; };
+		85AE263F27D4A6EB00E0711C /* ProjectProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 85AE263C27D4A6EB00E0711C /* ProjectProcessor.h */; };
 		85CED11C236E3728006C2036 /* NoteRepeatProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */; };
 		85CED11D236E3728006C2036 /* NoteRepeatProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */; };
 		85DC73EF2422BBCB006F7BCD /* WrapperGSL.h in Headers */ = {isa = PBXBuildFile; fileRef = 85DC73E42422BBCA006F7BCD /* WrapperGSL.h */; };
@@ -131,6 +134,9 @@
 		858F7A0221558EB900488951 /* StringUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringUtils.h; path = ../reaper_drivenbymoss/StringUtils.h; sourceTree = "<group>"; };
 		858F7A0321558EBA00488951 /* SceneProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SceneProcessor.h; path = ../reaper_drivenbymoss/SceneProcessor.h; sourceTree = "<group>"; };
 		858F7A0421558EBB00488951 /* Parameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parameter.cpp; path = ../reaper_drivenbymoss/Parameter.cpp; sourceTree = "<group>"; };
+		85AE263A27D4A6EB00E0711C /* EqDeviceProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EqDeviceProcessor.cpp; path = ../reaper_drivenbymoss/EqDeviceProcessor.cpp; sourceTree = "<group>"; };
+		85AE263B27D4A6EB00E0711C /* EqDeviceProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EqDeviceProcessor.h; path = ../reaper_drivenbymoss/EqDeviceProcessor.h; sourceTree = "<group>"; };
+		85AE263C27D4A6EB00E0711C /* ProjectProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProjectProcessor.h; path = ../reaper_drivenbymoss/ProjectProcessor.h; sourceTree = "<group>"; };
 		85CED11A236E3728006C2036 /* NoteRepeatProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NoteRepeatProcessor.cpp; path = ../reaper_drivenbymoss/NoteRepeatProcessor.cpp; sourceTree = "<group>"; };
 		85CED11B236E3728006C2036 /* NoteRepeatProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NoteRepeatProcessor.h; path = ../reaper_drivenbymoss/NoteRepeatProcessor.h; sourceTree = "<group>"; };
 		85DC73E42422BBCA006F7BCD /* WrapperGSL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WrapperGSL.h; path = ../reaper_drivenbymoss/WrapperGSL.h; sourceTree = "<group>"; };
@@ -175,6 +181,9 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				85AE263A27D4A6EB00E0711C /* EqDeviceProcessor.cpp */,
+				85AE263B27D4A6EB00E0711C /* EqDeviceProcessor.h */,
+				85AE263C27D4A6EB00E0711C /* ProjectProcessor.h */,
 				85647DC124BFB2FA00576420 /* ActionProcessor.cpp */,
 				8554F21720F40E3F00F5FF39 /* ClipProcessor.cpp */,
 				8554F20320F40E3C00F5FF39 /* DataCollector.cpp */,
@@ -281,6 +290,7 @@
 				8554F23620F40E4000F5FF39 /* OscParser.h in Headers */,
 				85DC73F62422BBCB006F7BCD /* ModdedCodecvt.h in Headers */,
 				85DC73F32422BBCB006F7BCD /* WrapperJNI.h in Headers */,
+				85AE263F27D4A6EB00E0711C /* ProjectProcessor.h in Headers */,
 				8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */,
 				85647DC224BFB2FA00576420 /* ActionProcessor.h in Headers */,
 				858F7A0B21558EBC00488951 /* SceneProcessor.h in Headers */,
@@ -296,6 +306,7 @@
 				8554F22720F40E4000F5FF39 /* TransportProcessor.h in Headers */,
 				85DC73F42422BBCB006F7BCD /* afxres.h in Headers */,
 				85DC73F92422BBCB006F7BCD /* WrapperReaperFunctions.h in Headers */,
+				85AE263E27D4A6EB00E0711C /* EqDeviceProcessor.h in Headers */,
 				8554F23C20F40E4000F5FF39 /* reaper_plugin.h in Headers */,
 				85DC73F52422BBCB006F7BCD /* de_mossgrabers_reaper_MainApp.h in Headers */,
 				8554F23020F40E4000F5FF39 /* DeviceProcessor.h in Headers */,
@@ -382,6 +393,7 @@
 				8554F22620F40E4000F5FF39 /* TrackProcessor.cpp in Sources */,
 				8554F23A20F40E4000F5FF39 /* MastertrackProcessor.cpp in Sources */,
 				8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */,
+				85AE263D27D4A6EB00E0711C /* EqDeviceProcessor.cpp in Sources */,
 				858F79F521558EA800488951 /* SceneProcessor.cpp in Sources */,
 				850C4C492120173A0059A6B0 /* MarkerProcessor.cpp in Sources */,
 				8554F22420F40E4000F5FF39 /* DataCollector.cpp in Sources */,
@@ -535,7 +547,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/temurin-16.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/include/**",
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/GSL",
 				);
 				INSTALL_PATH = /;
@@ -560,7 +572,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/temurin-16.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/include/**",
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/GSL",
 				);
 				INSTALL_PATH = /;

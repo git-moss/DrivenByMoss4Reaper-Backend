@@ -42,6 +42,8 @@ JvmManager::~JvmManager()
 {
 	if (this->jvm != nullptr)
 	{
+        ReaDebug::Log("DrivenByMoss: Shutting down JVM.");
+        
 		jclass clazz = this->GetControllerClass();
 		if (clazz != nullptr)
 		{
@@ -91,13 +93,27 @@ void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* pr
 {
 	if (this->isInitialised)
 		return;
+
+    ReaDebug::Log("DrivenByMoss: Creating JVM.");
+    
 	this->isInitialised = true;
 	this->Create();
 	if (this->jvm == nullptr)
+    {
+        ReaDebug() << "DrivenByMoss: JVM could not be created.";
 		return;
-	this->RegisterMethods(processNoArgCPP, processStringArgCPP, processStringArgsCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
+    }
+
+    ReaDebug::Log("DrivenByMoss: Registering CPP callbacks.");
+    this->RegisterMethods(processNoArgCPP, processStringArgCPP, processStringArgsCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
+    
 	if (ENABLE_JAVA_START)
+    {
+        ReaDebug::Log("DrivenByMoss: Starting application.");
 		this->StartApp();
+    }
+    
+    ReaDebug::Log("DrivenByMoss: Startup finished.");
 }
 
 
@@ -281,7 +297,10 @@ void JvmManager::StartApp()
 	// Call main start method
 	jmethodID methodID = this->env->GetStaticMethodID(clazz, "startup", "(Ljava/lang/String;)V");
 	if (methodID == nullptr)
+    {
+        ReaDebug() << "startup method could not be retrieved.";
 		return;
+    }
 	jstring iniPath = this->env->NewStringUTF(GetResourcePath());
 	this->env->CallStaticVoidMethod(clazz, methodID, iniPath);
 	this->HandleException("ERROR: Could not call startup.");

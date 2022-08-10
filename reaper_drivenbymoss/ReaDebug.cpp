@@ -6,6 +6,7 @@
 #include "ReaDebug.h"
 #include "ReaperUtils.h"
 #include "StringUtils.h"
+#include <sys/syslog.h>
 
 // Initialise the static variable
 Model* ReaDebug::model = nullptr;
@@ -35,18 +36,20 @@ ReaDebug::~ReaDebug()
 
 		DISABLE_WARNING_CAN_THROW
 		std::ostringstream out;
-		out << "drivenbymoss: " << bufferStr << "\n";
+		out << "DrivenByMoss: " << bufferStr << "\n";
 		const std::string msg = out.str();
-
+        const char *info = msg.c_str();
+        ReaDebug::Log(info);
+        
 		if (ReaDebug::model == nullptr)
 		{
-			ShowConsoleMsg(msg.c_str());
+			ShowConsoleMsg(info);
 			return;
 		}
 
-		ReaDebug::model->AddFunction([msg]() noexcept
+		ReaDebug::model->AddFunction([info]() noexcept
 			{
-				ShowConsoleMsg(msg.c_str());
+				ShowConsoleMsg(info);
 			});
 	}
 	catch (...)
@@ -114,18 +117,7 @@ ReaDebug& ReaDebug::operator << (const std::string& value)
 
 void ReaDebug::Log(const std::string& msg) noexcept
 {
-	try
-	{
-#ifdef _WIN32
-		OutputDebugString(stringToWs(msg).c_str());
-#else
-		std::cout << msg;
-#endif
-	}
-	catch (...)
-	{
-		// Nothing we can do about it ...
-	}
+    Log (msg.c_str());
 }
 
 
@@ -135,6 +127,10 @@ void ReaDebug::Log(const char* msg) noexcept
 	{
 #ifdef _WIN32
 		OutputDebugString(stringToWs(msg).c_str());
+#elifdef __APPLE__
+        openlog("DrivenByMoss", (LOG_CONS|LOG_PERROR|LOG_PID), LOG_USER);
+        syslog(LOG_NOTICE, "%s", msg);
+        closelog();
 #else
 		std::cout << msg;
 #endif
