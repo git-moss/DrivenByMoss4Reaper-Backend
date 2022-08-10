@@ -345,7 +345,7 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 		return nullptr;
 
 	// Note: If the setup dialog is closed with OK, the current surfaceInstance will be destructed but
-	// we cannot creat a new JVM, since this is only possible once!
+	// we cannot create a new JVM, since this is only possible once!
 	if (ENABLE_JAVA && !jvmManager)
 	{
 		jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
