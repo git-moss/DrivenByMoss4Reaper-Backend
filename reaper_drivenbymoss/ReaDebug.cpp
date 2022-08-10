@@ -6,7 +6,10 @@
 #include "ReaDebug.h"
 #include "ReaperUtils.h"
 #include "StringUtils.h"
+
+#ifdef __APPLE__
 #include <sys/syslog.h>
+#endif
 
 // Initialise the static variable
 Model* ReaDebug::model = nullptr;
@@ -127,7 +130,7 @@ void ReaDebug::Log(const char* msg) noexcept
 	{
 #ifdef _WIN32
 		OutputDebugString(stringToWs(msg).c_str());
-#elifdef __APPLE__
+#elif defined __APPLE__
         openlog("DrivenByMoss", (LOG_CONS|LOG_PERROR|LOG_PID), LOG_USER);
         syslog(LOG_NOTICE, "%s", msg);
         closelog();
