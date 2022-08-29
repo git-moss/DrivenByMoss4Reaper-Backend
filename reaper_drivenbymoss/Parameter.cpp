@@ -58,7 +58,7 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
  */
 void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int& deviceIndex, const int& paramIndex, const bool& dump)
 {
-	constexpr int LENGTH = 20;
+	constexpr int LENGTH = 60;
 	std::string nameBuf(LENGTH, 0);
 	char* nameBufPointer = &*nameBuf.begin();
 

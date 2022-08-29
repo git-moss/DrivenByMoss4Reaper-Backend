@@ -155,6 +155,20 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 			this->ClearNote(project, item, channel, pitch, ppqPosStart);
 			return;
 		}
+
+		if (std::strcmp(noteCmd, "moveY") == 0)
+		{
+			MediaItem_Take* take = GetActiveTake(item);
+			if (take == nullptr)
+				return;
+			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
+			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
+			const int channel = atoi(SafeGet(path, 3));
+			const int newPitch = atoi(SafeGet(path, 4));
+			this->MoveNoteY(project, item, channel, pitch, newPitch, ppqPosStart);
+			return;
+		}
+
 		return;
 	}
 
@@ -409,6 +423,40 @@ bool ClipProcessor::ClearNote(ReaProject* project, MediaItem* item, int channel,
 
 	return true;
 }
+
+
+/**
+ * Change the pitch of a note of a certain pitch and position.
+ *
+ * @param project The Reaper project
+ * @param item The media item
+ * @param channel The MIDI channel of the note
+ * @param pitch The current pitch of the note
+ * @param newPitch The new pitch of the note
+ * @param position The position of the note
+ * @return True if note was found and deleted
+ */
+bool ClipProcessor::MoveNoteY(ReaProject* project, MediaItem* item, int channel, int pitch, int newPitch, double position) noexcept
+{
+	MediaItem_Take* take = GetActiveTake(item);
+	if (take == nullptr || !TakeIsMIDI(take))
+		return false;
+
+	const int id = GetNoteIndex(take, channel, pitch, position);
+	if (id < 0)
+		return false;
+
+	PreventUIRefresh(1);
+	MIDI_SetNote(take, id, nullptr, nullptr, nullptr, nullptr, nullptr, &newPitch, nullptr, nullptr);
+	UpdateItemInProject(item);
+	Undo_OnStateChange_Item(project, "Change note pitch", item);
+
+	PreventUIRefresh(-1);
+
+	return true;
+}
+
+
 
 
 /**
