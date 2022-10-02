@@ -476,7 +476,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::vector<st
 
 		// Add track
 		MediaTrack* track = GetSelectedTrack(project, 0);
-		const int trackID = std::max(0, std::min(GetNumTracks(), track == nullptr ? 0 : CSurf_TrackToID(track, false) + 1));
+		const int trackID = std::max(0, std::min(GetNumTracks(), track == nullptr ? 0 : CSurf_TrackToID(track, false)));
 		InsertTrackAtIndex(trackID, true);
 		track = GetTrack(project, trackID);
 		if (track != nullptr)
