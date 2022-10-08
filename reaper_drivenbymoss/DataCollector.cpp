@@ -24,7 +24,6 @@ DataCollector::DataCollector(Model& aModel) :
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	deviceSiblingsSelection(aModel.DEVICE_BANK_SIZE, 0),
 	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0),
-	instrumentParameter("/primary/param/", 0),
 	devicePresetsStr(128, "")
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
@@ -242,7 +241,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	}
 
 	// Cursor device parameters
-	const int paramCount = TrackFX_GetNumParams(track, deviceIndex);
+	const int paramCount = this->deviceExists ? TrackFX_GetNumParams(track, deviceIndex) : 0;
 	this->model.deviceParamCount = Collectors::CollectIntValue(ss, "/device/param/count", this->model.deviceParamCount, paramCount, dump);
 	for (int index = 0; index < paramCount; index++)
 		this->model.GetParameter(index)->CollectData(ss, track, deviceIndex, dump);
@@ -260,10 +259,10 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 		const bool result = instrumentExists && TrackFX_GetFXName(track, instrumentIndex, namePointer, LENGTH);
 		this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? name : "", dump);
 
-		// Currently, we only need 1 parameter for the Kontrol OSC ID
-		this->instrumentParameterCount = Collectors::CollectIntValue(ss, "/primary/param/count", this->instrumentParameterCount, this->instrumentExists ? 1 : 0, dump);
-		if (this->instrumentExists)
-			this->instrumentParameter.CollectData(ss, track, instrumentIndex, dump);
+		const int instParamCount = this->instrumentExists ? TrackFX_GetNumParams(track, instrumentIndex) : 0;
+		this->instrumentParameterCount = Collectors::CollectIntValue(ss, "/primary/param/count", this->instrumentParameterCount, instParamCount, dump);
+		for (int index = 0; index < instParamCount; index++)
+			this->model.GetInstrumentParameter(index)->CollectData(ss, track, instrumentIndex, dump);
 	}
 
 	// 

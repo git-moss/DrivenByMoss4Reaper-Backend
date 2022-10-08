@@ -131,7 +131,6 @@ private:
 	int instrumentPosition{ -1 };
 	std::string instrumentName{};
 	int instrumentParameterCount{ 0 };
-	Parameter instrumentParameter;
 
 	// Equalizer device values
 	int eqExists{ -1 };

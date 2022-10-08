@@ -51,6 +51,7 @@ public:
 	std::unique_ptr<Marker>& GetMarker(const int index);
 	std::unique_ptr<Marker>& GetRegion(const int index);
 	std::unique_ptr<Parameter>& GetParameter(const int index);
+	std::unique_ptr<Parameter>& GetInstrumentParameter(const int index);
 	std::unique_ptr<Parameter>& GetEqParameter(const int index);
 	std::unique_ptr<Parameter>& GetUserParameter(const int index);
 
@@ -66,6 +67,7 @@ private:
 	std::vector<std::unique_ptr<Marker>> markers;
 	std::vector<std::unique_ptr<Marker>> regions;
 	std::vector<std::unique_ptr<Parameter>> parameters;
+	std::vector<std::unique_ptr<Parameter>> instrumentParameters;
 	std::vector<std::unique_ptr<Parameter>> eqParameters;
 	std::vector<std::unique_ptr<Parameter>> userParameters;
 	std::mutex tracklock;
