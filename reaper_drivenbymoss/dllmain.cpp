@@ -265,7 +265,7 @@ void processMidiArgCPP(const JNIEnv* env, jobject object, jint status, jint data
 // Callback for custom actions
 bool hookCommandProc(int command, int flag)
 {
-	if (!jvmManager || !jvmManager->isRunning())
+	if (!jvmManager || !jvmManager->IsRunning())
 		return false;
 
 	if (openDBMConfigureWindowAccel.accel.cmd != 0 && openDBMConfigureWindowAccel.accel.cmd == command)
@@ -320,7 +320,7 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		switch (value)
 		{
 		case IDC_BUTTON_CONFIGURE:
-			if (jvmManager && jvmManager->isRunning())
+			if (jvmManager && jvmManager->IsRunning())
 				jvmManager->DisplayWindow();
 			break;
 		default:
@@ -403,7 +403,7 @@ bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUnd
 	if (ctx == nullptr)
 		return false;
 
-	if (!jvmManager || !jvmManager->isRunning())
+	if (!jvmManager || !jvmManager->IsRunning())
 		return false;
 
 	// Parse the line and check if it is valid and belongs to this extension
@@ -440,7 +440,7 @@ void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_c
 	if (ctx == nullptr)
 		return;
 
-	if (!jvmManager || !jvmManager->isRunning())
+	if (!jvmManager || !jvmManager->IsRunning())
 		return;
 
 	std::string line = jvmManager->GetFormattedDocumentSettings();
@@ -455,7 +455,7 @@ void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg)
 	// Called on project load/undo before any (possible) ProcessExtensionLine. NULL is OK too
 	// also called on "new project" (wont be followed by ProcessExtensionLine calls in that case)
 	// Defaults could be set here but are already set by the controller instances
-	if (jvmManager && jvmManager->isRunning())
+	if (jvmManager && jvmManager->IsRunning())
 		jvmManager->SetDefaultDocumentSettings();
 }
 
@@ -482,7 +482,10 @@ extern "C"
 		if (rec == nullptr)
 		{
 			if (jvmManager)
+			{
+				jvmManager->SetCleanShutdown();
 				jvmManager.reset();
+			}
 			return 0;
 		}
 

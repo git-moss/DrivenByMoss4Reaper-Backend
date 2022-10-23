@@ -43,26 +43,32 @@ JvmManager::~JvmManager()
 	if (this->jvm != nullptr)
 	{
         ReaDebug::Log("DrivenByMoss: Shutting down JVM.");
-        
-		jclass clazz = this->GetControllerClass();
-		if (clazz != nullptr)
+
+		if (this->isCleanShutdown)
 		{
-			try
+			jclass clazz = this->GetControllerClass();
+			if (clazz != nullptr)
 			{
-				jmethodID mid = env->GetStaticMethodID(clazz, "shutdown", "()V");
-				if (mid != nullptr)
+				try
 				{
-					env->CallStaticVoidMethod(clazz, mid);
-					this->HandleException("Could not call shutdown.");
+					jmethodID mid = env->GetStaticMethodID(clazz, "shutdown", "()V");
+					if (mid != nullptr)
+					{
+						env->CallStaticVoidMethod(clazz, mid);
+						this->HandleException("Could not call shutdown.");
+					}
 				}
-			}
-			catch (...)
-			{
-				ReaDebug::Log("Could not call shutdown.");
+				catch (...)
+				{
+					ReaDebug::Log("Could not call shutdown.");
+				}
 			}
 		}
 		this->jvm = nullptr;
 	}
+
+	ReaDebug::Log("DrivenByMoss: Release JVM library resources.");
+
 	this->options.reset();
 	this->env = nullptr;
 

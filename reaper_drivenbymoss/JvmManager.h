@@ -27,7 +27,7 @@ public:
 
 	void init(void* processNoArgCPP, void* processStringArgCPP, void* processStringArgsCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
 
-	bool isRunning() const noexcept
+	bool IsRunning() const noexcept
 	{
 		return this->isInitialised && this->jvm != nullptr;
 	}
@@ -41,6 +41,8 @@ public:
 	void DisplayProjectWindow();
 	void DisplayParameterWindow();
 	void UpdateModel(const std::string& data);
+
+	void SetCleanShutdown() noexcept { this->isCleanShutdown = true; };
 
 	void SetDefaultDocumentSettings();
 	std::string GetFormattedDocumentSettings();
@@ -68,6 +70,7 @@ private:
 
 	bool debug;
 	bool isInitialised{ false };
+	bool isCleanShutdown{ false };
 	jclass controllerClass{ nullptr };
 
 

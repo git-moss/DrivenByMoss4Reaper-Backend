@@ -57,7 +57,7 @@ const char* DrivenByMossSurface::GetConfigString() noexcept
  */
 void DrivenByMossSurface::Run()
 {
-	if (this->jvmManager == nullptr || !this->jvmManager->isRunning() || this->isShutdown)
+	if (this->jvmManager == nullptr || !this->jvmManager->IsRunning() || this->isShutdown)
 		return;
 
 	try
