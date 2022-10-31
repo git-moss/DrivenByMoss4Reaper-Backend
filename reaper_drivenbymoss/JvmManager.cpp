@@ -73,12 +73,14 @@ JvmManager::~JvmManager()
 	this->env = nullptr;
 
 	// Unload JVM library
-	if (this->jvmLibHandle)
+	if (this->jvmLibHandle && this->isCleanShutdown)
+	{
 #ifdef _WIN32
 		FreeLibrary(this->jvmLibHandle);
 #else
 		dlclose(this->jvmLibHandle);
 #endif
+	}
 	this->jvmLibHandle = nullptr;
 }
 
