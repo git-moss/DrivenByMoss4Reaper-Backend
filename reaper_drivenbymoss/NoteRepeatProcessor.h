@@ -5,7 +5,6 @@
 #ifndef _DBM_NOTEREPEATPROCESSOR_H_
 #define _DBM_NOTEREPEATPROCESSOR_H_
 
-#include <string>
 #include "OscProcessor.h"
 
 

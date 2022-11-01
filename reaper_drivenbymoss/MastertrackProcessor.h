@@ -5,8 +5,6 @@
 #ifndef _DBM_MASTERTRACKPROCESSOR_H_
 #define _DBM_MASTERTRACKPROCESSOR_H_
 
-#include <string>
-
 #include "OscProcessor.h"
 #include "Model.h"
 

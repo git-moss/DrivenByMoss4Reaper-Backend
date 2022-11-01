@@ -5,8 +5,6 @@
 #ifndef _DBM_GROOVEPROCESSOR_H_
 #define _DBM_GROOVEPROCESSOR_H_
 
-#include <string>
-
 #include "OscProcessor.h"
 
 

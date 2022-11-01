@@ -112,8 +112,8 @@
 									<listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/GSL"/>
 									<listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL"/>
 									<listOptionValue builtIn="false" value="/home/mos/Dokumente/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/swell"/>
-									<listOptionValue builtIn="false" value="/home/mos/java/jdk-16.0.2+7/include"/>
-									<listOptionValue builtIn="false" value="/home/mos/java/jdk-16.0.2+7/include/linux"/>
+									<listOptionValue builtIn="false" value="/home/mos/java/jdk-17.0.4.1+1/include"/>
+									<listOptionValue builtIn="false" value="/home/mos/java/jdk-17.0.4.1+1/include/linux"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.1657964522" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.dialect.std.1211196558" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++1y" valueType="enumerated"/>

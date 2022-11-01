@@ -5,6 +5,7 @@
 #ifndef _DBM_OSCPROCESSOR_H_
 #define _DBM_OSCPROCESSOR_H_
 
+#include <cstring>
 #include <string>
 #include <deque>
 #include <regex>

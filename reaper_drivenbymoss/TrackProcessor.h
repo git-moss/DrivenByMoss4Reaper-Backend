@@ -5,7 +5,6 @@
 #ifndef _DBM_TRACKPROCESSOR_H_
 #define _DBM_TRACKPROCESSOR_H_
 
-#include <string>
 #include "OscProcessor.h"
 
 

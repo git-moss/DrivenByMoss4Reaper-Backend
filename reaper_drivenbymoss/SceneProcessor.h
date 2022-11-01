@@ -5,8 +5,6 @@
 #ifndef _DBM_SCENEPROCESSOR_H_
 #define _DBM_SCENEPROCESSOR_H_
 
-#include <string>
-
 #include "OscProcessor.h"
 
 

@@ -5,8 +5,6 @@
 #ifndef _DBM_TRANSPORTPROCESSOR_H_
 #define _DBM_TRANSPORTPROCESSOR_H_
 
-#include <string>
-
 #include "WrapperGSL.h"
 #include "OscProcessor.h"
 #include "ReaperUtils.h"

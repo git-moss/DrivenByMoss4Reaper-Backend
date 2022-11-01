@@ -5,8 +5,6 @@
 #ifndef _DBM_PROJECTPROCESSOR_H_
 #define _DBM_PROJECTPROCESSOR_H_
 
-#include <string>
-
 #include "OscProcessor.h"
 
 
