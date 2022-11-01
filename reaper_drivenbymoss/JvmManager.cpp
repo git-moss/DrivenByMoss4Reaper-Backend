@@ -46,6 +46,8 @@ JvmManager::~JvmManager()
 
 		if (this->isCleanShutdown)
 		{
+            ReaDebug::Log("DrivenByMoss: Shutting down JVM cleanly.");
+
 			jclass clazz = this->GetControllerClass();
 			if (clazz != nullptr)
 			{
