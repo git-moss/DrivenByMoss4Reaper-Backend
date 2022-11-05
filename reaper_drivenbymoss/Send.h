@@ -21,7 +21,7 @@ public:
 	std::string volumeStr;
 	std::string color;
 
-	Send();
+	Send() noexcept;
 	Send(const Send&) = delete;
 	Send& operator=(const Send&) = delete;
 	Send(Send&&) = delete;

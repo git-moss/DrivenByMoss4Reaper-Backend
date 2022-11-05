@@ -10,7 +10,7 @@
 /**
  * Constructor.
  */
-Send::Send() : name{ "" }, volume{ 0 }, volumeStr{ "" }, color{ "" }
+Send::Send() noexcept : name{ "" }, volume{ 0 }, volumeStr{ "" }, color{ "" }
 {
 	// Intentionally empty
 }

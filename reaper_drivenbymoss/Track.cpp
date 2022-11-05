@@ -13,7 +13,7 @@ const std::regex Track::INPUT_QUANTIZE_PATTERN{ "INQ\\s+([0-9]+(\\.[0-9]+)?)\\s+
 /**
  * Constructor.
  */
-Track::Track() : name{ "" }, type{ "" }
+Track::Track() noexcept : name{ "" }, type{ "" }
 {
 	// Intentionally empty
 }
