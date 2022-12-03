@@ -133,10 +133,14 @@ HWND__::HWND__(HWND par, int wID, const RECT *wndr, const char *label, bool visi
      }
 }
 
+static HWND s_last_rbuttondown;
+
 HWND__::~HWND__()
 {
   if (m_wndproc)
     m_wndproc(this,WM_NCDESTROY,0,0);
+
+  if (this == s_last_rbuttondown) s_last_rbuttondown = NULL;
 }
 
 
@@ -3817,6 +3821,7 @@ struct SWELL_ListView_Col
   int xwid;
   int sortindicator;
   int col_index;
+  int fmt;  // LVCFMT_
 };
 
 enum { LISTVIEW_HDR_YMARGIN = 2 };
@@ -3857,6 +3862,7 @@ struct listViewState
     m_color_text_sel_inactive = g_swell_ctheme.listview_text_sel_inactive;
     m_color_grid = g_swell_ctheme.listview_grid;
     memset(m_color_extras,0xff,sizeof(m_color_extras)); // if !=-1, overrides bg/fg for (focus?0:2)
+    m_fastclick_mask = 0;
   } 
   ~listViewState()
   { 
@@ -3907,6 +3913,8 @@ struct listViewState
   ListViewCapMode m_capmode_state;
   int m_scroll_x,m_scroll_y, m_capmode_data1,m_capmode_data2;
   int m_extended_style;
+
+  int m_fastclick_mask;
 
   int m_color_bg, m_color_bg_sel, m_color_bg_sel_inactive, m_color_text, m_color_text_sel, m_color_text_sel_inactive, m_color_grid;
   int m_color_extras[4];
@@ -4267,6 +4275,7 @@ static LRESULT listViewWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         const int hit = ypos >= 0 ? ((ypos+lvs->m_scroll_y) / row_height) : -1;
         if (hit < 0) return 1;
 
+        int subitem_col = 0;
         int subitem = 0; // display index
 
         {
@@ -4277,11 +4286,24 @@ static LRESULT listViewWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
           for (int x=0;x<ncol;x++)
           {
             const int xwid = lvs->m_cols.Get()[x].xwid;
-            if (xpt >= xpos && xpt < xpos+xwid) { subitem = x; break; }
+            if (xpt >= xpos && xpt < xpos+xwid)
+            {
+              subitem_col = lvs->m_cols.Get()[x].col_index;
+              subitem = x;
+              break;
+            }
             xpos += xwid;
           }
         }
 
+        if ((subitem_col >= 0 && subitem_col < 32 && (lvs->m_fastclick_mask & (1u<<subitem_col))) || // fastclick mode
+            (lvs->m_status_imagelist && GET_X_LPARAM(lParam) + lvs->m_scroll_x < lvs->m_last_row_height) // image click
+            )
+        {
+          NMLISTVIEW nm={{hwnd,hwnd->m_id,msg == WM_LBUTTONDBLCLK ? NM_DBLCLK : NM_CLICK},hit,lvs->GetColumnIndex(subitem),0,0,0, {s_clickpt.x, s_clickpt.y }};
+          SendMessage(GetParent(hwnd),WM_NOTIFY,hwnd->m_id,(LPARAM)&nm);
+          return 0;
+        }
 
         if (!lvs->m_is_multisel)
         {
@@ -4571,7 +4593,7 @@ forceMouseMove:
               buf[0]=0;
               NMLVDISPINFO nm={{hwnd,hwnd->m_id,LVN_GETDISPINFO},{LVIF_TEXT, offs,col, 0,0, buf, sizeof(buf), -1 }};
               SendMessage(GetParent(hwnd),WM_NOTIFY,hwnd->m_id,(LPARAM)&nm);
-              v = buf;
+              v = nm.item.pszText;
             }
 
             if (v && !strnicmp(v,s,strlen(s))) 
@@ -4832,7 +4854,7 @@ forceMouseMove:
                   }
                   buf[0]=0;
                   SendMessage(par,WM_NOTIFY,hwnd->m_id,(LPARAM)&nm);
-                  str=buf;
+                  str=nm.item.pszText;
                   if (!col && has_image)
                   {
                     if (lvs->m_status_imagelist_type == LVSIL_STATE) image_idx=STATEIMAGEMASKTOINDEX(nm.item.state);
@@ -4889,14 +4911,34 @@ forceMouseMove:
                   }
                   else ar.right = cr.right;
 
-                  if (ar.right > ar.left)
+                  if (ar.right > ar.left && str)
                   {
                     const int adj = (ar.right-ar.left)/16;
                     const int maxadj = SWELL_UI_SCALE(4);
-                    ar.left += wdl_min(adj,maxadj);
+                    int fmt = ncols > 0 ? cols[col].fmt & 3 : LVCFMT_LEFT;
+                    if (fmt != LVCFMT_LEFT)
+                    {
+                      RECT mr={0,};
+                      DrawText(ps.hdc,str,-1,&mr,DT_CALCRECT|DT_SINGLELINE|DT_NOPREFIX);
+                      if (mr.right-mr.left > ar.right-ar.left-maxadj) fmt = LVCFMT_LEFT;
+                    }
 
-                    if(str)
+                    if (fmt == LVCFMT_CENTER)
+                    {
+                      ar.left += maxadj/2;
+                      ar.right -= maxadj/2;
+                      DrawText(ps.hdc,str,-1,&ar,DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+                    }
+                    else if (fmt == LVCFMT_RIGHT)
+                    {
+                      ar.right -= wdl_min(adj,maxadj);
+                      DrawText(ps.hdc,str,-1,&ar,DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+                    }
+                    else
+                    {
+                      ar.left += wdl_min(adj,maxadj);
                       DrawText(ps.hdc,str,-1,&ar,DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+                    }
                   }
                 }
               }
@@ -4979,8 +5021,30 @@ forceMouseMove:
 
                   if (cols[col].name) 
                   {
-                    tr.left += wdl_min((tr.right-tr.left)/4,4);
-                    DrawText(ps.hdc,cols[col].name,-1,&tr,DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+                    const int maxadj = SWELL_UI_SCALE(4);
+                    int fmt = cols[col].fmt & 3;
+                    if (fmt != LVCFMT_LEFT)
+                    {
+                      RECT mr={0,};
+                      DrawText(ps.hdc,cols[col].name,-1,&mr,DT_SINGLELINE|DT_NOPREFIX|DT_CALCRECT);
+                      if (mr.right - mr.left > tr.right-tr.left-maxadj) fmt = LVCFMT_LEFT;
+                    }
+                    if (fmt == LVCFMT_CENTER)
+                    {
+                      tr.left += maxadj/2;
+                      tr.right -= maxadj/2;
+                      DrawText(ps.hdc,cols[col].name,-1,&tr,DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+                    }
+                    else if (fmt == LVCFMT_RIGHT)
+                    {
+                      tr.right -= wdl_min((tr.right-tr.left)/4,maxadj);
+                      DrawText(ps.hdc,cols[col].name,-1,&tr,DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+                    }
+                    else
+                    {
+                      tr.left += wdl_min((tr.right-tr.left)/4,maxadj);
+                      DrawText(ps.hdc,cols[col].name,-1,&tr,DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+                    }
                   }
                 }
                 if (xpos >= cr.right) break;
@@ -6216,6 +6280,9 @@ void ListView_SetExtendedListViewStyleEx(HWND h, int flag, int mask)
 
 void SWELL_SetListViewFastClickMask(HWND hList, int mask)
 {
+  listViewState *lvs = hList ? (listViewState *)hList->m_private_data : NULL;
+  if (WDL_NOT_NORMALLY(!lvs)) return;
+  lvs->m_fastclick_mask = mask;
 }
 
 void ListView_SetImageList(HWND h, HIMAGELIST imagelist, int which)
@@ -6241,6 +6308,7 @@ void ListView_InsertColumn(HWND h, int pos, const LVCOLUMN *lvc)
   SWELL_ListView_Col col = { 0, 100 };
   if (lvc->mask & LVCF_WIDTH) col.xwid = lvc->cx;
   if (lvc->mask & LVCF_TEXT) col.name = lvc->pszText ? strdup(lvc->pszText) : NULL;
+  if (lvc->mask & LVCF_FMT) col.fmt = lvc->fmt;
 
   for (int x = 0; x < lvs->m_cols.GetSize(); x++)
     if (lvs->m_cols.Get()[x].col_index>=pos)
@@ -6265,6 +6333,7 @@ void ListView_SetColumn(HWND h, int pos, const LVCOLUMN *lvc)
     free(col->name);
     col->name = lvc->pszText ? strdup(lvc->pszText) : NULL;
   }
+  if (lvc->mask & LVCF_FMT) col->fmt = lvc->fmt;
 }
 
 void ListView_GetItemText(HWND hwnd, int item, int subitem, char *text, int textmax)
@@ -7351,7 +7420,8 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           HWND h=WindowFromPoint(p);
           if (h && IsChild(hwnd,h)) hwndDest=h;
         }
-        SendMessage(hwnd,WM_CONTEXTMENU,(WPARAM)hwndDest,(p.x&0xffff)|(p.y<<16));
+        if (hwnd == s_last_rbuttondown)
+          SendMessage(hwnd,WM_CONTEXTMENU,(WPARAM)hwndDest,(p.x&0xffff)|(p.y<<16));
       }
     return 1;
     case WM_NCLBUTTONDOWN:
@@ -8467,5 +8537,62 @@ void VALIDATE_HWND_LIST(HWND listHead, HWND par)
 #endif
 
 
+LRESULT SWELL_SendMouseMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+  if (!hwnd || !hwnd->m_wndproc) return -1;
+  if (!IsWindowEnabled(hwnd))
+  {
+    if (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN ||
+        msg == WM_LBUTTONDBLCLK || msg == WM_RBUTTONDBLCLK || msg == WM_MBUTTONDBLCLK)
+    {
+      HWND h = DialogBoxIsActive();
+      if (h) SetForegroundWindow(h);
+    }
+    return -1;
+  }
+
+  if (msg == WM_RBUTTONDOWN) s_last_rbuttondown = hwnd;
+
+  LRESULT htc=0;
+  if (msg != WM_MOUSEWHEEL && !GetCapture())
+  {
+    DWORD p=GetMessagePos();
+
+    htc=hwnd->m_wndproc(hwnd,WM_NCHITTEST,0,p);
+    if (hwnd->m_hashaddestroy||!hwnd->m_wndproc)
+    {
+      return -1; // if somehow WM_NCHITTEST destroyed us, bail
+    }
+
+    if (htc!=HTCLIENT || swell_window_wants_all_input() == hwnd)
+    {
+      if (msg==WM_MOUSEMOVE) return hwnd->m_wndproc(hwnd,WM_NCMOUSEMOVE,htc,p);
+//      if (msg==WM_MOUSEWHEEL) return hwnd->m_wndproc(hwnd,WM_NCMOUSEWHEEL,htc,p);
+//      if (msg==WM_MOUSEHWHEEL) return hwnd->m_wndproc(hwnd,WM_NCMOUSEHWHEEL,htc,p);
+      if (msg==WM_LBUTTONUP) return hwnd->m_wndproc(hwnd,WM_NCLBUTTONUP,htc,p);
+      if (msg==WM_LBUTTONDOWN) return hwnd->m_wndproc(hwnd,WM_NCLBUTTONDOWN,htc,p);
+      if (msg==WM_LBUTTONDBLCLK) return hwnd->m_wndproc(hwnd,WM_NCLBUTTONDBLCLK,htc,p);
+      if (msg==WM_RBUTTONUP) return hwnd->m_wndproc(hwnd,WM_NCRBUTTONUP,htc,p);
+      if (msg==WM_RBUTTONDOWN) return hwnd->m_wndproc(hwnd,WM_NCRBUTTONDOWN,htc,p);
+      if (msg==WM_RBUTTONDBLCLK) return hwnd->m_wndproc(hwnd,WM_NCRBUTTONDBLCLK,htc,p);
+      if (msg==WM_MBUTTONUP) return hwnd->m_wndproc(hwnd,WM_NCMBUTTONUP,htc,p);
+      if (msg==WM_MBUTTONDOWN) return hwnd->m_wndproc(hwnd,WM_NCMBUTTONDOWN,htc,p);
+      if (msg==WM_MBUTTONDBLCLK) return hwnd->m_wndproc(hwnd,WM_NCMBUTTONDBLCLK,htc,p);
+    }
+  }
+
+
+  LRESULT ret=hwnd->m_wndproc(hwnd,msg,wParam,lParam);
+
+  if (msg==WM_LBUTTONUP || msg==WM_RBUTTONUP || msg==WM_MOUSEMOVE || msg==WM_MBUTTONUP)
+  {
+    if (!GetCapture() && (hwnd->m_hashaddestroy || !hwnd->m_wndproc || !hwnd->m_wndproc(hwnd,WM_SETCURSOR,(WPARAM)hwnd,htc | (msg<<16))))
+    {
+      SetCursor(SWELL_LoadCursor(IDC_ARROW));
+    }
+  }
+
+  return ret;
+}
 
 #endif

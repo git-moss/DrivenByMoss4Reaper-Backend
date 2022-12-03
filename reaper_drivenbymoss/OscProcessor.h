@@ -12,6 +12,11 @@
 
 #include "Model.h"
 
+// &1 to prevent track grouping, &2 to prevent selection ganging
+#define IGNORE_GROUP_FLAGS 0
+#define SET_COLOR 0x1000000
+
+
 
 /**
  * Interface to processing commands and executing them on Reaper.

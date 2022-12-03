@@ -70,6 +70,8 @@ static void InvalidateSuperViews(NSView *view);
   }
 
 
+static WDL_PtrList<char> s_prefix_removals;
+
 int g_swell_osx_readonlytext_wndbg = 0;
 int g_swell_osx_style = 0; // &1 = rounded buttons, &2=big sur styled lists
 static void *SWELL_CStringToCFString_FilterPrefix(const char *str)
@@ -87,6 +89,22 @@ static void *SWELL_CStringToCFString_FilterPrefix(const char *str)
     *op++=*p++;
   }
   *op=0;
+
+  // add to recent prefix removal cache for localization
+  if (WDL_NOT_NORMALLY(s_prefix_removals.GetSize() > 256))
+    s_prefix_removals.Delete(0,true,free);
+
+  {
+    const size_t sz1 = strlen(buf), sz2 = strlen(str);
+    char *p = (char *)malloc(sz1+sz2+2);
+    if (WDL_NORMALLY(p!=NULL))
+    {
+      memcpy(p,buf,sz1+1);
+      memcpy(p+sz1+1,str,sz2+1);
+      s_prefix_removals.Add(p);
+    }
+  }
+
   return SWELL_CStringToCFString(buf);
 
 }
@@ -294,6 +312,25 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL("msctls_progress32")
 
 @end
 
+static HTREEITEM FindTreeItemByDataHold(const WDL_PtrList<HTREEITEM__> *list, SWELL_DataHold *srch)
+{
+  for (int x = 0; x < list->GetSize(); x ++)
+  {
+    HTREEITEM item = list->Get(x);
+    if (item && item->m_dh == srch) return item;
+  }
+  for (int x = 0; x < list->GetSize(); x ++)
+  {
+    HTREEITEM item = list->Get(x);
+    if (item && item->m_children.GetSize())
+    {
+      item = FindTreeItemByDataHold(&item->m_children,srch);
+      if (item) return item;
+    }
+  }
+  return NULL;
+}
+
 @implementation SWELL_TreeView
 STANDARD_CONTROL_NEEDSDISPLAY_IMPL("SysTreeView32")
 
@@ -434,11 +471,23 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL("SysTreeView32")
   HWND hwnd = (HWND)self, par = GetParent(hwnd);
   if (par)
   {
-    TVHITTESTINFO tht;
-    memset(&tht,0,sizeof(tht));
-    GetCursorPos(&tht.pt);
-    ScreenToClient(hwnd, &tht.pt);
-    HTREEITEM sel = TreeView_GetSelection(hwnd), hit = TreeView_HitTest(hwnd, &tht);
+    HTREEITEM hit = NULL;
+    if (m_items && [draggedItems count] > 0)
+    {
+      id obj = [draggedItems objectAtIndex:0];
+      if ([obj isKindOfClass:[SWELL_DataHold class]])
+        hit = FindTreeItemByDataHold(m_items, (SWELL_DataHold *)obj);
+    }
+    if (!hit)
+    {
+      TVHITTESTINFO tht;
+      memset(&tht,0,sizeof(tht));
+      GetCursorPos(&tht.pt);
+      ScreenToClient(hwnd, &tht.pt);
+      hit = TreeView_HitTest(hwnd, &tht);
+    }
+
+    HTREEITEM sel = TreeView_GetSelection(hwnd);
     if (hit && hit != sel) 
     {
       TreeView_SelectItem(hwnd,hit);
@@ -1490,6 +1539,15 @@ LONG_PTR GetWindowLong(HWND hwnd, int idx)
   }
   if (idx==GWL_USERDATA && [pid isKindOfClass:[NSText class]])
   {
+    NSView *par = [pid superview];
+    if (par)
+    {
+      if (![par isKindOfClass:[SWELL_TextField class]])
+        par = [par superview];
+      if ([par isKindOfClass:[SWELL_TextField class]])
+        return [(SWELL_TextField*)par getSwellUserData];
+    }
+
     return 0xdeadf00b;
   }
   
@@ -3200,6 +3258,7 @@ static int m_make_radiogroupcnt;
 
 void SWELL_MakeSetCurParms(float xscale, float yscale, float xtrans, float ytrans, HWND parent, bool doauto, bool dosizetofit)
 {
+  if (parent) s_prefix_removals.Empty(true,free);
   m_make_radiogroupcnt=0;
   m_sizetofits=dosizetofit;
   m_lastdoauto.origin.x = 0;
@@ -3433,6 +3492,7 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL([self isSelectable] ? "Edit" : "Static")
     m_disable_menu = false;
     m_ctlcolor_set = false;
     m_last_dark_mode = false;
+    m_userdata = 0;
   }
   return self;
 }
@@ -3503,6 +3563,14 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL([self isSelectable] ? "Edit" : "Static")
   return m_disable_menu ? nil : menu;
 }
 
+-(LONG_PTR)getSwellUserData
+{
+  return m_userdata;
+}
+-(void)setSwellUserData:(LONG_PTR)val
+{
+  m_userdata = val;
+}
 
 @end
 
@@ -7199,6 +7267,16 @@ int SWELL_IsRetinaHWND(HWND hwnd)
     if (str.size.width > 1.9) return 1;
   }
   return 0;
+}
+
+const char *SWELL_GetRecentPrefixRemoval(const char *p)
+{
+  for (int x = 0; x < s_prefix_removals.GetSize(); x ++)
+  {
+    const char *s = s_prefix_removals.Get(x);
+    if (!strcmp(s,p)) return s+strlen(s)+1;
+  }
+  return NULL;
 }
 
 #endif

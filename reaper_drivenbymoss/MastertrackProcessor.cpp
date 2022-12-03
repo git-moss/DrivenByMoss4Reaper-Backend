@@ -101,7 +101,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 		if (path.size() == 1)
 		{
 			this->model.masterVolume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			const double newVolume = CSurf_OnVolumeChange(track, this->model.masterVolume, false);
+			const double newVolume = SetTrackUIVolume(track, this->model.masterVolume, false, true, IGNORE_GROUP_FLAGS);
 			if (!this->model.isMasterVolumeTouch)
 				CSurf_SetSurfaceVolume(track, newVolume, surfaceInstance);
 			return;
@@ -120,7 +120,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 		if (path.size() == 1)
 		{
 			this->model.masterPan = value * 2 - 1;
-			const double newPan = CSurf_OnPanChange(track, this->model.masterPan, false);
+			const double newPan = SetTrackUIPan(track, this->model.masterPan, false, true, IGNORE_GROUP_FLAGS);
 			if (!this->model.isMasterPanTouch)
 				CSurf_SetSurfacePan(track, newPan, nullptr);
 			return;
@@ -195,7 +195,7 @@ void MastertrackProcessor::SetColorOfTrack(ReaProject* project, MediaTrack* trac
 	PreventUIRefresh(1);
 	Undo_BeginBlock2(project);
 	// Note: SetTrackColor is not working for the master track
-	SetMediaTrackInfo_Value(track, "I_CUSTOMCOLOR", ColorToNative(red, green, blue));
+	SetMediaTrackInfo_Value(track, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | SET_COLOR);
 	Undo_EndBlock2(project, "Set master track color", UNDO_STATE_ALL);
 	PreventUIRefresh(-1);
 }

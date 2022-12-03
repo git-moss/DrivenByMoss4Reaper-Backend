@@ -27,10 +27,9 @@ Track::Track() noexcept : name{ "" }, type{ "" }
  * @param track The track
  * @param trackIndex The index of the track
  * @param slowUpdate If true, also update the data on the slow thread
- * @param readChunk If true, also read data only available via the track chunk (which is slow)
  * @param dump If true all data is collected not only the changed one since the last call
  */
-void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& readChunk, const bool& dump)
+void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& dump)
 {
 	std::ostringstream das;
 	das << "/track/" << trackIndex << "/";
@@ -62,24 +61,6 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->mute = Collectors::CollectIntValue(ss, (trackAddress + "mute").c_str(), this->mute, this->GetMute(track, cursorPos, trackState), dump);
 	this->solo = Collectors::CollectIntValue(ss, (trackAddress + "solo").c_str(), this->solo, (trackState & 16) > 0 ? 1 : 0, dump);
 	this->recArmed = Collectors::CollectIntValue(ss, (trackAddress + "recarm").c_str(), this->recArmed, (trackState & 64) > 0 ? 1 : 0, dump);
-
-	if (readChunk)
-	{
-		// Only update the performance heavy chunk analysis when playback is stopped...
-		if ((GetPlayStateEx(project) & 1) == 0)
-		{
-			// Attributes which need to be read from the track chunk...
-			std::string tempChunk(CHUNK_LENGTH, 0);
-			char* tempChunkPointer = &*tempChunk.begin();
-
-			if (slowUpdate && GetTrackStateChunk(track, tempChunkPointer, CHUNK_LENGTH, false))
-			{
-				// Uses "lock track" as active indication
-				this->isActive = Collectors::CollectIntValue(ss, (trackAddress + "active").c_str(), this->isActive, GetTrackLockState(tempChunkPointer) ? 0 : 1, dump);
-				this->ParseInputQuantize(ss, trackAddress, dump, tempChunkPointer);
-			}
-		}
-	}
 
 	const double monitor = GetMediaTrackInfo_Value(track, "I_RECMON");
 	this->monitor = Collectors::CollectIntValue(ss, (trackAddress + "monitor").c_str(), this->monitor, monitor == 1 ? 1 : 0, dump);
@@ -180,29 +161,4 @@ int Track::GetMute(MediaTrack* track, double position, int trackState) const noe
 		}
 	}
 	return (trackState & 8) > 0 ? 1 : 0;
-}
-
-
-int Track::GetTrackLockState(const char* chunk) const
-{
-	std::cmatch result{};
-	if (!std::regex_search(chunk, result, LOCK_PATTERN))
-		return 0;
-	return std::atoi(result.str(1).c_str());
-}
-
-
-void Track::ParseInputQuantize(std::ostringstream& ss, const std::string& trackAddress, const bool& dump, const char* chunk)
-{
-	std::cmatch result{};
-	if (!std::regex_search(chunk, result, INPUT_QUANTIZE_PATTERN))
-		return;
-
-	// "INQ 0 0 0 0.5 100 0 0 100" (Quantize Track Midi Recording (0/1), Positioning (-1/0/1), Quantize Note Offs (0/1), Period (double), ?, ?, ?, ?)
-	int isEnabled = std::atoi(result.str(1).c_str());
-	const int isLengthEnabled = std::atoi(result.str(5).c_str());
-	double resolution = isEnabled == 0 ? 0 : std::atof(result.str(7).c_str());
-
-	this->inQuantLengthEnabled = Collectors::CollectIntValue(ss, (trackAddress + "inQuantLengthEnabled").c_str(), this->inQuantLengthEnabled, isLengthEnabled, dump);
-	this->inQuantResolution = Collectors::CollectDoubleValue(ss, (trackAddress + "inQuantResolution").c_str(), this->inQuantResolution, resolution, dump);
 }

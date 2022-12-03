@@ -16,7 +16,7 @@ const char *EnumMexKeys(int i, const char **desc=NULL)
 {
   // TO_DO_IF_METADATA_UPDATE
   static const char *s_mexkeys[]=
-    {"TITLE", "ARTIST", "ALBUM", "YEAR", "GENRE", "COMMENT", "DESC", "BPM", "KEY", "DB_CUSTOM", "TRACKNUMBER"};
+    {"TITLE", "ARTIST", "ALBUM", "TRACKNUMBER", "YEAR", "GENRE", "COMMENT", "DESC", "BPM", "KEY", "DB_CUSTOM"};
   static const char *s_mexdesc[]=
     {"Title", "Artist", "Album", "Track", "Date", "Genre", "Comment", "Description", "BPM", "Key", "Media Explorer Tags"};
 
@@ -906,7 +906,7 @@ const char *EnumMetadataSchemeFromFileType(const char *filetype, int idx)
   };
   static const char *AIF_SCHEMES[]=
   {
-    "IFF", "XMP",
+    "IFF", "XMP", "ID3"
   };
   static const char *CAF_SCHEMES[]=
   {
@@ -1600,7 +1600,7 @@ int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
     for (int i=0; i < rawtags->GetSize(); ++i)
     {
       ID3RawTag *rawtag=rawtags->Get(i);
-      if (WDL_NORMALLY(rawtag && rawtag->key && rawtag->key[0] && rawtag->val.GetSize()))
+      if (WDL_NORMALLY(rawtag && rawtag->key[0] && rawtag->val.GetSize()))
       {
         id3len += 8+rawtag->val.GetSize();
       }
@@ -1812,7 +1812,7 @@ int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
         for (int i=0; i < rawtags->GetSize(); ++i)
         {
           ID3RawTag *rawtag=rawtags->Get(i);
-          if (WDL_NORMALLY(rawtag && rawtag->key && rawtag->key[0] && rawtag->val.GetSize()))
+          if (WDL_NORMALLY(rawtag && rawtag->key[0] && rawtag->val.GetSize()))
           {
             memcpy(p, rawtag->key, strlen(rawtag->key));
             p += strlen(rawtag->key);
@@ -1998,15 +1998,15 @@ bool PackFlacPicBase64(WDL_StringKeyedArray<char*> *metadata,
   else if (ext && !stricmp(ext, ".png")) mime="image/png";
   if (!mime) return false;
 
-  WDL_FileRead *fr=new WDL_FileRead(picfn);
-  if (!fr) return false;
+  WDL_FileRead fr(picfn);
+  if (!fr.IsOpen()) return false;
 
-  int datalen=fr->GetSize();
-  if (!datalen)
+  WDL_INT64 datalen64=fr.GetSize();
+  if (datalen64 < 1 || datalen64 >= (1<<30))
   {
-    delete fr;
     return false;
   }
+  int datalen = (int)datalen64;
   int r8 = (datalen&7) ? 8-(datalen&7) : 0;
 
   // see opusfile src/info.c opus_picture_tag_parse_impl
@@ -2026,7 +2026,6 @@ bool PackFlacPicBase64(WDL_StringKeyedArray<char*> *metadata,
   unsigned char *p=(unsigned char*)hb_bin.ResizeOK(binlen);
   if (!p)
   {
-    delete fr;
     return false;
   }
   unsigned char *op=p;
@@ -2045,8 +2044,7 @@ bool PackFlacPicBase64(WDL_StringKeyedArray<char*> *metadata,
   _AddInt32(0);
   _AddInt32(datalen+r8);
 
-  fr->Read(p, datalen);
-  delete fr;
+  fr.Read(p, datalen);
   p += datalen;
 
   memset(p, 0, r8);
@@ -2069,6 +2067,62 @@ bool PackFlacPicBase64(WDL_StringKeyedArray<char*> *metadata,
 
   return false;
 }
+
+bool ExportMetadataImageToTmpFile(const char *srcfn, const char *infostr,
+  WDL_FastString *imgdesc, WDL_FastString *imgtype, WDL_FastString *imgfn)
+{
+  if (!srcfn || !srcfn[0] || !infostr || !infostr[0] || !imgfn) return false;
+
+  WDL_HeapBuf tmp;
+  int tmplen=strlen(infostr);
+  if (!tmp.ResizeOK(tmplen+1)) return false;
+  memcpy(tmp.Get(), infostr, tmplen+1);
+
+  const char *ext=NULL, *mime=NULL, *desc=NULL, *type=NULL, *offs=NULL, *len=NULL;
+  char *p=(char*)tmp.Get();
+  for (int i=0; i < tmplen; ++i)
+  {
+    if (!strncmp(p+i, "ext:", 4)) { if (i) p[i-1]=0; i += 4; ext=p+i; }
+    else if (!strncmp(p+i, "mime:", 5)) { if (i) p[i-1]=0; i += 5; mime=p+i; }
+    else if (!strncmp(p+i, "desc:", 5)) { if (i) p[i-1]=0; i += 5; desc=p+i; }
+    else if (!strncmp(p+i, "type:", 5)) { if (i) p[i-1]=0; i += 5; type=p+i; }
+    else if (!strncmp(p+i, "offset:", 7)) { if (i) p[i-1]=0; i += 7; offs=p+i; }
+    else if (!strncmp(p+i, "length:", 7)) { if (i) p[i-1]=0; i += 7; len=p+i; }
+  }
+
+  WDL_INT64 ioffs = offs ? (WDL_INT64)atof(offs) : 0;
+  int ilen = len ? atoi(len) : 0;
+
+  bool ok=false;
+  if ((ext || mime) && ioffs > 0 && ilen > 0)
+  {
+    WDL_FileRead fr(srcfn);
+    if (fr.IsOpen() && fr.GetSize() >= ioffs+ilen)
+    {
+      fr.SetPosition(ioffs);
+
+      char tmppath[2048];
+      tmppath[0]=0;
+      GetTempPath(sizeof(tmppath), tmppath);
+      imgfn->Set(tmppath);
+      imgfn->Append(WDL_get_filepart(srcfn));
+      imgfn->Append(".");
+      if (ext) imgfn->Append(ext);
+      else if (mime && !strncmp(mime, "image/", 6)) imgfn->Append(mime+6);
+
+      WDL_FileWrite fw(imgfn->Get());
+      if (fw.IsOpen() && CopyFileData(&fr, &fw, ilen))
+      {
+        if (desc && imgdesc) imgdesc->Set(desc);
+        if (type && imgtype) imgtype->Set(type);
+        ok=true;
+      }
+    }
+  }
+
+  return ok;
+}
+
 
 
 #endif // _METADATA_H_

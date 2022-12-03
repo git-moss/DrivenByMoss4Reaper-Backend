@@ -21,7 +21,6 @@ class Track
 {
 public:
 	static const int NAME_LENGTH{ 20 };
-	static const int CHUNK_LENGTH{ 4096 };
 	static const std::regex LOCK_PATTERN;
 	static const std::regex INPUT_QUANTIZE_PATTERN;
 
@@ -39,11 +38,6 @@ public:
 	int monitor{ 0 };
 	int autoMonitor{ 0 };
 	int overdub{ 0 };
-
-	int isActive{ 0 };
-	int inQuantEnabled{ 0 };
-	int inQuantLengthEnabled{ 0 };
-	double inQuantResolution{ 0.25 };
 
 	std::string color;
 
@@ -63,7 +57,7 @@ public:
 
 	Track() noexcept;
 
-	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& readChunk, const bool& dump);
+	void CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, int trackIndex, const bool& slowUpdate, const bool& dump);
 
 	std::unique_ptr<Send>& GetSend(const int index);
 
@@ -75,9 +69,6 @@ private:
 	int sendCount{ 0 };
 	std::vector<std::unique_ptr<Send>> sends;
 	std::mutex sendlock;
-
-	int GetTrackLockState(const char* chunk) const;
-	void ParseInputQuantize(std::ostringstream& ss, const std::string& trackAddress, const bool& dump, const char* chunk);
 };
 
 #endif /* _DBM_TRACK_H_ */

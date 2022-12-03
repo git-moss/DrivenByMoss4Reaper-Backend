@@ -201,6 +201,20 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 		return;
 	}
 
+	if (std::strcmp(cmd, "toggleMultiSelect") == 0)
+	{
+		const bool isSelected = !IsTrackSelected(track);
+		SetTrackSelected(track, isSelected);
+		if (isSelected)
+		{
+			ScrollTrackIntoView(track);
+			const int deviceCount = TrackFX_GetCount(track);
+			if (this->model.deviceSelected >= deviceCount)
+				this->model.deviceSelected = 0;
+		}
+		return;
+	}
+
 	if (std::strcmp(cmd, "isGroupExpanded") == 0)
 	{
 		int folderCompact = value > 0 ? 0 : 2;
@@ -222,31 +236,31 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 
 	if (std::strcmp(cmd, "solo") == 0)
 	{
-		CSurf_OnSoloChange(track, value);
+		SetTrackUISolo(track, value, IGNORE_GROUP_FLAGS);
 		return;
 	}
 
 	if (std::strcmp(cmd, "mute") == 0)
 	{
-		CSurf_OnMuteChange(track, value);
+		SetTrackUIMute(track, value, IGNORE_GROUP_FLAGS);
 		return;
 	}
 
 	if (std::strcmp(cmd, "recarm") == 0)
 	{
-		CSurf_OnRecArmChange(track, value);
+		SetTrackUIRecArm(track, value, IGNORE_GROUP_FLAGS);
 		return;
 	}
 
 	if (std::strcmp(cmd, "monitor") == 0)
 	{
-		SetMediaTrackInfo_Value(track, "I_RECMON", value > 0 ? 1 : 0);
+		SetTrackUIInputMonitor(track, value > 0 ? 1 : 0, IGNORE_GROUP_FLAGS);
 		return;
 	}
 
 	if (std::strcmp(cmd, "autoMonitor") == 0)
 	{
-		SetMediaTrackInfo_Value(track, "I_RECMON", value > 0 ? 2 : 0);
+		SetTrackUIInputMonitor(track, value > 0 ? 2 : 0, IGNORE_GROUP_FLAGS);
 		return;
 	}
 
@@ -320,7 +334,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		if (path.size() == 2)
 		{
 			trackData->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			const double newVolume = CSurf_OnVolumeChange(track, trackData->volume, false);
+			const double newVolume = SetTrackUIVolume(track, trackData->volume, false, true, IGNORE_GROUP_FLAGS);
 			if (!trackData->isVolumeTouch)
 				CSurf_SetSurfaceVolume(track, newVolume, surfaceInstance);
 			return;
@@ -339,7 +353,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		if (path.size() == 2)
 		{
 			trackData->pan = value * 2 - 1;
-			const double newPan = CSurf_OnPanChange(track, trackData->pan, false);
+			const double newPan = SetTrackUIPan(track, trackData->pan, false, true, IGNORE_GROUP_FLAGS);
 			if (!trackData->isPanTouch)
 				CSurf_SetSurfacePan(track, newPan, nullptr);
 			return;
@@ -360,7 +374,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
 			DISABLE_WARNING_DANGLING_POINTER
-				const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
+			const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
 			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
 		}
@@ -371,10 +385,6 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 	{
 		if (value < 0 || value > 1)
 			return;
-		char chunk[Track::CHUNK_LENGTH];
-		DISABLE_WARNING_ARRAY_POINTER_DECAY
-			if (!GetTrackStateChunk(track, chunk, Track::CHUNK_LENGTH, false))
-				return;
 
 		if (value == 0)
 		{

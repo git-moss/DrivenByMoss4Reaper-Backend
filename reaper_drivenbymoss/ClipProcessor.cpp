@@ -296,16 +296,7 @@ void ClipProcessor::SetColorOfClip(ReaProject* project, MediaItem* item, const s
 	}
 
 	PreventUIRefresh(1);
-	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
-
-	const int takes = CountTakes(item);
-	for (int i = 0; i < takes; i++)
-	{
-		MediaItem_Take* take = GetTake(item, i);
-		if (take)
-			SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | 0x100000);
-	}
-
+	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | SET_COLOR);
 	UpdateItemInProject(item);
 	Undo_OnStateChange_Item(project, "Set clip color", item);
 	PreventUIRefresh(-1);
