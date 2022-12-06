@@ -139,8 +139,8 @@ private:
 	// Browser values
 	std::string devicePresetName{};
 	int devicePresetIndex{};
-	std::vector<std::string> devicePresetsStr;
-
+	std::string devicePresetFilename{};
+	
 	// NoteRepeat values
 	int repeatActive{ 0 };
 	double repeatRate{ 1.0 };
@@ -176,7 +176,6 @@ private:
 	int GetMasterMute(MediaTrack* master, double position, int trackState) const noexcept;
 
 	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const noexcept;
-	void LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* track, int fx, const bool& dump);
 };
 
 #endif /* _DBM_DATACOLLECTOR_H_ */

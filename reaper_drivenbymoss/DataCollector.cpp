@@ -23,8 +23,7 @@ DataCollector::DataCollector(Model& aModel) :
 	crossfaderParameter("/master/user/param/", 0),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	deviceSiblingsSelection(aModel.DEVICE_BANK_SIZE, 0),
-	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0),
-	devicePresetsStr(128, "")
+	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0)
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
 
@@ -585,20 +584,23 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
  */
 void DataCollector::CollectBrowserData(std::ostringstream& ss, MediaTrack* track, const bool& dump)
 {
-	if (this->slowCounter != 0)
-		return;
+	const int deviceIndex = this->model.GetDeviceSelection();
 
-	const int sel = this->model.GetDeviceSelection();
+	// Get the filename which contains the available presets of the device
+	constexpr int PRESET_FILENAME_LENGTH = 1024;
+	std::string filename(PRESET_FILENAME_LENGTH, 0);
+	char* filenamePointer = &*filename.begin();
+	TrackFX_GetUserPresetFilename(track, deviceIndex, filenamePointer, PRESET_FILENAME_LENGTH);
+	this->devicePresetFilename = Collectors::CollectStringValue(ss, "/browser/presetsfile", this->devicePresetFilename, filenamePointer, dump);
 
-	LoadDevicePresetFile(ss, track, sel, dump);
-
-	constexpr int LENGTH = 20;
-	std::string presetname(TIME_LENGTH, 0);
+	// Get the current preset index and name
+	constexpr int PRESET_LENGTH = 20;
+	std::string presetname(PRESET_LENGTH, 0);
 	char* presetnamePointer = &*presetname.begin();
-	TrackFX_GetPreset(track, sel, presetnamePointer, LENGTH);
+	TrackFX_GetPreset(track, deviceIndex, presetnamePointer, PRESET_LENGTH);
 	this->devicePresetName = Collectors::CollectStringValue(ss, "/browser/selected/name", this->devicePresetName, presetname, dump);
 	int numberOfPresets;
-	const int selectedIndex = TrackFX_GetPresetIndex(track, sel, &numberOfPresets);
+	const int selectedIndex = TrackFX_GetPresetIndex(track, deviceIndex, &numberOfPresets);
 	this->devicePresetIndex = Collectors::CollectIntValue(ss, "/browser/selected/index", this->devicePresetIndex, selectedIndex, dump);
 }
 
@@ -900,73 +902,4 @@ MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, Me
 			return take;
 	}
 	return nullptr;
-}
-
-
-void DataCollector::LoadDevicePresetFile(std::ostringstream& ss, MediaTrack* track, int fx, const bool& dump)
-{
-	constexpr int LENGTH = 1024;
-	std::string filename(LENGTH, 0);
-	char* filenamePointer = &*filename.begin();
-
-	TrackFX_GetUserPresetFilename(track, fx, filenamePointer, LENGTH);
-
-	try
-	{
-		std::ifstream file;
-		std::string line;
-		int count{ 0 };
-
-		file.open(filename);
-		while (file.good())
-		{
-			std::getline(file, line);
-
-			// First parse the Index of the Preset from the header e.g. [Preset23]
-			std::cmatch headerResult;
-			if (!std::regex_search(line.c_str(), headerResult, presetHeaderPattern))
-				continue;
-
-			const int index = std::atoi(headerResult.str(1).c_str());
-			if (index < 0)
-				continue;
-
-			bool found{ false };
-
-			// Now find the name of the preset and store it
-			while (file.good() && !found)
-			{
-				std::getline(file, line);
-
-				std::cmatch result;
-				if (!std::regex_search(line.c_str(), result, presetNamePattern))
-					continue;
-
-				std::string name = result.str(1);
-
-				std::ostringstream das;
-				das << "/browser/result/" << index + 1 << "/name";
-				Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, this->devicePresetsStr, name.c_str(), dump);
-
-				count = std::max(count, index);
-				found = true;
-			}
-		}
-		file.close();
-
-		// Clear the rest of the presets
-		while (count < 128)
-		{
-			std::ostringstream das;
-			das << "/browser/result/" << count + 1 << "/name";
-			Collectors::CollectStringArrayValue(ss, das.str().c_str(), count, this->devicePresetsStr, "", dump);
-			count += 1;
-		}
-	}
-	catch (const std::ios_base::failure& ex)
-	{
-		(void)ex;
-		// File does not exist
-		return;
-	}
 }
