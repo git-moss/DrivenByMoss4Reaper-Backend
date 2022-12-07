@@ -59,6 +59,10 @@ private:
 	const std::regex presetHeaderPattern{ "\\[Preset(.*)\\]" };
 	const std::regex presetNamePattern{ "Name=(.*)" };
 
+	// Global values
+	std::string preRoll{};
+	std::string preRollMeasures{};
+
 	// Project values
 	std::string projectName{};
 	int projectEngine{};

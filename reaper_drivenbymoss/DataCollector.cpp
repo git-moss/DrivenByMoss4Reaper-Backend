@@ -63,10 +63,10 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 
 	this->slowCounter = (this->slowCounter + 1) % SLOW_UPDATE;
 
-	if (IsActive("transport"))
-		CollectTransportData(ss, project, dump);
 	if (IsActive("project"))
 		CollectProjectData(ss, project, dump);
+	if (IsActive("transport"))
+		CollectTransportData(ss, project, dump);
 	if (IsActive("track"))
 		CollectTrackData(ss, project, dump);
 	if (IsActive("device"))
@@ -91,6 +91,31 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 
 
 /**
+ * Collect the (changed) project data.
+ *
+ * @param ss The stream where to append the formatted data
+ * @param project The current Reaper project
+ * @param dump If true all data is collected not only the changed one since the last call
+ */
+void DataCollector::CollectProjectData(std::ostringstream& ss, ReaProject* project, const bool& dump)
+{
+	if (this->slowCounter == 0 || dump)
+	{
+		constexpr int LENGTH = 50;
+		std::string newProjectName(LENGTH, 0);
+		char* newProjectNamePointer = &*newProjectName.begin();
+		GetProjectName(project, newProjectNamePointer, LENGTH);
+
+		this->projectName = Collectors::CollectStringValue(ss, "/project/name", this->projectName, newProjectName, dump);
+		this->projectEngine = Collectors::CollectIntValue(ss, "/project/engine", this->projectEngine, Audio_IsRunning(), dump);
+	}
+
+	this->canUndo = Collectors::CollectIntValue(ss, "/project/canUndo", this->canUndo, Undo_CanUndo2(project) == nullptr ? 0 : 1, dump);
+	this->canRedo = Collectors::CollectIntValue(ss, "/project/canRedo", this->canRedo, Undo_CanRedo2(project) == nullptr ? 0 : 1, dump);
+}
+
+
+/**
  * Collect the (changed) transport data.
  *
  * @param ss The stream where to append the formatted data
@@ -107,7 +132,7 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	// The tempo
 	this->tempo = Collectors::CollectDoubleValue(ss, "/tempo", this->tempo, Master_GetTempo(), dump);
 
-	// Click / metronome values
+	// Metronome settings
 	this->metronome = Collectors::CollectIntValue(ss, "/click", this->metronome, GetToggleCommandState(40364), dump);
 	this->prerollClick = Collectors::CollectIntValue(ss, "/click/preroll", this->prerollClick, GetToggleCommandState(41819), dump);
 
@@ -119,6 +144,12 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	const double volDB = ReaperUtils::ValueToDB(value);
 	this->metronomeVolume = Collectors::CollectDoubleValue(ss, "/click/volume", this->metronomeVolume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->metronomeVolumeStr = Collectors::CollectStringValue(ss, "/click/volumeStr", this->metronomeVolumeStr, Collectors::FormatDB(volDB).c_str(), dump);
+
+	char valueStr[20];
+	bool result = get_config_var_string("preroll", valueStr, 3);
+	this->preRoll = Collectors::CollectStringValue(ss, "/click/preroll", this->preRoll, result ? valueStr : "", dump);
+	result = get_config_var_string("prerollmeas", valueStr, 20);
+	this->preRollMeasures = Collectors::CollectStringValue(ss, "/click/prerollMeasures", this->preRollMeasures, result ? valueStr : "", dump);
 
 	// Get the time signature at the current play position, if playback is active or never was read
 	const double cursorPos = ReaperUtils::GetCursorPosition(project);
@@ -163,31 +194,6 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 
 	// Additional info
 	this->followPlayback = Collectors::CollectIntValue(ss, "/followPlayback", this->followPlayback, GetToggleCommandState(40036), dump);
-}
-
-
-/**
- * Collect the (changed) project data.
- *
- * @param ss The stream where to append the formatted data
- * @param project The current Reaper project
- * @param dump If true all data is collected not only the changed one since the last call
- */
-void DataCollector::CollectProjectData(std::ostringstream& ss, ReaProject* project, const bool& dump)
-{
-	if (this->slowCounter == 0 || dump)
-	{
-		constexpr int LENGTH = 50;
-		std::string newProjectName(LENGTH, 0);
-		char* newProjectNamePointer = &*newProjectName.begin();
-		GetProjectName(project, newProjectNamePointer, LENGTH);
-
-		this->projectName = Collectors::CollectStringValue(ss, "/project/name", projectName, newProjectName, dump);
-		this->projectEngine = Collectors::CollectIntValue(ss, "/project/engine", projectEngine, Audio_IsRunning(), dump);
-	}
-
-	this->canUndo = Collectors::CollectIntValue(ss, "/project/canUndo", this->canUndo, Undo_CanUndo2(project) == nullptr ? 0 : 1, dump);
-	this->canRedo = Collectors::CollectIntValue(ss, "/project/canRedo", this->canRedo, Undo_CanRedo2(project) == nullptr ? 0 : 1, dump);
 }
 
 
@@ -677,17 +683,17 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 			// Format track index, clip index, name, selected state and color in one string
 			DISABLE_WARNING_ARRAY_POINTER_DECAY
-			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
-			{
-				std::string s{ buf };
-				std::replace(s.begin(), s.end(), ';', ' ');
-				allClipStr << s;
-			}
-			else
-			{
-				ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
-				allClipStr << "Unknown";
-			}
+				if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
+				{
+					std::string s{ buf };
+					std::replace(s.begin(), s.end(), ';', ' ');
+					allClipStr << s;
+				}
+				else
+				{
+					ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
+					allClipStr << "Unknown";
+				}
 
 			const bool isSelected = IsMediaItemSelected(item);
 			allClipStr << ";" << isSelected;

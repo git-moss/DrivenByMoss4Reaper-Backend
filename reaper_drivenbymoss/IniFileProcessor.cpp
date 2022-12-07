@@ -29,14 +29,15 @@ void IniFileProcessor::Process(std::deque<std::string>& path, int value) noexcep
 	{
 #ifdef _WIN32
 		const std::wstring category = stringToWs(path.at(0));
-		const std::wstring key = stringToWs(path.at(1));
+		const std::string varName = path.at(1);
+		const std::wstring key = stringToWs(varName);
 		const std::wstring iniPath = stringToWs(GetIniName());
 #else
 		const std::string category = path.at(0);
-		const std::string key = path.at(1);
+		const std::string varName = path.at(1);
+		const std::string key = varName;
 		const std::string iniPath = GetIniName();
 #endif			
-
 		const int currValue = GetPrivateProfileInt(category.c_str(), key.c_str(), -1, iniPath.c_str());
 		if (currValue == value)
 			return;
@@ -48,6 +49,16 @@ void IniFileProcessor::Process(std::deque<std::string>& path, int value) noexcep
 #endif
 		if (!WritePrivateProfileString(category.c_str(), key.c_str(), v.c_str(), iniPath.c_str()))
 			ReaDebug() << "ERROR: Could not store parameter in REAPER.ini";
+
+		// Also write memory but currently only supports 'double' values!
+		int size;
+		void* addr = get_config_var(varName.c_str(), &size);
+		if (addr != nullptr && size == sizeof(double))
+		{
+			double* m_addr = static_cast<double*>(addr);
+			double measures = value;
+			*m_addr = measures;
+		}
 	}
 	catch (...)
 	{
