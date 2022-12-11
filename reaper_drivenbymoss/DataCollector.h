@@ -68,6 +68,7 @@ private:
 	int projectEngine{};
 	int canUndo{ 1 };
 	int canRedo{ 1 };
+	int isDirty{ 0 };
 
 	// Clip values
 	int clipExists{ -1 };
@@ -144,7 +145,7 @@ private:
 	std::string devicePresetName{};
 	int devicePresetIndex{};
 	std::string devicePresetFilename{};
-	
+
 	// NoteRepeat values
 	int repeatActive{ 0 };
 	double repeatRate{ 1.0 };
