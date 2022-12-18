@@ -17,11 +17,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             artifact_name: reaper_drivenbymoss.so
           - os: macos-11
             artifact_name: reaper_drivenbymoss.dylib
-          - os: windows-latest
+          - os: windows-2019
             artifact_name: reaper_drivenbymoss.dll
     
     name: ${{ matrix.os }}
