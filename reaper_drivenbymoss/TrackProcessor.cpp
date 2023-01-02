@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2022
+// (c) 2018-2023
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <cstring>
@@ -236,31 +236,41 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 
 	if (std::strcmp(cmd, "solo") == 0)
 	{
+		Undo_BeginBlock2(project);
 		SetTrackUISolo(track, value, IGNORE_GROUP_FLAGS);
+		Undo_EndBlock2(project, "Toggle track solo", UNDO_STATE_ALL);
 		return;
 	}
 
 	if (std::strcmp(cmd, "mute") == 0)
 	{
+		Undo_BeginBlock2(project);
 		SetTrackUIMute(track, value, IGNORE_GROUP_FLAGS);
+		Undo_EndBlock2(project, "Toggle track mute", UNDO_STATE_ALL);
 		return;
 	}
 
 	if (std::strcmp(cmd, "recarm") == 0)
 	{
+		Undo_BeginBlock2(project);
 		SetTrackUIRecArm(track, value, IGNORE_GROUP_FLAGS);
+		Undo_EndBlock2(project, "Toggle track record arming", UNDO_STATE_ALL);
 		return;
 	}
 
 	if (std::strcmp(cmd, "monitor") == 0)
 	{
+		Undo_BeginBlock2(project);
 		SetTrackUIInputMonitor(track, value > 0 ? 1 : 0, IGNORE_GROUP_FLAGS);
+		Undo_EndBlock2(project, "Toggle track recording monitor", UNDO_STATE_ALL);
 		return;
 	}
 
 	if (std::strcmp(cmd, "autoMonitor") == 0)
 	{
+		Undo_BeginBlock2(project);
 		SetTrackUIInputMonitor(track, value > 0 ? 2 : 0, IGNORE_GROUP_FLAGS);
+		Undo_EndBlock2(project, "Toggle track recording monitor", UNDO_STATE_ALL);
 		return;
 	}
 
@@ -272,7 +282,9 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 
 	if (std::strcmp(cmd, "overdub") == 0)
 	{
+		Undo_BeginBlock2(project);
 		SetMediaTrackInfo_Value(track, "I_RECMODE", value > 0 ? 7 : 8);
+		Undo_EndBlock2(project, "Toggle track recording parameters", UNDO_STATE_ALL);
 		return;
 	}
 
@@ -306,8 +318,11 @@ bool TrackProcessor::ProcessAutomation(MediaTrack* track, const char* cmd, const
 	if (mode < 0)
 		return false;
 
+	ReaProject* project = ReaperUtils::GetProject();
+	Undo_BeginBlock2(project);
 	SetTrackAutomationMode(track, mode);
 	CSurf_SetAutoMode(-1, nullptr);
+	Undo_EndBlock2(project, "Toggle track automation mode", UNDO_STATE_ALL);
 	return true;
 }
 
