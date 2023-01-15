@@ -130,6 +130,7 @@ private:
 	std::vector<std::string> deviceSiblings;
 	std::vector<int> deviceSiblingsSelection;
 	std::vector<int> deviceSiblingsBypass;
+	std::vector<int> deviceSiblingsPosition;
 
 	// Instrument device values
 	int instrumentExists{ -1 };

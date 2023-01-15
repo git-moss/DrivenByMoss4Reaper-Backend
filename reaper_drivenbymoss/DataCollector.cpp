@@ -23,7 +23,8 @@ DataCollector::DataCollector(Model& aModel) :
 	crossfaderParameter("/master/user/param/", 0),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	deviceSiblingsSelection(aModel.DEVICE_BANK_SIZE, 0),
-	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0)
+	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0),
+	deviceSiblingsPosition(aModel.DEVICE_BANK_SIZE, 0)
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
 
@@ -238,6 +239,10 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 			bys << "/device/sibling/" << bankDeviceIndex << "/bypass";
 			const int isBypassed = TrackFX_GetEnabled(track, position) ? 0 : 1;
 			Collectors::CollectIntArrayValue(ss, bys.str().c_str(), index, deviceSiblingsBypass, isBypassed, dump);
+
+			std::ostringstream pys;
+			pys << "/device/sibling/" << bankDeviceIndex << "/position";
+			Collectors::CollectIntArrayValue(ss, pys.str().c_str(), index, deviceSiblingsPosition, position, dump);
 
 			std::ostringstream sys;
 			sys << "/device/sibling/" << bankDeviceIndex << "/selected";

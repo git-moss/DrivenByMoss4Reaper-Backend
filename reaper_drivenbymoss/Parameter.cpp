@@ -73,8 +73,9 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 
 	if (valueHasChanged)
 	{
+		const double realValue = TrackFX_GetParam(track, deviceIndex, paramIndex, nullptr, nullptr);
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, paramValue, nameBufPointer, LENGTH);
+		result = TrackFX_FormatParamValueNormalized(track, deviceIndex, paramIndex, realValue, nameBufPointer, LENGTH);
 		const std::string newValue{ result ? nameBuf : "" };
 		this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, newValue, dump);
 	}
