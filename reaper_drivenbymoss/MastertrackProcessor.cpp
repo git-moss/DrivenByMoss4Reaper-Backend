@@ -101,7 +101,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 		if (path.size() == 1)
 		{
 			this->model.masterVolume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			const double newVolume = SetTrackUIVolume(track, this->model.masterVolume, false, true, IGNORE_GROUP_FLAGS);
+			const double newVolume = SetTrackUIVolume(track, this->model.masterVolume, false, false, IGNORE_GROUP_FLAGS);
 			if (!this->model.isMasterVolumeTouch)
 				CSurf_SetSurfaceVolume(track, newVolume, surfaceInstance);
 			return;
@@ -109,9 +109,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 
 		const char* touchCmd = SafeGet(path, 1);
 		if (std::strcmp(touchCmd, "touch") == 0)
-		{
 			this->model.isMasterVolumeTouch = value > 0;
-		}
 		return;
 	}
 
@@ -120,7 +118,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 		if (path.size() == 1)
 		{
 			this->model.masterPan = value * 2 - 1;
-			const double newPan = SetTrackUIPan(track, this->model.masterPan, false, true, IGNORE_GROUP_FLAGS);
+			const double newPan = SetTrackUIPan(track, this->model.masterPan, false, false, IGNORE_GROUP_FLAGS);
 			if (!this->model.isMasterPanTouch)
 				CSurf_SetSurfacePan(track, newPan, nullptr);
 			return;
@@ -128,9 +126,7 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, double value) 
 
 		const char* touchCmd = SafeGet(path, 1);
 		if (std::strcmp(touchCmd, "touch") == 0)
-		{
 			this->model.isMasterPanTouch = value > 0;
-		}
 		return;
 	}
 
