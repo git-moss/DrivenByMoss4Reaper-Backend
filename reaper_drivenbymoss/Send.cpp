@@ -10,7 +10,7 @@
 /**
  * Constructor.
  */
-Send::Send() noexcept : name{ "" }, volume{ 0 }, volumeStr{ "" }, color{ "" }
+Send::Send() noexcept : enabled{ 0 }, name{ "" }, volume{ 0 }, volumeStr{ "" }, color{ "" }
 {
 	// Intentionally empty
 }
@@ -39,12 +39,21 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 	std::ostringstream stream;
 	stream << trackAddress << "send/" << sendIndex << "/";
 	const std::string sendAddress = stream.str();
+
+	// Is enabled?
+	bool isMuted;
+	GetTrackSendUIMute(track, sendIndex, &isMuted);
+	this->enabled = Collectors::CollectIntValue(ss, (sendAddress + "active").c_str(), this->enabled, isMuted ? 0 : 1, dump);
+
+	// Get the name
 	constexpr int LENGTH = 20;
 	char name[LENGTH];
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
 	const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
 	const std::string newName = result ? name : "";
 	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, newName, dump);
+	
+	// Get the volume
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
 	this->volume = Collectors::CollectDoubleValue(ss, (sendAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);
 	this->volumeStr = Collectors::CollectStringValue(ss, (sendAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
@@ -65,7 +74,7 @@ double Send::GetSendVolume(MediaTrack* track, int sendCounter, double position) 
 	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
 	{
 		DISABLE_WARNING_NO_C_STYLE_CONVERSION
-		TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
+			TrackEnvelope* envelope = static_cast<TrackEnvelope*> (GetSetTrackSendInfo(track, 0, sendCounter, "P_ENV", (void*)sendType));
 		if (envelope != nullptr)
 		{
 			// It seems there is always a send envelope, even if not active.

@@ -388,6 +388,11 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 			const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
 			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
+			return;
+		}
+		if (std::strcmp(subcmd, "active") == 0)
+		{
+			ToggleTrackSendUIMute(track, sendIndex);
 		}
 		return;
 	}
