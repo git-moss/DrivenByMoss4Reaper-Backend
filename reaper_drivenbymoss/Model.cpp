@@ -178,22 +178,42 @@ std::unique_ptr<Parameter>& Model::GetEqParameter(const int index)
 
 
 /**
- * Get a user parameter.
+ * Get a track FX parameter.
  *
  * @param index The index of the parameter
  * @return The parameter, if none exists at the index a new instance is created automatically
  */
-std::unique_ptr<Parameter>& Model::GetUserParameter(const int index)
+std::unique_ptr<Parameter>& Model::GetTrackFXParameter(const int index)
 {
 	const std::lock_guard<std::mutex> lock(this->parameterlock);
 
-	const int diff = index - gsl::narrow_cast<int> (this->userParameters.size()) + 1;
+	const int diff = index - gsl::narrow_cast<int> (this->trackFxParameters.size()) + 1;
 	if (diff > 0)
 	{
 		for (int i = 0; i < diff; i++)
-			this->userParameters.push_back(std::make_unique <Parameter>("/user/param/", index));
+			this->trackFxParameters.push_back(std::make_unique <Parameter>("/track/fx/param/", index));
 	}
-	return this->userParameters.at(index);
+	return this->trackFxParameters.at(index);
+}
+
+
+/**
+ * Get a master track FX parameter.
+ *
+ * @param index The index of the parameter
+ * @return The parameter, if none exists at the index a new instance is created automatically
+ */
+std::unique_ptr<Parameter>& Model::GetMasterFXParameter(const int index)
+{
+	const std::lock_guard<std::mutex> lock(this->parameterlock);
+
+	const int diff = index - gsl::narrow_cast<int> (this->masterFxParameters.size()) + 1;
+	if (diff > 0)
+	{
+		for (int i = 0; i < diff; i++)
+			this->masterFxParameters.push_back(std::make_unique <Parameter>("/master/fx/param/", index));
+	}
+	return this->masterFxParameters.at(index);
 }
 
 

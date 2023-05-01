@@ -38,7 +38,8 @@ public:
 	int deviceExpandedType{ 3 };
 	int deviceCount{ 0 };
 	int eqParamCount{ 0 };
-	int userParamCount{ 0 };
+	int trackFxParamCount{ 0 };
+	int masterFxParamCount{ 0 };
 
 	int pinnedTrackIndex{ -1 };
 
@@ -53,7 +54,8 @@ public:
 	std::unique_ptr<Parameter>& GetParameter(const int index);
 	std::unique_ptr<Parameter>& GetInstrumentParameter(const int index);
 	std::unique_ptr<Parameter>& GetEqParameter(const int index);
-	std::unique_ptr<Parameter>& GetUserParameter(const int index);
+	std::unique_ptr<Parameter>& GetTrackFXParameter(const int index);
+	std::unique_ptr<Parameter>& GetMasterFXParameter(const int index);
 
 	void SetDump();
 	bool ShouldDump();
@@ -69,7 +71,8 @@ private:
 	std::vector<std::unique_ptr<Parameter>> parameters;
 	std::vector<std::unique_ptr<Parameter>> instrumentParameters;
 	std::vector<std::unique_ptr<Parameter>> eqParameters;
-	std::vector<std::unique_ptr<Parameter>> userParameters;
+	std::vector<std::unique_ptr<Parameter>> trackFxParameters;
+	std::vector<std::unique_ptr<Parameter>> masterFxParameters;
 	std::mutex tracklock;
 	std::mutex markerlock;
 	std::mutex regionlock;

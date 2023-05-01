@@ -118,7 +118,6 @@ private:
 	double masterVURight{ 0.0 };
 	std::string masterColor;
 	int masterAutoMode{ 0 };
-	Parameter crossfaderParameter;
 
 	// Device values
 	int deviceExists{ -1 };

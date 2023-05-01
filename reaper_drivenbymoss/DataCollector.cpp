@@ -20,7 +20,6 @@
  */
 DataCollector::DataCollector(Model& aModel) :
 	model(aModel),
-	crossfaderParameter("/master/user/param/", 0),
 	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
 	deviceSiblingsSelection(aModel.DEVICE_BANK_SIZE, 0),
 	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0),
@@ -326,14 +325,14 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 		}
 	}
 
-	// Track FX Parameter (as user parameters)
-	const int userParamCount = CountTCPFXParms(project, track);
-	this->model.userParamCount = Collectors::CollectIntValue(ss, "/user/param/count", this->model.userParamCount, userParamCount, dump);
+	// Track FX Parameter
+	const int trackFxParamCount = CountTCPFXParms(project, track);
+	this->model.trackFxParamCount = Collectors::CollectIntValue(ss, "/track/fx/param/count", this->model.trackFxParamCount, trackFxParamCount, dump);
 	int fxindexOut = 0;
 	int parmidxOut = 0;
-	for (int index = 0; index < userParamCount; index++)
+	for (int index = 0; index < trackFxParamCount; index++)
 	{
-		const std::unique_ptr<Parameter>& parameter = this->model.GetUserParameter(index);
+		const std::unique_ptr<Parameter>& parameter = this->model.GetTrackFXParameter(index);
 		if (GetTCPFXParm(project, track, index, &fxindexOut, &parmidxOut))
 			parameter->CollectData(ss, track, fxindexOut, parmidxOut, dump);
 		else
@@ -465,10 +464,19 @@ void DataCollector::CollectMasterTrackData(std::ostringstream& ss, ReaProject* p
 		this->masterAutoMode = Collectors::CollectIntValue(ss, "/master/automode", this->masterAutoMode, static_cast<int>(automode), dump);
 	}
 
-	int fxindexOut;
-	int parmidxOut;
-	if (GetTCPFXParm(project, master, 0, &fxindexOut, &parmidxOut))
-		this->crossfaderParameter.CollectData(ss, master, fxindexOut, parmidxOut, dump);
+	// Master FX Parameter
+	int fxindexOut = 0;
+	int parmidxOut = 0;
+	const int masterFxParamCount = CountTCPFXParms(project, master);
+	this->model.masterFxParamCount = Collectors::CollectIntValue(ss, "/master/fx/param/count", this->model.masterFxParamCount, masterFxParamCount, dump);
+	for (int index = 0; index < masterFxParamCount; index++)
+	{
+		const std::unique_ptr<Parameter>& parameter = this->model.GetMasterFXParameter(index);
+		if (GetTCPFXParm(project, master, index, &fxindexOut, &parmidxOut))
+			parameter->CollectData(ss, master, fxindexOut, parmidxOut, dump);
+		else
+			parameter->ClearData(ss, dump);
+	}
 }
 
 

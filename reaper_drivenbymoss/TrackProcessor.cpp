@@ -421,18 +421,18 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		return;
 	}
 
-	// Parse user parameter value
-	if (std::strcmp(cmd, "user") == 0)
+	// Parse track fx parameter value
+	if (std::strcmp(cmd, "fx") == 0)
 	{
 		if (path.empty())
 			return;
 		const char* part = SafeGet(path, 2);
 		if (std::strcmp(part, "param") == 0)
 		{
-			const int userParamNo = atoi(SafeGet(path, 3));
+			const int fxParamNo = atoi(SafeGet(path, 3));
 			int fxindexOut;
 			int parmidxOut;
-			if (!GetTCPFXParm(project, track, userParamNo, &fxindexOut, &parmidxOut))
+			if (!GetTCPFXParm(project, track, fxParamNo, &fxindexOut, &parmidxOut))
 				return;
 			if (std::strcmp(SafeGet(path, 4), "value") == 0)
 				TrackFX_SetParamNormalized(track, fxindexOut, parmidxOut, value);
