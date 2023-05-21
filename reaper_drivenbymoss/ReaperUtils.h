@@ -171,7 +171,7 @@ public:
 	 * Get the current positon of the play cursor on the timeline.
 	 *
 	 * @param project A project
-	 * @return The position
+	 * @return The position in seconds
 	 */
 	static double GetCursorPosition(ReaProject* project) noexcept
 	{
