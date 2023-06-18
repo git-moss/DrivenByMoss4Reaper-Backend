@@ -385,7 +385,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		if (std::strcmp(subcmd, "volume") == 0)
 		{
 			DISABLE_WARNING_DANGLING_POINTER
-			const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
+				const std::unique_ptr<Send>& send = trackData->GetSend(sendIndex);
 			send->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
 			CSurf_OnSendVolumeChange(track, sendIndex, send->volume, false);
 			return;
@@ -422,21 +422,17 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 	}
 
 	// Parse track fx parameter value
-	if (std::strcmp(cmd, "fx") == 0)
+	if (std::strcmp(cmd, "param") == 0)
 	{
 		if (path.empty())
 			return;
-		const char* part = SafeGet(path, 2);
-		if (std::strcmp(part, "param") == 0)
-		{
-			const int fxParamNo = atoi(SafeGet(path, 3));
-			int fxindexOut;
-			int parmidxOut;
-			if (!GetTCPFXParm(project, track, fxParamNo, &fxindexOut, &parmidxOut))
-				return;
-			if (std::strcmp(SafeGet(path, 4), "value") == 0)
-				TrackFX_SetParamNormalized(track, fxindexOut, parmidxOut, value);
-		}
+		const int fxParamNo = atoi(SafeGet(path, 2));
+		int fxindexOut;
+		int parmidxOut;
+		if (!GetTCPFXParm(project, track, fxParamNo, &fxindexOut, &parmidxOut))
+			return;
+		if (std::strcmp(SafeGet(path, 3), "value") == 0)
+			TrackFX_SetParamNormalized(track, fxindexOut, parmidxOut, value);
 		return;
 	}
 }
@@ -472,7 +468,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 
 			Undo_BeginBlock2(project);
 			DISABLE_WARNING_USE_GSL_AT
-			GetSetMediaTrackInfo(track, "P_NAME", &val[0]);
+				GetSetMediaTrackInfo(track, "P_NAME", &val[0]);
 			Undo_EndBlock2(project, "Set track name", UNDO_STATE_ALL);
 		}
 		catch (...)
@@ -591,8 +587,9 @@ void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int 
 		SetMediaTrackInfo_Value(GetTrack(project, idx), "I_RECARM", 0);
 	// Set recording mode to midi overdub
 	SetMediaTrackInfo_Value(track, "I_RECMODE", 7);
-	// Enable Recording on current track
-	SetMediaTrackInfo_Value(track, "I_RECARM", 1);
+	// Enable Recording on current track, if not already enabled via auto record arm
+	if (!gsl::narrow_cast<bool> (GetMediaTrackInfo_Value(track, "B_AUTO_RECARM")))
+		SetMediaTrackInfo_Value(track, "I_RECARM", 1);
 
 	// Enable Loop
 	GetSetRepeatEx(project, 1);
