@@ -349,9 +349,8 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		if (path.size() == 2)
 		{
 			trackData->volume = ReaperUtils::DBToValue(SLIDER2DB(value * 1000.0));
-			const double newVolume = SetTrackUIVolume(track, trackData->volume, false, false, IGNORE_GROUP_FLAGS);
-			if (!trackData->isVolumeTouch)
-				CSurf_SetSurfaceVolume(track, newVolume, surfaceInstance);
+			const double newVolume = CSurf_OnVolumeChange(track, trackData->volume, false);
+			CSurf_SetSurfaceVolume(track, newVolume, surfaceInstance);
 			return;
 		}
 
@@ -366,9 +365,8 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		if (path.size() == 2)
 		{
 			trackData->pan = value * 2 - 1;
-			const double newPan = SetTrackUIPan(track, trackData->pan, false, false, IGNORE_GROUP_FLAGS);
-			if (!trackData->isPanTouch)
-				CSurf_SetSurfacePan(track, newPan, nullptr);
+			const double newPan = CSurf_OnPanChange(track, trackData->pan, false);
+			CSurf_SetSurfacePan(track, newPan, nullptr);
 			return;
 		}
 
