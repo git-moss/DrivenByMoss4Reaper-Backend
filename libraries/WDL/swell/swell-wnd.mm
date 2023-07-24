@@ -57,7 +57,7 @@ static LRESULT sendSwellMessage(id obj, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 static void InvalidateSuperViews(NSView *view);
 #define STANDARD_CONTROL_NEEDSDISPLAY_IMPL(classname) \
-  - (const char *)swellGetClass { return ( classname ); } \
+  - (const char *)getSwellClass { return ( classname ); } \
   - (void)setNeedsDisplay:(BOOL)flag \
   { \
   [super setNeedsDisplay:flag]; \
@@ -80,15 +80,17 @@ static void *SWELL_CStringToCFString_FilterPrefix(const char *str)
   while (str[c] && str[c] != '&' && c++<1024);
   if (!str[c] || c>=1024 || strlen(str)>=1024) return SWELL_CStringToCFString(str);
   char buf[1500];
-  const char *p=str;
-  char *op=buf;
-  while (*p)
   {
-    if (*p == '&')  p++;
-    if (!*p) break;
-    *op++=*p++;
+    const char *p=str;
+    char *op=buf;
+    while (*p)
+    {
+      if (*p == '&')  p++;
+      if (!*p) break;
+      *op++=*p++;
+    }
+    *op=0;
   }
-  *op=0;
 
   // add to recent prefix removal cache for localization
   if (WDL_NOT_NORMALLY(s_prefix_removals.GetSize() > 256))
@@ -1588,8 +1590,11 @@ LONG_PTR GetWindowLong(HWND hwnd, int idx)
       else if ([pid allowsMixedState]) ret |= BS_AUTO3STATE;
       else if ([pid isKindOfClass:[SWELL_Button class]] && (tmp = (int)[pid swellGetRadioFlags]))
       {
-        ret |= BS_AUTORADIOBUTTON;
-        if (tmp&2) ret|=WS_GROUP;
+        if (tmp != 4096)
+        {
+          ret |= BS_AUTORADIOBUTTON;
+          if (tmp&2) ret|=WS_GROUP;
+        }
       }
       else ret |= BS_AUTOCHECKBOX; 
     }
@@ -1760,7 +1765,7 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL("Button")
   if (self != nil) {
     m_userdata=0;
     m_swellGDIimage=0;
-    m_radioflags=0;
+    m_radioflags=0; // =4096 if not a checkbox at all
   }
   return self;
 }
@@ -1890,11 +1895,22 @@ LRESULT SendMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       return 0;
     }
-    else if (msg == WM_SETFONT && ([obj isKindOfClass:[NSTextField class]]))
+    else if (msg == WM_SETFONT && ([obj isKindOfClass:[NSTextField class]] ||
+                                   [obj isKindOfClass:[NSTextView class]]))
     {
       NSFont *font = SWELL_GetNSFont((HGDIOBJ__*)wParam);
       if (font) [obj setFont:font];
       return 0;
+    }
+    else if (msg == WM_SETFONT && ([obj isKindOfClass:[NSScrollView class]]))
+    {
+      NSView *cv=[(NSScrollView *)obj documentView];
+      if (cv && [cv isKindOfClass:[NSTextView class]])
+      {
+        NSFont *font = SWELL_GetNSFont((HGDIOBJ__*)wParam);
+        if (font) [(NSTextView *)cv setFont:font];
+        return 0;
+      }
     }
     else
     {
@@ -2029,31 +2045,61 @@ void SWELL_GetViewPort(RECT *r, const RECT *sourcerect, bool wantWork)
   NSArray *ar=[NSScreen screens];
   
   const NSInteger cnt=[ar count];
-  int cx=0;
-  int cy=0;
-  if (sourcerect)
+  if (!sourcerect || cnt < 2)
   {
-    cx=(sourcerect->left+sourcerect->right)/2;
-    cy=(sourcerect->top+sourcerect->bottom)/2;
-  }
-  for (NSInteger x = 0; x < cnt; x ++)
-  {
-    NSScreen *sc=[ar objectAtIndex:x];
+    NSScreen *sc=[NSScreen mainScreen];
     if (sc)
     {
       NSRect tr=wantWork ? [sc visibleFrame] : [sc frame];
-      if (!x || (cx >= tr.origin.x && cx < tr.origin.x+tr.size.width  &&
-                cy >= tr.origin.y && cy < tr.origin.y+tr.size.height))
-      {
-        NSRECT_TO_RECT(r,tr);
-      }
+      NSRECT_TO_RECT(r,tr);
+    }
+    else
+    {
+      r->left=r->top=0;
+      r->right=1600;
+      r->bottom=1200;
     }
   }
-  if (!cnt)
+  else
   {
-    r->left=r->top=0;
-    r->right=1600;
-    r->bottom=1200;
+    double best_score = -1e20;
+    // find screen of best intersection
+    RECT sr = *sourcerect;
+    if (sr.top > sr.bottom) { sr.top = sourcerect->bottom; sr.bottom = sourcerect->top; }
+    if (sr.left > sr.right) { sr.left = sourcerect->right; sr.right = sourcerect->left; }
+    for (NSInteger x = 0; x < cnt; x ++)
+    {
+      NSScreen *sc=[ar objectAtIndex:x];
+      if (sc)
+      {
+        NSRect tr=wantWork ? [sc visibleFrame] : [sc frame];
+        RECT tmp;
+        NSRECT_TO_RECT(&tmp,tr);
+
+        double score;
+        RECT res;
+        if (IntersectRect(&res, &tmp, &sr))
+        {
+          score = wdl_abs((res.right-res.left) * (res.bottom-res.top));
+        }
+        else
+        {
+          int dx = 0, dy = 0;
+          if (tmp.left > sr.right) dx = tmp.left - sr.right;
+          else if (tmp.right < sr.left) dx = sr.left - tmp.right;
+          if (tmp.bottom < sr.top) dy = tmp.bottom - sr.top;
+          else if (tmp.top > sr.bottom) dy = tmp.top - sr.bottom;
+          score = - (dx*dx + dy*dy);
+        }
+
+
+        if (!x || score > best_score)
+        {
+          best_score = score;
+          *r = tmp;
+        }
+      }
+    }
   }
   SWELL_END_TRY(;)
 }
@@ -2246,9 +2292,11 @@ void SetWindowPos(HWND hwnd, HWND hwndAfter, int x, int y, int cx, int cy, int f
             [v retain];
             [v removeFromSuperviewWithoutNeedingDisplay];
             [par addSubview:v positioned:omode relativeTo:viewafter];
-            [v release];
           
-            if (oldfoc) [[v window] makeFirstResponder:oldfoc];
+            if (oldfoc && [oldfoc isKindOfClass:[NSView class]] && [oldfoc window] == [v window])
+              [[v window] makeFirstResponder:oldfoc];
+
+            [v release];
           }
         }
       }
@@ -3149,6 +3197,16 @@ void ShowWindow(HWND hwnd, int cmd)
     {
       [pid orderOut:pid];
     }
+    else if (cmd==SW_SHOWMAXIMIZED)
+    {
+      if (![pid isZoomed]) [pid zoom:nil];
+      [pid orderFront:pid];
+    }
+    else if (cmd == SW_RESTORE)
+    {
+      if ([pid isZoomed]) [pid zoom:nil];
+      [pid orderFront:pid];
+    }
     else if (cmd == SW_SHOWMINIMIZED)
     {   
       // this ought to work
@@ -3169,6 +3227,8 @@ void ShowWindow(HWND hwnd, int cmd)
   
   switch (cmd)
   {
+    case SW_RESTORE:
+    case SW_SHOWMAXIMIZED:
     case SW_SHOW:
     case SW_SHOWNA:
       [((NSView *)pid) setHidden:NO];
@@ -3335,6 +3395,7 @@ HWND SWELL_MakeButton(int def, const char *label, int idx, int x, int y, int w, 
   UINT_PTR a=(UINT_PTR)label;
   if (a < 65536) label = "ICONTEMP";
   SWELL_Button *button=[[SWELL_Button alloc] init];
+  [button swellSetRadioFlags:4096];
   if (flags & BS_BITMAP)
   {
     SWELL_ImageButtonCell * cell = [[SWELL_ImageButtonCell alloc] init];
@@ -3590,6 +3651,7 @@ HWND SWELL_MakeEditField(int idx, int x, int y, int w, int h, int flags)
   if ((flags&WS_VSCROLL) || (flags&WS_HSCROLL)) // || (flags & ES_READONLY))
   {
     SWELL_TextView *obj=[[SWELL_TextView alloc] init];
+    [obj setAutomaticQuoteSubstitutionEnabled:NO];
     [obj setEditable:(flags & ES_READONLY)?NO:YES];
     if (m_transform.size.width < minwidfontadjust)
       [obj setFont:[NSFont systemFontOfSize:TRANSFORMFONTSIZE]];
@@ -4091,6 +4153,7 @@ HWND SWELL_MakeControl(const char *cname, int idx, const char *classname, int st
       [button setCell:cell];
       [cell release];
       //NSButtonCell
+      [button swellSetRadioFlags:4096];
     }
     else // normal button
     {
@@ -4102,6 +4165,7 @@ HWND SWELL_MakeControl(const char *cname, int idx, const char *classname, int st
       }
       if ((style & BS_XPOSITION_MASK) == BS_LEFT) [button setAlignment:NSLeftTextAlignment];
 //      fr.size.width+=8;
+      [button swellSetRadioFlags:4096];
     }
     
     if (m_transform.size.width < minwidfontadjust)
@@ -5361,7 +5425,7 @@ HWND WindowFromPoint(POINT p)
   {
     NSWindow *wnd = kw;
     if (x>=0) wnd=[windows objectAtIndex:x];
-    if (wnd && [wnd isVisible])
+    if (wnd && [wnd isVisible] && HTTRANSPARENT != SendMessage((HWND)wnd, WM_NCHITTEST, 0, MAKELPARAM(p.x, p.y)))
     {
       NSRect fr=[wnd frame];
       if (p.x >= fr.origin.x && p.x < fr.origin.x + fr.size.width &&
@@ -5973,7 +6037,7 @@ HANDLE GetClipboardData(UINT type)
           if ([url isFileURL])
           {
             const char *ptr = [[url path] UTF8String];
-            if (ptr && *ptr) flist.Add(ptr, strlen(ptr)+1);
+            if (ptr && *ptr) flist.Add(ptr, (int)strlen(ptr)+1);
           }
         }
         if (flist.GetSize()>sizeof(DROPFILES))

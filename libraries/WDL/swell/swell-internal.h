@@ -329,7 +329,7 @@ typedef struct WindowPropRec
 {
   void *m_swellGDIimage;
   LONG_PTR m_userdata;
-  int m_radioflags;
+  int m_radioflags; // =4096 if not a checkbox/radiobox. &2=new group, &1=radio
 }
 -(int)swellGetRadioFlags;
 -(void)swellSetRadioFlags:(int)f;
@@ -512,6 +512,7 @@ typedef struct WindowPropRec
   BOOL m_enabled;
   int m_wantraiseamt;
   bool  m_wantInitialKeyWindowOnShow;
+  bool m_lastZoom;
 }
 - (id)initModeless:(SWELL_DialogResourceIndex *)resstate Parent:(HWND)parent dlgProc:(DLGPROC)dlgproc Param:(LPARAM)par outputHwnd:(HWND *)hwndOut forceStyles:(unsigned int)smask;
 - (id)initModelessForChild:(HWND)child owner:(HWND)owner styleMask:(unsigned int)smask;
@@ -537,6 +538,7 @@ typedef struct WindowPropRec
   int m_rv;
   bool m_hasrv;
   BOOL m_enabled;
+  bool m_lastZoom;
 }
 - (id)initDialogBox:(SWELL_DialogResourceIndex *)resstate Parent:(HWND)parent dlgProc:(DLGPROC)dlgproc Param:(LPARAM)par;
 - (void)swellDestroyAllOwnedWindows;
@@ -767,7 +769,9 @@ SWELL_IMPLEMENT_GETOSXVERSION int SWELL_GetOSXVersion()
   {
     if (NSAppKitVersionNumber >= 1266.0)
     {
-      if (NSAppKitVersionNumber >= 2100.0)
+      if (NSAppKitVersionNumber >= 2299.0)
+        v = 0x1300;
+      else if (NSAppKitVersionNumber >= 2100.0)
         v = 0x1200;
       else if (NSAppKitVersionNumber >= 2022.0)
         v = 0x1100;
@@ -884,6 +888,7 @@ struct HWND__
 
   bool m_israised;
   bool m_has_had_position;
+  bool m_is_maximized; // only valid if m_oswindow is set
   int m_oswindow_fullscreen; // may contain preserved style flags
 
   int m_refcnt; 
@@ -966,6 +971,7 @@ struct HDC__ {
 
 HWND DialogBoxIsActive(void);
 bool DestroyPopupMenus(void);
+bool PopupMenuIsActive(void);
 HWND ChildWindowFromPoint(HWND h, POINT p);
 HWND GetFocusIncludeMenus();
 
@@ -986,6 +992,7 @@ void swell_oswindow_postresize(HWND hwnd, RECT f);
 void swell_oswindow_invalidate(HWND hwnd, const RECT *r);
 void swell_oswindow_destroy(HWND hwnd);
 void swell_oswindow_manage(HWND hwnd, bool wantfocus);
+void swell_oswindow_maximize(HWND, bool wantmax); // false=restore
 void swell_oswindow_updatetoscreen(HWND hwnd, RECT *rect);
 HWND swell_window_wants_all_input(); // window with an active drag of menubar will have this set, to route all mouse events to nonclient area of window
 int swell_delegate_menu_message(HWND src, LPARAM lParam, int msg, bool screencoords); // menubar/menus delegate to submenus during drag.
