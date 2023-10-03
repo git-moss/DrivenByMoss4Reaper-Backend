@@ -259,70 +259,64 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	// First instrument (primary) data
 	// 
 
-	if (this->slowCounter == 0 || dump)
-	{
-		const int instrumentIndex = TrackFX_GetInstrument(track);
-		const bool instrumentExists = instrumentIndex >= 0;
-		this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentExists, dump);
-		this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
-		const bool result = instrumentExists && TrackFX_GetFXName(track, instrumentIndex, strBufferPointer, LENGTH);
-		this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? strBuffer : "", dump);
+	const int instrumentIndex = TrackFX_GetInstrument(track);
+	const bool instrumentExists = instrumentIndex >= 0;
+	this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentExists, dump);
+	this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
+	const bool result = instrumentExists && TrackFX_GetFXName(track, instrumentIndex, strBufferPointer, LENGTH);
+	this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? strBuffer : "", dump);
 
-		const int instParamCount = this->instrumentExists ? TrackFX_GetNumParams(track, instrumentIndex) : 0;
-		this->instrumentParameterCount = Collectors::CollectIntValue(ss, "/primary/param/count", this->instrumentParameterCount, instParamCount, dump);
-		for (int index = 0; index < instParamCount; index++)
-			this->model.GetInstrumentParameter(index)->CollectData(ss, track, instrumentIndex, dump);
-	}
+	const int instParamCount = this->instrumentExists ? TrackFX_GetNumParams(track, instrumentIndex) : 0;
+	this->instrumentParameterCount = Collectors::CollectIntValue(ss, "/primary/param/count", this->instrumentParameterCount, instParamCount, dump);
+	for (int index = 0; index < instParamCount; index++)
+		this->model.GetInstrumentParameter(index)->CollectData(ss, track, instrumentIndex, dump);
 
 	// 
 	// First ReaEQ data
 	// 
 
-	if (this->slowCounter == 0 || dump)
+	const int eqIndex = TrackFX_GetEQ(track, false);
+	this->eqExists = Collectors::CollectIntValue(ss, "/eq/exists", this->eqExists, eqIndex >= 0, dump);
+	const int eqParamCount = TrackFX_GetNumParams(track, eqIndex);
+	this->model.eqParamCount = Collectors::CollectIntValue(ss, "/eq/param/count", this->model.eqParamCount, eqParamCount, dump);
+
+	if (this->eqExists)
 	{
-		const int eqIndex = TrackFX_GetEQ(track, false);
-		this->eqExists = Collectors::CollectIntValue(ss, "/eq/exists", this->eqExists, eqIndex >= 0, dump);
-		const int eqParamCount = TrackFX_GetNumParams(track, eqIndex);
-		this->model.eqParamCount = Collectors::CollectIntValue(ss, "/eq/param/count", this->model.eqParamCount, eqParamCount, dump);
+		constexpr int FILTER_TYPE_LENGTH = 40;
+		std::string filterType(FILTER_TYPE_LENGTH, 0);
+		char* filterTypePointer = &*filterType.begin();
 
-		if (this->eqExists)
+		constexpr int FILTER_ENABLED_LENGTH = 2;
+		std::string filterEnabled(FILTER_ENABLED_LENGTH, 0);
+		char* filterEnabledPointer = &*filterEnabled.begin();
+
+		for (int index = 0; index < 8; index++)
 		{
-			constexpr int FILTER_TYPE_LENGTH = 40;
-			std::string filterType(FILTER_TYPE_LENGTH, 0);
-			char* filterTypePointer = &*filterType.begin();
-
-			constexpr int FILTER_ENABLED_LENGTH = 2;
-			std::string filterEnabled(FILTER_ENABLED_LENGTH, 0);
-			char* filterEnabledPointer = &*filterEnabled.begin();
-
-			for (int index = 0; index < 8; index++)
+			std::ostringstream btss;
+			btss << "BANDTYPE" << index;
+			const std::string bandTypeParam = btss.str();
+			std::string bandType = "-1";
+			if (TrackFX_GetNamedConfigParm(track, eqIndex, bandTypeParam.c_str(), filterTypePointer, FILTER_TYPE_LENGTH))
 			{
-				std::ostringstream btss;
-				btss << "BANDTYPE" << index;
-				const std::string bandTypeParam = btss.str();
-				std::string bandType = "-1";
-				if (TrackFX_GetNamedConfigParm(track, eqIndex, bandTypeParam.c_str(), filterTypePointer, FILTER_TYPE_LENGTH))
+				std::ostringstream bess;
+				bess << "BANDENABLED" << index;
+				const std::string bandEnabledParam = bess.str();
+				if (TrackFX_GetNamedConfigParm(track, eqIndex, bandEnabledParam.c_str(), filterEnabledPointer, FILTER_ENABLED_LENGTH))
 				{
-					std::ostringstream bess;
-					bess << "BANDENABLED" << index;
-					const std::string bandEnabledParam = bess.str();
-					if (TrackFX_GetNamedConfigParm(track, eqIndex, bandEnabledParam.c_str(), filterEnabledPointer, FILTER_ENABLED_LENGTH))
-					{
-						if (std::atoi(filterEnabledPointer) > 0)
-							bandType = filterType;
-					}
+					if (std::atoi(filterEnabledPointer) > 0)
+						bandType = filterType;
 				}
-				std::ostringstream das;
-				das << "/eq/band/" << index;
-				this->eqBandTypes.at(index) = Collectors::CollectStringValue(ss, das.str().c_str(), this->eqBandTypes.at(index), bandType, dump);
 			}
+			std::ostringstream das;
+			das << "/eq/band/" << index;
+			this->eqBandTypes.at(index) = Collectors::CollectStringValue(ss, das.str().c_str(), this->eqBandTypes.at(index), bandType, dump);
 		}
+	}
 
-		for (int index = 0; index < eqParamCount; index++)
-		{
-			const std::unique_ptr<Parameter>& parameter = this->model.GetEqParameter(index);
-			parameter->CollectData(ss, track, eqIndex, dump);
-		}
+	for (int index = 0; index < eqParamCount; index++)
+	{
+		const std::unique_ptr<Parameter>& parameter = this->model.GetEqParameter(index);
+		parameter->CollectData(ss, track, eqIndex, dump);
 	}
 
 	// Track FX Parameter
@@ -693,17 +687,17 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 			// Format track index, clip index, name, selected state and color in one string
 			DISABLE_WARNING_ARRAY_POINTER_DECAY
-			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
-			{
-				std::string s{ buf };
-				std::replace(s.begin(), s.end(), ';', ' ');
-				allClipStr << s;
-			}
-			else
-			{
-				ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
-				allClipStr << "Unknown";
-			}
+				if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
+				{
+					std::string s{ buf };
+					std::replace(s.begin(), s.end(), ';', ' ');
+					allClipStr << s;
+				}
+				else
+				{
+					ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
+					allClipStr << "Unknown";
+				}
 
 			const bool isSelected = IsMediaItemSelected(item);
 			allClipStr << ";" << isSelected;
