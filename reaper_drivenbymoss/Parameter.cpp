@@ -71,7 +71,7 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 	const bool valueHasChanged = this->value != paramValue;
 	this->value = Collectors::CollectDoubleValue(ss, this->addressValue, this->value, paramValue, dump);
 
-	if (valueHasChanged)
+	if (dump || valueHasChanged)
 	{
 		const double realValue = TrackFX_GetParam(track, deviceIndex, paramIndex, nullptr, nullptr);
 		DISABLE_WARNING_ARRAY_POINTER_DECAY

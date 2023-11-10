@@ -60,6 +60,8 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 		track = GetTrack(project, this->model.pinnedTrackIndex);
 	else
 		track = GetSelectedTrack2(project, 0, true);
+	const bool hasTrackChanged = selectedTrack != track;
+	selectedTrack = track;
 
 	this->slowCounter = (this->slowCounter + 1) % SLOW_UPDATE;
 
@@ -70,7 +72,7 @@ std::string DataCollector::CollectData(const bool& dump, ActionProcessor& action
 	if (IsActive("track"))
 		CollectTrackData(ss, project, dump);
 	if (IsActive("device"))
-		CollectDeviceData(ss, project, track, dump);
+		CollectDeviceData(ss, project, track, dump || hasTrackChanged);
 	if (IsActive("master"))
 		CollectMasterTrackData(ss, project, dump);
 	if (IsActive("browser"))

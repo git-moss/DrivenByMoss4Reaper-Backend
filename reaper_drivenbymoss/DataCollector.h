@@ -49,6 +49,7 @@ private:
 
 
 	Model& model;
+	MediaTrack* selectedTrack{ nullptr };
 	int projectState{ -1 };
 
 	const static int BUFFER_SIZE{ 65535 };
