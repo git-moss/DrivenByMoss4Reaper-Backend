@@ -45,14 +45,15 @@ void Model::AddFunction(std::function<void(void)> f)
 	{
 		ReaDebug::Log("Could not add function. Cause: ");
 		ReaDebug::Log(ex.what());
+		ReaDebug::Log("\n");
 	}
 	catch (const std::string& ex)
 	{
-		ReaDebug::Log("Could not add function. Cause: " + ex);
+		ReaDebug::Log("Could not add function. Cause: " + ex + "\n");
 	}
 	catch (...)
 	{
-		ReaDebug::Log("Could not add function.");
+		ReaDebug::Log("Could not add function.\n");
 	}
 };
 

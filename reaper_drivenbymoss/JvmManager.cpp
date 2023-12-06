@@ -42,11 +42,11 @@ JvmManager::~JvmManager()
 {
 	if (this->jvm != nullptr)
 	{
-        ReaDebug::Log("DrivenByMoss: Shutting down JVM.");
+        ReaDebug::Log("DrivenByMoss: Shutting down JVM.\n");
 
 		if (this->isCleanShutdown)
 		{
-            ReaDebug::Log("DrivenByMoss: Shutting down JVM cleanly.");
+            ReaDebug::Log("DrivenByMoss: Shutting down JVM cleanly.\n");
 
 			jclass clazz = this->GetControllerClass();
 			if (clazz != nullptr)
@@ -62,14 +62,14 @@ JvmManager::~JvmManager()
 				}
 				catch (...)
 				{
-					ReaDebug::Log("Could not call shutdown.");
+					ReaDebug::Log("Could not call shutdown.\n");
 				}
 			}
 		}
 		this->jvm = nullptr;
 	}
 
-	ReaDebug::Log("DrivenByMoss: Release JVM library resources.");
+	ReaDebug::Log("DrivenByMoss: Release JVM library resources.\n");
 
 	this->options.reset();
 	this->env = nullptr;
@@ -104,26 +104,26 @@ void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* pr
 	if (this->isInitialised)
 		return;
 
-    ReaDebug::Log("DrivenByMoss: Creating JVM.");
+    ReaDebug::Log("DrivenByMoss: Creating JVM.\n");
     
 	this->isInitialised = true;
 	this->Create();
 	if (this->jvm == nullptr)
     {
-        ReaDebug() << "DrivenByMoss: JVM could not be created.";
+		ReaDebug::Log("DrivenByMoss: JVM could not be created.\n");
 		return;
     }
 
-    ReaDebug::Log("DrivenByMoss: Registering CPP callbacks.");
+    ReaDebug::Log("DrivenByMoss: Registering CPP callbacks.\n");
     this->RegisterMethods(processNoArgCPP, processStringArgCPP, processStringArgsCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
     
 	if (ENABLE_JAVA_START)
     {
-        ReaDebug::Log("DrivenByMoss: Starting application.");
+        ReaDebug::Log("DrivenByMoss: Starting application.\n");
 		this->StartApp();
     }
     
-    ReaDebug::Log("DrivenByMoss: Startup finished.");
+    ReaDebug::Log("DrivenByMoss: JVM startup finished.\n");
 }
 
 

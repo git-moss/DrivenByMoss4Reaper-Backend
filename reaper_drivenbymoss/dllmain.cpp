@@ -371,9 +371,14 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 		DISABLE_WARNING_POP
 	}
 
+	ReaDebug::Log("DrivenByMoss: Creating surface.\n");
+
 	// Note: delete is called from Reaper on shutdown, no need to do it ourselves
 	DISABLE_WARNING_DONT_USE_NEW
 	surfaceInstance = new DrivenByMossSurface(jvmManager);
+
+	ReaDebug::Log("DrivenByMoss: Surface created.\n");
+
 	return surfaceInstance;
 }
 
@@ -400,6 +405,8 @@ static reaper_csurf_reg_t drivenbymoss_reg =
  */
 bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
+	ReaDebug::Log("DrivenByMoss: Processing project parameters.\n");
+
 	if (ctx == nullptr)
 		return false;
 
@@ -408,10 +415,11 @@ bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUnd
 
 	// Parse the line and check if it is valid and belongs to this extension
 	LineParser lp(false);
-	if (lp.parse(line) || lp.getnumtokens() < 1)
+	if (lp.parse(line) || lp.getnumtokens() < 1 || strcmp(lp.gettoken_str(0), "<DRIVEN_BY_MOSS") != 0)
+	{
+		ReaDebug::Log("DrivenByMoss: Processing project parameters done - none found.\n");
 		return false;
-	if (strcmp(lp.gettoken_str(0), "<DRIVEN_BY_MOSS") != 0)
-		return false;
+	}
 
 	constexpr int LENGTH = 8000;
 	std::string data(LENGTH, 0);
@@ -432,11 +440,14 @@ bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUnd
 		jvmManager->SetFormattedDocumentSettings(data);
 	}
 
+	ReaDebug::Log("DrivenByMoss: Processing project parameters done.\n");
 	return true;
 }
 
 void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
+	ReaDebug::Log("DrivenByMoss: Saving project settings.\n");
+
 	if (ctx == nullptr)
 		return;
 
@@ -448,15 +459,21 @@ void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_c
 	ctx->AddLine("<DRIVEN_BY_MOSS");
 	ctx->AddLine("%s", line.c_str());
 	ctx->AddLine(">");
+
+	ReaDebug::Log("DrivenByMoss: Project settings saved.\n");
 }
 
 void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg)
 {
+	ReaDebug::Log("DrivenByMoss: Loading project settings.\n");
+
 	// Called on project load/undo before any (possible) ProcessExtensionLine. NULL is OK too
 	// also called on "new project" (wont be followed by ProcessExtensionLine calls in that case)
 	// Defaults could be set here but are already set by the controller instances
 	if (jvmManager && jvmManager->IsRunning())
 		jvmManager->SetDefaultDocumentSettings();
+
+	ReaDebug::Log("DrivenByMoss: Project settings loaded.\n");
 }
 
 project_config_extension_t pcreg =
