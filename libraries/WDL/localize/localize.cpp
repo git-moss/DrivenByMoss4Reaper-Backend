@@ -62,6 +62,7 @@ static const char *next_format(const char *p)
       case '%':
         if (p[1] != '%') return p;
         p++;
+        WDL_FALLTHROUGH;
       default:
         p++;
       break;
@@ -307,6 +308,9 @@ static void __localProcMenu(HMENU menu, WDL_AssocArray<WDL_UINT64, char *> *s)
           }
   #endif
           mii.fMask = MIIM_TYPE;
+#ifdef __APPLE__
+          mii.fMask |= MIIM_SWELL_DO_NOT_CALC_MODIFIERS;
+#endif
           mii.dwTypeData = (char*)newptr;
           SetMenuItemInfo(menu,x,TRUE,&mii);
         }

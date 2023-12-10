@@ -232,17 +232,25 @@ void DeviceProcessor::Process(std::deque<std::string>& path, const std::string& 
 	if (std::strcmp(part, "add") == 0)
 	{
 		const char* deviceName = value.c_str();
-		std::string deviceNameStr(deviceName);
+		
+		try
+		{
+			std::string deviceNameStr(deviceName);
 
-		// Remove potential quotes which do not work with the Reaper function
-		if (deviceNameStr.size() >= 2 && deviceNameStr.front() == '"' && deviceNameStr.back() == '"') {
-			deviceNameStr.erase(0, 1);
-			deviceNameStr.pop_back();
+			// Remove potential quotes which do not work with the Reaper function
+			if (deviceNameStr.size() >= 2 && deviceNameStr.front() == '"' && deviceNameStr.back() == '"') {
+				deviceNameStr.erase(0, 1);
+				deviceNameStr.pop_back();
+			}
+			const int position = TrackFX_AddByName(track, deviceNameStr.c_str(), false, -1);
+			if (position < 0)
+				return;
+			const int insert = atoi(SafeGet(path, 1));
+			TrackFX_CopyToTrack(track, position, track, insert, true);
 		}
-		const int position = TrackFX_AddByName(track, deviceNameStr.c_str(), false, -1);
-		if (position < 0)
+		catch (...)
+		{
 			return;
-		const int insert = atoi(SafeGet(path, 1));
-		TrackFX_CopyToTrack(track, position, track, insert, true);
+		}
 	}
 }

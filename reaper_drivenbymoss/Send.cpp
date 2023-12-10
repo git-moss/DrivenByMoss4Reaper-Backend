@@ -10,9 +10,19 @@
 /**
  * Constructor.
  */
-Send::Send() noexcept : enabled{ 0 }, name{ "" }, volume{ 0 }, volumeStr{ "" }, color{ "" }
+Send::Send() noexcept : enabled{ 0 }, volume{ 0 }
 {
-	// Intentionally empty
+	// To make the MS analyzer happy...
+	try
+	{
+		this->name = "";
+		this->volumeStr = "";
+		this->color = "";
+	}
+	catch (...)
+	{
+		return;
+	}
 }
 
 
@@ -47,12 +57,12 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 
 	// Get the name
 	constexpr int LENGTH = 20;
-	char name[LENGTH];
+	char name[LENGTH] = {};
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-	const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
+		const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
 	const std::string newName = result ? name : "";
 	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, newName, dump);
-	
+
 	// Get the volume
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
 	this->volume = Collectors::CollectDoubleValue(ss, (sendAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);

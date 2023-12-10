@@ -95,12 +95,19 @@ int GetWindowTextUTF8(HWND hWnd, LPTSTR lpString, int nMaxCount)
   if (nMaxCount>0 AND_IS_NOT_WIN9X)
   {
     int alloc_size=nMaxCount;
+    LPARAM restore_wndproc = 0;
 
     // if a hooked combo box, and has an edit child, ask it directly
     if (s_combobox_atom && s_combobox_atom == GetClassWord(hWnd,GCW_ATOM) && GetProp(hWnd,WDL_UTF8_OLDPROCPROP))
     {
       HWND h2=FindWindowEx(hWnd,NULL,"Edit",NULL);
-      if (h2) hWnd=h2;
+      if (h2)
+      {
+        LPARAM resp = (LPARAM) GetProp(h2,WDL_UTF8_OLDPROCPROP);
+        if (resp)
+          restore_wndproc = SetWindowLongPtr(h2,GWLP_WNDPROC,resp);
+        hWnd=h2;
+      }
       else
       {
         // get via selection
@@ -150,9 +157,14 @@ int GetWindowTextUTF8(HWND hWnd, LPTSTR lpString, int nMaxCount)
 
         WIDETOMB_FREE(wbuf);
 
+        if (restore_wndproc)
+          SetWindowLongPtr(hWnd,GWLP_WNDPROC,restore_wndproc);
+
         return (int)strlen(lpString);
       }
     }
+    if (restore_wndproc)
+      SetWindowLongPtr(hWnd,GWLP_WNDPROC,restore_wndproc);
   }
   return GetWindowTextA(hWnd,lpString,nMaxCount);
 }
@@ -722,6 +734,8 @@ HANDLE CreateFileUTF8(LPCTSTR lpFileName,DWORD dwDesiredAccess,DWORD dwShareMode
 
 int DrawTextUTF8(HDC hdc, LPCTSTR str, int nc, LPRECT lpRect, UINT format)
 {
+  WDL_ASSERT((format & DT_SINGLELINE) || !(format & (DT_BOTTOM|DT_VCENTER))); // if DT_BOTTOM or DT_VCENTER used, must have DT_SINGLELINE
+
   if (WDL_HasUTF8(str) AND_IS_NOT_WIN9X)
   {
     if (nc<0) nc=(int)strlen(str);
@@ -1024,20 +1038,22 @@ BOOL GetComputerNameUTF8(LPTSTR lpString, LPDWORD nMaxCount)
 
 // these only bother using Wide versions if the filename has wide chars
 // (for now)
-#define PROFILESTR_COMMON \
+#define PROFILESTR_COMMON_BEGIN(ret_type) \
   if (IS_NOT_WIN9X_AND fnStr && WDL_HasUTF8(fnStr)) \
   { \
+    BOOL do_rv = 0; \
+    ret_type rv = 0; \
     MBTOWIDE(wfn,fnStr); \
     MBTOWIDE_NULLOK(wapp,appStr); \
     MBTOWIDE_NULLOK(wkey,keyStr); \
     if (wfn_ok && wapp_ok && wkey_ok) {
 
-#define PROFILESTR_COMMON_END \
+#define PROFILESTR_COMMON_END } /* wfn_ok etc */ \
     MBTOWIDE_FREE(wfn); \
     MBTOWIDE_FREE(wapp); \
     MBTOWIDE_FREE(wkey); \
-    return rv; \
-    } }
+    if (do_rv) return rv; \
+  } /* if has utf8 etc */ \
 
 UINT GetPrivateProfileIntUTF8(LPCTSTR appStr, LPCTSTR keyStr, INT def, LPCTSTR fnStr)
 {
@@ -1045,9 +1061,10 @@ UINT GetPrivateProfileIntUTF8(LPCTSTR appStr, LPCTSTR keyStr, INT def, LPCTSTR f
   if (WDL_NOT_NORMALLY(!fnStr || !keyStr || !appStr)) return 0;
 #endif
 
-  PROFILESTR_COMMON
+  PROFILESTR_COMMON_BEGIN(UINT)
 
-  const UINT rv = GetPrivateProfileIntW(wapp,wkey,def,wfn);
+  rv = GetPrivateProfileIntW(wapp,wkey,def,wfn);
+  do_rv = 1;
 
   PROFILESTR_COMMON_END
   return GetPrivateProfileIntA(appStr,keyStr,def,fnStr);
@@ -1055,27 +1072,31 @@ UINT GetPrivateProfileIntUTF8(LPCTSTR appStr, LPCTSTR keyStr, INT def, LPCTSTR f
 
 DWORD GetPrivateProfileStringUTF8(LPCTSTR appStr, LPCTSTR keyStr, LPCTSTR defStr, LPTSTR retStr, DWORD nSize, LPCTSTR fnStr)
 {
-  PROFILESTR_COMMON
+  PROFILESTR_COMMON_BEGIN(DWORD)
   MBTOWIDE_NULLOK(wdef, defStr);
 
   WIDETOMB_ALLOC(buf, nSize);
 
-  DWORD rv = GetPrivateProfileStringW(wapp,wkey,wdef,buf,(DWORD) (buf_size / sizeof(WCHAR)),wfn);
-
-  const DWORD nullsz = (!wapp || !wkey) ? 2 : 1;
-  if (nSize<=nullsz)
+  if (wdef_ok && buf)
   {
-    memset(retStr,0,nSize);
-    rv=0;
-  }
-  else 
-  {
-    // rv does not include null character(s)
-    if (rv>0) rv = WideCharToMultiByte(CP_UTF8,0,buf,rv,retStr,nSize-nullsz,NULL,NULL);
-    if (rv > nSize-nullsz) rv=nSize-nullsz;
-    memset(retStr + rv,0,nullsz);
+    const DWORD nullsz = (!wapp || !wkey) ? 2 : 1;
+    rv = GetPrivateProfileStringW(wapp,wkey,wdef,buf,(DWORD) (buf_size / sizeof(WCHAR)),wfn);
+    if (nSize<=nullsz)
+    {
+      memset(retStr,0,nSize);
+      rv=0;
+    }
+    else
+    {
+      // rv does not include null character(s)
+      if (rv>0) rv = WideCharToMultiByte(CP_UTF8,0,buf,rv,retStr,nSize-nullsz,NULL,NULL);
+      if (rv > nSize-nullsz) rv=nSize-nullsz;
+      memset(retStr + rv,0,nullsz);
+    }
+    do_rv = 1;
   }
   
+  MBTOWIDE_FREE(wdef);
   WIDETOMB_FREE(buf);
   PROFILESTR_COMMON_END
   return GetPrivateProfileStringA(appStr,keyStr,defStr,retStr,nSize,fnStr);
@@ -1083,11 +1104,13 @@ DWORD GetPrivateProfileStringUTF8(LPCTSTR appStr, LPCTSTR keyStr, LPCTSTR defStr
 
 BOOL WritePrivateProfileStringUTF8(LPCTSTR appStr, LPCTSTR keyStr, LPCTSTR str, LPCTSTR fnStr)
 {
-  PROFILESTR_COMMON
+  PROFILESTR_COMMON_BEGIN(BOOL)
   MBTOWIDE_NULLOK(wval, str);
-
-  const BOOL rv = WritePrivateProfileStringW(wapp,wkey,wval,wfn);
-
+  if (wval_ok)
+  {
+    rv = WritePrivateProfileStringW(wapp,wkey,wval,wfn);
+    do_rv = 1;
+  }
   MBTOWIDE_FREE(wval);
 
   PROFILESTR_COMMON_END
@@ -1099,9 +1122,10 @@ BOOL GetPrivateProfileStructUTF8(LPCTSTR appStr, LPCTSTR keyStr, LPVOID pStruct,
 #ifdef _DEBUG
   if (WDL_NOT_NORMALLY(!fnStr || !keyStr || !appStr)) return 0;
 #endif
-  PROFILESTR_COMMON
+  PROFILESTR_COMMON_BEGIN(BOOL)
 
-  const BOOL rv = GetPrivateProfileStructW(wapp,wkey,pStruct,uSize,wfn);
+  rv = GetPrivateProfileStructW(wapp,wkey,pStruct,uSize,wfn);
+  do_rv = 1;
 
   PROFILESTR_COMMON_END
   return GetPrivateProfileStructA(appStr,keyStr,pStruct,uSize,fnStr);
@@ -1113,16 +1137,17 @@ BOOL WritePrivateProfileStructUTF8(LPCTSTR appStr, LPCTSTR keyStr, LPVOID pStruc
   if (WDL_NOT_NORMALLY(!fnStr || !keyStr || !appStr)) return 0;
 #endif
 
-  PROFILESTR_COMMON
+  PROFILESTR_COMMON_BEGIN(BOOL)
 
-  const BOOL rv = WritePrivateProfileStructW(wapp,wkey,pStruct,uSize,wfn);
+  rv = WritePrivateProfileStructW(wapp,wkey,pStruct,uSize,wfn);
+  do_rv = 1;
 
   PROFILESTR_COMMON_END
   return WritePrivateProfileStructA(appStr,keyStr,pStruct,uSize,fnStr);
 }
 
 
-#undef PROFILESTR_COMMON
+#undef PROFILESTR_COMMON_BEGIN
 #undef PROFILESTR_COMMON_END
 
 
@@ -1258,11 +1283,15 @@ static int compareUTF8ToFilteredASCII(const char *utf, const char *ascii)
 {
   for (;;)
   {
-    char c1 = *ascii++;
+    unsigned char c1 = (unsigned char)*ascii++;
     int c2;
     if (!*utf || !c1) return *utf || c1;
     utf += wdl_utf8_parsechar(utf, &c2);
-    if (c1 != (c2 >= 128 ? '?' : c2)) return 1;
+    if (c1 != c2)
+    {
+      if (c2 < 128) return 1; // if not UTF-8 character, strings differ
+      if (c1 != '?') return 1; // if UTF-8 and ASCII is not ?, strings differ
+    }
   }
 }
 

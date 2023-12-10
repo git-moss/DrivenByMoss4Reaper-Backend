@@ -532,7 +532,7 @@ LICE_CachedFont::charEnt *LICE_CachedFont::findChar(unsigned short c)
 }
 
 bool LICE_CachedFont::DrawGlyph(LICE_IBitmap *bm, unsigned short c, 
-                                int xpos, int ypos, RECT *clipR)
+                                int xpos, int ypos, const RECT *clipR)
 {
   charEnt *ch = findChar(c);
 
@@ -553,7 +553,7 @@ bool LICE_CachedFont::DrawGlyph(LICE_IBitmap *bm, unsigned short c,
   if (xpos >= clipR->right || 
       ypos >= clipR->bottom ||
       xpos+ch->width <= clipR->left || 
-      ypos+ch->height <= clipR->top) return false;
+      ypos+ch->height <= clipR->top) return true; // would have drawn but out of bounds
 
   unsigned char *gsrc = m_cachestore.Get() + ch->base_offset-1;
   int src_span = ch->width;
@@ -767,6 +767,7 @@ const char *LICE_CachedFont::NextWordBreak(const char *str, int strcnt, int w)
 int LICE_CachedFont::DrawTextImpl(LICE_IBitmap *bm, const char *str, int strcnt, 
                                RECT *rect, UINT dtFlags)
 {
+  WDL_ASSERT((dtFlags & DT_SINGLELINE) || !(dtFlags & (DT_BOTTOM|DT_VCENTER))); // if DT_BOTTOM or DT_VCENTER used, must have DT_SINGLELINE
   if (!bm && !(dtFlags&DT_CALCRECT)) return 0;
 
   const int __sc = bm ? (int)bm->Extended(LICE_EXT_GET_SCALING,NULL) : 0;
@@ -796,6 +797,12 @@ int LICE_CachedFont::DrawTextImpl(LICE_IBitmap *bm, const char *str, int strcnt,
 
   if (dtFlags&DT_SINGLELINE) dtFlags &= ~DT_WORDBREAK;
 
+#ifndef _WIN32
+  const int lsadj = m_lsadj+3;
+#else
+  const int lsadj = m_lsadj;
+#endif
+
   // if using line-spacing adjustments (m_lsadj), don't allow native rendering 
   // todo: split rendering up into invidual lines and DrawText calls
 #ifndef LICE_TEXT_NONATIVE
@@ -808,7 +815,7 @@ int LICE_CachedFont::DrawTextImpl(LICE_IBitmap *bm, const char *str, int strcnt,
 #endif
       !(dtFlags & LICE_DT_USEFGALPHA) &&
       !(m_flags&LICE_FONT_FLAG_PRECALCALL) && !LICE_FONT_FLAGS_HAS_FX(m_flags) &&
-      (!m_lsadj || (dtFlags&DT_SINGLELINE))) || 
+      (!lsadj || (dtFlags&DT_SINGLELINE))) ||
       (m_line_height >= USE_NATIVE_RENDERING_FOR_FONTS_HIGHER_THAN) ) 
   {
 
@@ -1092,12 +1099,12 @@ finish_up_native_render:
         {
           if (m_flags&LICE_FONT_FLAG_VERTICAL)
           {
-            xpos+=m_line_height+m_lsadj;
+            xpos+=m_line_height+lsadj;
             ypos=0;
           }
           else
           {
-            ypos+=m_line_height+m_lsadj;
+            ypos+=m_line_height+lsadj;
             xpos=0;
           }
           if (dtFlags&DT_WORDBREAK) next_break=NULL;
@@ -1131,7 +1138,7 @@ finish_up_native_render:
           {
             if (str == next_break)
             {
-              xpos += m_line_height+m_lsadj;
+              xpos += m_line_height+lsadj;
               ypos=0;
               next_break=NULL;
             }
@@ -1144,7 +1151,7 @@ finish_up_native_render:
           {
             if (str == next_break)
             {
-              ypos += m_line_height+m_lsadj;
+              ypos += m_line_height+lsadj;
               xpos=0;
               next_break=NULL;
             }
@@ -1274,12 +1281,12 @@ finish_up_native_render:
       {
         if (m_flags&LICE_FONT_FLAG_VERTICAL) 
         {
-          xpos+=m_line_height+m_lsadj;
+          xpos+=m_line_height+lsadj;
           ypos=start_y;
         }
         else
         {
-          ypos+=m_line_height+m_lsadj;
+          ypos+=m_line_height+lsadj;
           xpos=start_x;
         }
         if (dtFlags&DT_WORDBREAK) next_break=NULL;
@@ -1315,7 +1322,7 @@ finish_up_native_render:
         {
           if (str == next_break)
           {
-            xpos += m_line_height+m_lsadj;
+            xpos += m_line_height+lsadj;
             ypos=start_y;
             next_break=NULL;
           }
@@ -1328,7 +1335,7 @@ finish_up_native_render:
         {
           if (str == next_break)
           {
-            ypos += m_line_height+m_lsadj;
+            ypos += m_line_height+lsadj;
             xpos=start_x;
             next_break=NULL;
           }

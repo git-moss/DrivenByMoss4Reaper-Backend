@@ -56,8 +56,11 @@ void IniFileProcessor::Process(std::deque<std::string>& path, int value) noexcep
 		if (addr != nullptr && size == sizeof(double))
 		{
 			double* m_addr = static_cast<double*>(addr);
-			double measures = value;
-			*m_addr = measures;
+			if (m_addr != nullptr)
+			{
+				double measures = value;
+				*m_addr = measures;
+			}
 		}
 	}
 	catch (...)

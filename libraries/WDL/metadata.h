@@ -251,13 +251,103 @@ double UnpackXMPTimestamp(wdl_xml_element *elem)
   return -1.0;
 }
 
+const char *GetXMPSubElement(wdl_xml_element *elem, const char *name)
+{
+  for (int i=0; i < elem->elements.GetSize(); ++i)
+  {
+    wdl_xml_element *elem2=elem->elements.Get(i);
+    if (!strcmp(elem2->name, name)) return elem2->value.Get(); // may be ""
+  }
+  return NULL; // element does not exist
+}
+
+bool IsXMPResourceList(wdl_xml_element *elem)
+{
+  if (!strcmp(elem->name, "rdf:li"))
+  {
+    const char *val=elem->get_attribute("rdf:parseType");
+    if (val && !strcmp(val, "Resource")) return true;
+  }
+  return false;
+}
+
+// keep in sync with metadata.cpp:XMP_MARKER_RESOLUTION
+#define XMP_MARKER_RESOLUTION 1000000
+
+// todo generic PopulateCuesFromMetadata function metadata => list of REAPERCues
+
+void UnpackXMPTrack(wdl_xml_element *elem, WDL_StringKeyedArray<char*> *metadata)
+{
+  int num_markers=0;
+  WDL_FastString key, val;
+  for (int i=0; i < elem->elements.GetSize(); ++i)
+  {
+    wdl_xml_element *elem2=elem->elements.Get(i);
+    if (!strcmp(elem2->name, "rdf:Bag"))
+    {
+      for (int i2=0; i2 < elem2->elements.GetSize(); ++i2)
+      {
+        wdl_xml_element *elem3=elem2->elements.Get(i2);
+        if (IsXMPResourceList(elem3))
+        {
+          const char *track_type=GetXMPSubElement(elem3, "xmpDM:trackType");
+          const char *frame_rate=GetXMPSubElement(elem3, "xmpDM:frameRate");
+          if (track_type && frame_rate && !strcmp(track_type, "Cue"))
+          {
+            double marker_resolution=0;
+            if (frame_rate[0] == 'f') marker_resolution=atof(frame_rate+1);
+            // todo parse other resolution types
+            if (marker_resolution > 0.0)
+            {
+              double marker_convert=XMP_MARKER_RESOLUTION/marker_resolution;
+              for (int i3=0; i3 < elem3->elements.GetSize(); ++i3)
+              {
+                wdl_xml_element *elem4=elem3->elements.Get(i3);
+                if (!strcmp(elem4->name, "xmpDM:markers"))
+                {
+                  for (int i4=0; i4 < elem4->elements.GetSize(); ++i4)
+                  {
+                    wdl_xml_element *elem5=elem4->elements.Get(i4);
+                    if (!strcmp(elem5->name, "rdf:Seq"))
+                    {
+                      for (int i5=0; i5 < elem5->elements.GetSize(); ++i5)
+                      {
+                        wdl_xml_element *elem6=elem5->elements.Get(i4);
+                        const char *start_time=GetXMPSubElement(elem6, "xmpDM:startTime");
+                        const char *duration=GetXMPSubElement(elem6, "xmpDM:duration");
+                        const char *marker_name=GetXMPSubElement(elem6, "xmpDM:name");
+                        if (start_time)
+                        {
+                          double st=atof(start_time)*marker_convert;
+                          double et = st + (duration ? atof(duration)*marker_convert : 0.0);
+                          key.SetFormatted(512, "XMP:MARK%03d", num_markers++);
+                          val.SetFormatted(512, "%.0f:%.0f:", st, et);
+                          if (marker_name && marker_name[0]) val.Append(marker_name);
+                          else val.AppendFormatted(512, "Marker %d", num_markers);
+                          metadata->Insert(key.Get(), strdup(val.Get()));
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 void UnpackXMPDescription(const char *curkey, wdl_xml_element *elem,
   WDL_StringKeyedArray<char*> *metadata)
 {
   if (!strcmp(elem->name, "xmpDM:Tracks"))
   {
     // xmp "tracks" are collections of markers and other related data,
-    // todo maybe parse the markers but for now we know we can ignore this entire block
+    // we can parse the markers (at least ones we wronte) but otherwise
+    // we can ignore this entire block
+    UnpackXMPTrack(elem, metadata);
     return;
   }
 
@@ -593,14 +683,14 @@ int PackXMPChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata)
     }
   }
 
-#define XMP_MARKER_RESOLUTION "1000000" // keep in sync with metadata.cpp:UpdateAutomaticMetadata()
-
-  static const char *track_hdr=
+  static const char *track_hdr1=
     "<xmpDM:Tracks>"
       "<rdf:Bag>"
         "<rdf:li rdf:parseType=\"Resource\">"
           "<xmpDM:trackType>Cue</xmpDM:trackType>"
-          "<xmpDM:frameRate>f" XMP_MARKER_RESOLUTION "</xmpDM:frameRate>"
+          "<xmpDM:frameRate>f";
+  static const char *track_hdr2=
+          "</xmpDM:frameRate>"
           "<xmpDM:markers>"
             "<rdf:Seq>";
   static const char *track_ftr=
@@ -626,7 +716,7 @@ int PackXMPChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata)
     const char *sep2=strchr(sep1+1, ':');
     const char *name = sep2 ? sep2+1 : ""; // might need to make this xml compliant?
 
-    if (!cnt++) xmp.Append(track_hdr);
+    if (!cnt++) xmp.AppendFormatted(1024, "%s%d%s", track_hdr1, XMP_MARKER_RESOLUTION, track_hdr2);
 
     xmp.Append("<rdf:li rdf:parseType=\"Resource\">");
     xmp.AppendFormatted(1024, "<xmpDM:startTime>%.0f</xmpDM:startTime>", st);
@@ -1233,7 +1323,8 @@ void DumpMetadata(WDL_FastString *str, WDL_StringKeyedArray<char*> *metadata)
         lstrcpyn(scheme, "mex", sizeof(scheme));
         str->Append("Metadata:\r\n");
       }
-      str->AppendFormatted(4096, "    %s: %s\r\n", mexdesc, buf);
+      str->AppendFormatted(4096, "    %s:%s%s\r\n",
+        mexdesc, strchr(buf, '\n') ? "\r\n" : " ", buf);
     }
   }
 
@@ -1255,7 +1346,8 @@ void DumpMetadata(WDL_FastString *str, WDL_StringKeyedArray<char*> *metadata)
       }
       key += slen+1;
     }
-    str->AppendFormatted(4096, "    %s: %s\r\n", key, val);
+    str->AppendFormatted(4096, "    %s:%s%s\r\n",
+      key, strchr(val, '\n') ? "\r\n" : " ", val);
   }
 
   int unk_cnt=0;
@@ -1507,7 +1599,7 @@ int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
     {
       id3len += 10+1+strlen(val);
     }
-    else if (!strcmp(key, "COMM"))
+    else if (!strcmp(key, "COMM") || !strcmp(key, "USLT"))
     {
       id3len += 10+5+strlen(val);
     }
@@ -1667,11 +1759,14 @@ int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
           memcpy(p, val, len);
           p += len;
         }
-        else if (!strcmp(key, "COMM"))
+        else if (!strcmp(key, "COMM") || !strcmp(key, "USLT"))
         {
           // http://www.loc.gov/standards/iso639-2/php/code_list.php
           // most apps ignore this, itunes wants "eng" or something locale-specific
-          const char *lang=metadata->Get("ID3:COMM_LANG");
+          const char *lang=NULL;
+          if (!strcmp(key, "USLT")) lang=metadata->Get("ID3:LYRIC_LANG");
+          if (!lang) lang=metadata->Get("ID3:COMM_LANG");
+          if (!lang) lang=metadata->Get("ID3:COMMENT_LANG");
 
           memcpy(p, key, 4);
           p += 4;
@@ -1869,6 +1964,9 @@ double ReadMetadataPrefPos(WDL_StringKeyedArray<char*> *metadata, double srate)
 struct ChanLayout { const char *fmts; int nch; const char *desc; int chan_layout, chan_mask; };
 static const ChanLayout CHAN_LAYOUTS[]=
 {
+  // using Ls/Rs for left side/right side
+  // using Lb/Rb for left back/right back
+
   { "cw", 2, "L R",
     kAudioChannelLayoutTag_UseChannelBitmap,
     kAudioChannelBit_Left | kAudioChannelBit_Right },
@@ -1877,18 +1975,29 @@ static const ChanLayout CHAN_LAYOUTS[]=
     kAudioChannelLayoutTag_UseChannelBitmap,
     kAudioChannelBit_Left | kAudioChannelBit_Right | kAudioChannelBit_Center },
 
-  { "cw", 4, "L R Ls Rs",
+  { "cw", 4, "L R Lb Rb",
     kAudioChannelLayoutTag_UseChannelBitmap,
     kAudioChannelBit_Left | kAudioChannelBit_Right |
     kAudioChannelBit_LeftSurround | kAudioChannelBit_RightSurround },
 
-  { "cw", 6, "L R C LFE Ls Rs",
+  { "cw", 5, "L R C Lb Rb",
+    kAudioChannelLayoutTag_UseChannelBitmap,
+    kAudioChannelBit_Left | kAudioChannelBit_Right | kAudioChannelBit_Center |
+    kAudioChannelBit_LeftSurround | kAudioChannelBit_RightSurround },
+
+  { "cw", 6, "L R C LFE Lb Rb",
     kAudioChannelLayoutTag_UseChannelBitmap,
     kAudioChannelBit_Left | kAudioChannelBit_Right | kAudioChannelBit_Center |
     kAudioChannelBit_LFEScreen |
     kAudioChannelBit_LeftSurround | kAudioChannelBit_RightSurround },
 
-  { "cw", 8, "L R C LFE Ls Rs Lsd Rsd",
+  { "cw", 6, "L R Lb Rb Ls Rs",
+    kAudioChannelLayoutTag_UseChannelBitmap,
+    kAudioChannelBit_Left | kAudioChannelBit_Right |
+    kAudioChannelBit_LeftSurround | kAudioChannelBit_RightSurround |
+    kAudioChannelBit_LeftSurroundDirect | kAudioChannelBit_RightSurroundDirect },
+
+  { "cw", 8, "L R C LFE Lb Rb Ls Rs",
     kAudioChannelLayoutTag_UseChannelBitmap,
     kAudioChannelBit_Left | kAudioChannelBit_Right | kAudioChannelBit_Center |
     kAudioChannelBit_LFEScreen |
@@ -1899,23 +2008,24 @@ static const ChanLayout CHAN_LAYOUTS[]=
   { "c", 2, "Binaural", kAudioChannelLayoutTag_Binaural, 0 },
   { "c", 4, "Ambisonic B-Format - W X Y Z", kAudioChannelLayoutTag_Ambisonic_B_Format, 0 },
 
-  { "c", 6, "MPEG 5.1A - L R C LFE Ls Rs", kAudioChannelLayoutTag_MPEG_5_1_A, 0 },
-  { "c", 6, "MPEG 5.1B - L R Ls Rs C LFE", kAudioChannelLayoutTag_MPEG_5_1_B, 0 },
-  { "c", 6, "MPEG 5.1C - L C R Ls Rs LFE", kAudioChannelLayoutTag_MPEG_5_1_C, 0 },
-  { "c", 6, "MPEG 5.1D - C L R Ls Rs LFE", kAudioChannelLayoutTag_MPEG_5_1_D, 0 },
-  { "c", 8, "MPEG 5.1A - L R C LFE Ls Rs Lc Rc", kAudioChannelLayoutTag_MPEG_7_1_A, 0 },
-  { "c", 8, "MPEG 5.1B - C Lc Rc L R Ls Rs LFE", kAudioChannelLayoutTag_MPEG_7_1_B, 0 },
-  { "c", 8, "MPEG 5.1C - L R C LFE Ls Rs Rls Rrs", kAudioChannelLayoutTag_MPEG_7_1_C, 0 },
+  { "c", 6, "MPEG 5.1A - L R C LFE Lb Rb", kAudioChannelLayoutTag_MPEG_5_1_A, 0 },
+  { "c", 6, "MPEG 5.1B - L R Lb Rb C LFE", kAudioChannelLayoutTag_MPEG_5_1_B, 0 },
+  { "c", 6, "MPEG 5.1C - L C R Lb Rb LFE", kAudioChannelLayoutTag_MPEG_5_1_C, 0 },
+  { "c", 6, "MPEG 5.1D - C L R Lb Rb LFE", kAudioChannelLayoutTag_MPEG_5_1_D, 0 },
 
-  { "c", 6, "ITU 3.2.1 - L R C LFE Ls Rs", kAudioChannelLayoutTag_ITU_3_2_1, 0 },
-  { "c", 8, "ITU 3.4.1 - L R C LFE Ls Rs Rls Rrs", kAudioChannelLayoutTag_ITU_3_4_1, 0 },
+  { "c", 8, "MPEG 7.1A - L R C LFE Lb Rb Lc Rc", kAudioChannelLayoutTag_MPEG_7_1_A, 0 },
+  { "c", 8, "MPEG 7.1B - C Lc Rc L R Lb Rb LFE", kAudioChannelLayoutTag_MPEG_7_1_B, 0 },
+  { "c", 8, "MPEG 7.1C (SMPTE 7.1) - L R C LFE Ls Rs Lb Rb", kAudioChannelLayoutTag_MPEG_7_1_C, 0 },
+
+  { "c", 6, "ITU 3.2.1 - L R C LFE Lb Rb", kAudioChannelLayoutTag_ITU_3_2_1, 0 },
+  { "c", 8, "ITU 3.4.1 - L R C LFE Lb Rb Rls Rrs", kAudioChannelLayoutTag_ITU_3_4_1, 0 },
 
   { "c", -1, "HO Ambisonic SN3D", kAudioChannelLayoutTag_HOA_ACN_SN3D, 0 },
   { "c", -1, "HO Ambisonic N3D", kAudioChannelLayoutTag_HOA_ACN_N3D, 0 },
 
-  { "c", 8, "Atmos 5.1.2 - L R C LFE Ls Rs Ltm Rtm", kAudioChannelLayoutTag_Atmos_5_1_2, 0 },
-  { "c", 12, "Atmos 7.1.4 - L R C LFE Ls Rs Rls Rrs Ltf Rtf Ltr Rtr", kAudioChannelLayoutTag_Atmos_7_1_4, 0 },
-  { "c", 16, "Atmos 9.1.6 - L R C LFE Ls Rs Rls Rrs Lw Rw Ltf Rtf Ltm Rtm Ltr Rtr", kAudioChannelLayoutTag_Atmos_9_1_6, 0 },
+  { "c", 8, "Atmos 5.1.2 - L R C LFE Lb Rb Ltm Rtm", kAudioChannelLayoutTag_Atmos_5_1_2, 0 },
+  { "c", 12, "Atmos 7.1.4 - L R C LFE Lb Rb Rls Rrs Ltf Rtf Ltr Rtr", kAudioChannelLayoutTag_Atmos_7_1_4, 0 },
+  { "c", 16, "Atmos 9.1.6 - L R C LFE Lb Rb Rls Rrs Lw Rw Ltf Rtf Ltm Rtm Ltr Rtr", kAudioChannelLayoutTag_Atmos_9_1_6, 0 },
 };
 
 #define LAYOUT_MASK_VALID(layout, mask) \

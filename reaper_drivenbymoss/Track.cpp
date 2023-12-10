@@ -13,9 +13,18 @@ const std::regex Track::INPUT_QUANTIZE_PATTERN{ "INQ\\s+([0-9]+(\\.[0-9]+)?)\\s+
 /**
  * Constructor.
  */
-Track::Track() noexcept : name{ "" }, type{ "" }
+Track::Track() noexcept
 {
-	// Intentionally empty
+	// To make the MS analyzer happy...
+	try
+	{
+		this->name = "";
+		this->type = "";
+	}
+	catch (...)
+	{
+		return;
+	}
 }
 
 

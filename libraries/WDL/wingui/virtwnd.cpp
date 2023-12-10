@@ -912,7 +912,7 @@ WDL_VWnd *WDL_VWnd::VirtWndFromPoint(int xpos, int ypos, int maxdepth)
   if (m_children) for (x = 0; x < m_children->GetSize(); x++)
   {
     WDL_VWnd *wnd=m_children->Get(x);
-    if (wnd->IsVisible())
+    if (wnd->IsVisible() && !wnd->DoNotHitTest())
     {
       RECT r;
       wnd->GetPosition(&r);
@@ -1005,31 +1005,12 @@ void WDL_VWnd::OnMouseMove(int xpos, int ypos)
   if (!wnd) 
   {
     wnd=VirtWndFromPoint(xpos,ypos,0);
-    if (wnd) // todo: stuff so if the mouse goes out of the window completely, the virtualwnd gets notified
-    {
-      int idx=m_children->Find(wnd);
-      if (idx != m_lastmouseidx)
-      {
-        WDL_VWnd *t=m_children->Get(m_lastmouseidx);
-        if (t)
-        {
-          RECT r;
-          t->GetPosition(&r);
-          t->OnMouseMove(xpos-r.left,ypos-r.top);
-        }
-        if (chk.isOK()) m_lastmouseidx=idx;
-      }
-    }
-    else
+    int idx = wnd ? m_children->Find(wnd) : -1;
+    if (idx != m_lastmouseidx)
     {
       WDL_VWnd *t=m_children->Get(m_lastmouseidx);
-      if (t)
-      {
-        RECT r;
-        t->GetPosition(&r);
-        t->OnMouseMove(xpos-r.left,ypos-r.top);
-      }
-      if (chk.isOK()) m_lastmouseidx=-1;
+      if (t) t->OnMouseMove(-1000,-1000);
+      if (chk.isOK()) m_lastmouseidx=idx;
     }
   }
 
