@@ -5,6 +5,8 @@
 #ifndef _DBM_DRIVENBYMOSSSURFACE_H_
 #define _DBM_DRIVENBYMOSSSURFACE_H_
 
+#include <mutex>
+
 #include "FunctionExecutor.h"
 #include "OscParser.h"
 #include "JvmManager.h"
@@ -17,7 +19,8 @@
 class DrivenByMossSurface : public IReaperControlSurface
 {
 public:
-	bool isShutdown;
+	bool isInfrastructureUp{ false };
+	bool isShutdown{ false };
 
 
 	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager);
@@ -64,7 +67,8 @@ private:
 	Model model;
 	OscParser oscParser{ model };
 	DataCollector dataCollector{ model };
-	bool updateModel;
+	bool updateModel{false};
+	std::mutex startInfrastructureMutex;
 
 	std::string CollectData(bool dump)
 	{

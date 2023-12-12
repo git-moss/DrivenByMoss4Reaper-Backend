@@ -872,7 +872,7 @@ bool DataCollector::IsActive(std::string processor)
  */
 bool DataCollector::CheckDelay(std::string processor)
 {
-	this->delayMutex.lock();
+	const std::lock_guard<std::mutex> lock(this->delayMutex);
 	bool result = true;
 	const std::map<std::string, long long>::iterator it = this->delayUpdateMap.find(processor);
 	if (it != this->delayUpdateMap.end())
@@ -884,7 +884,6 @@ bool DataCollector::CheckDelay(std::string processor)
 		else
 			this->delayUpdateMap.erase(processor);
 	}
-	this->delayMutex.unlock();
 	return result;
 }
 

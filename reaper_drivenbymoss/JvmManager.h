@@ -42,6 +42,7 @@ public:
 	void DisplayParameterWindow();
 	void UpdateModel(const std::string& data);
 
+	void StartInfrastructure();
 	void SetCleanShutdown() noexcept { this->isCleanShutdown = true; };
 
 	void SetDefaultDocumentSettings();

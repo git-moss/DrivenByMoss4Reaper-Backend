@@ -14,7 +14,7 @@ DrivenByMossSurface* surfaceInstance = nullptr;
  * Constructor.
  */
 DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
-DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) : isShutdown(false), jvmManager(aJvmManager), model(functionExecutor), updateModel(false)
+DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) : jvmManager(aJvmManager), model(functionExecutor)
 {
 	ReaDebug::setModel(&model);
 }
@@ -59,6 +59,17 @@ void DrivenByMossSurface::Run()
 {
 	if (this->jvmManager == nullptr || !this->jvmManager->IsRunning() || this->isShutdown)
 		return;
+
+	// Infrastructure needs to startup here to ensure that the Reaper audio layer is up 
+	// and running otherwise there might be a deadlock on Macos
+	const std::lock_guard<std::mutex> lock(this->startInfrastructureMutex);
+	if (!this->isInfrastructureUp)
+	{
+		if (Audio_IsRunning() == 0)
+			return;
+		this->jvmManager->StartInfrastructure();
+		this->isInfrastructureUp = true;
+	}
 
 	try
 	{

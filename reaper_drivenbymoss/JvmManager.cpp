@@ -318,6 +318,28 @@ void JvmManager::StartApp()
 
 
 /**
+ * Call the start infrastructure method in the main class of the JVM.
+ */
+void JvmManager::StartInfrastructure()
+{
+	if (this->env == nullptr)
+		return;
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
+	// Call main start method
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "startInfrastructure", "()V");
+	if (methodID == nullptr)
+	{
+		ReaDebug() << "startInfrastructure method could not be retrieved.";
+		return;
+	}
+	this->env->CallStaticVoidMethod(clazz, methodID);
+	this->HandleException("ERROR: Could not call startInfrastructure.");
+}
+
+
+/**
  * Call the displayWindow method in the main class of the JVM.
  */
 void JvmManager::DisplayWindow()
