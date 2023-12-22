@@ -18,7 +18,7 @@ public:
 
 	void Process(std::deque<std::string> &path) override;
 
-	void Process(std::deque<std::string>& path, const std::string& value) noexcept override {};
+	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;
 	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
 	void Process(std::deque<std::string>& path, double value) noexcept override {};
 

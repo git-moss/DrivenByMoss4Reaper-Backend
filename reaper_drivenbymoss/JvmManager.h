@@ -40,6 +40,7 @@ public:
 	void DisplayWindow();
 	void DisplayProjectWindow();
 	void DisplayParameterWindow();
+	void RestartControllers();
 	void UpdateModel(const std::string& data);
 
 	void StartInfrastructure();

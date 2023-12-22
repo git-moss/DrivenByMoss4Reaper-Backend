@@ -466,7 +466,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 
 			Undo_BeginBlock2(project);
 			DISABLE_WARNING_USE_GSL_AT
-				GetSetMediaTrackInfo(track, "P_NAME", &val[0]);
+			GetSetMediaTrackInfo(track, "P_NAME", &val[0]);
 			Undo_EndBlock2(project, "Set track name", UNDO_STATE_ALL);
 		}
 		catch (...)

@@ -201,6 +201,12 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 		return;
 	}
 
+	if (std::strcmp(cmd, "name") == 0)
+	{
+		SetNameOfClip(project, item, value);
+		return;
+	}
+
 	if (std::strcmp(cmd, "note") == 0)
 	{
 		if (path.size() < 3)
@@ -299,6 +305,31 @@ void ClipProcessor::SetColorOfClip(ReaProject* project, MediaItem* item, const s
 	SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", ColorToNative(red, green, blue) | SET_COLOR);
 	UpdateItemInProject(item);
 	Undo_OnStateChange_Item(project, "Set clip color", item);
+	PreventUIRefresh(-1);
+}
+
+
+/**
+ * Set the name of a clip.
+ *
+ * @param project The Reaper project
+ * @param item The media item
+ * @param value The name
+ */
+void ClipProcessor::SetNameOfClip(ReaProject* project, MediaItem* item, const std::string& value) noexcept
+{
+	const double activeTakeIndex = GetMediaItemInfo_Value(item, "I_CURTAKE");
+	if (activeTakeIndex < 0)
+		return;
+	MediaItem_Take* take = GetMediaItemTake(item, static_cast<int>(activeTakeIndex));
+	if (take == nullptr)
+		return;
+	std::string val = value;
+
+	PreventUIRefresh(1);
+	GetSetMediaItemTakeInfo(take, "P_NAME", &val[0]);
+	UpdateItemInProject(item);
+	Undo_OnStateChange_Item(project, "Set name of active take", item);
 	PreventUIRefresh(-1);
 }
 

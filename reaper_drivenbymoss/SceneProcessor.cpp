@@ -72,6 +72,78 @@ void SceneProcessor::Process(std::deque<std::string>& path)
 	}
 }
 
+
+/** {@inheritDoc} */
+void SceneProcessor::Process(std::deque<std::string>& path, const std::string& value) noexcept
+{
+	if (path.empty())
+		return;
+	const char* part = SafeGet(path, 0);
+
+	ReaProject* project = ReaperUtils::GetProject();
+
+	if (path.size() < 2)
+		return;
+
+	const int index = atoi(part);
+	const char* cmd = SafeGet(path, 1);
+
+	const std::vector<int> scenes = Marker::GetRegions(project);
+	if (index < 0 || index >= gsl::narrow_cast<int>(scenes.size()))
+		return;
+	const int sceneID = scenes.at(index);
+
+	if (std::strcmp(cmd, "color") == 0)
+	{
+		int red{ 0 };
+		int green{ 0 };
+		int blue{ 0 };
+		try
+		{
+			std::cmatch result{};
+			if (!std::regex_search(value.c_str(), result, colorPattern))
+				return;
+			red = std::atoi(result.str(1).c_str());
+			green = std::atoi(result.str(2).c_str());
+			blue = std::atoi(result.str(3).c_str());
+		}
+		catch (...)
+		{
+			return;
+		}
+
+		bool isRegion;
+		double pos;
+		double end;
+		int num;
+		int color;
+		if (EnumProjectMarkers3(project, sceneID, &isRegion, &pos, &end, nullptr, &num, &color) >= 0)
+		{
+			Undo_BeginBlock2(project);
+			SetProjectMarker4(project, num, isRegion, pos, end, "", ColorToNative(red, green, blue) | 0x1000000, 0);
+			Undo_EndBlock2(project, "Change region color", UNDO_STATE_ALL);
+		}
+		return;
+	}
+
+	if (std::strcmp(cmd, "name") == 0)
+	{
+		bool isRegion;
+		double pos;
+		double end;
+		int num;
+		int color;
+		if (EnumProjectMarkers3(project, sceneID, &isRegion, &pos, &end, nullptr, &num, &color) >= 0)
+		{
+			Undo_BeginBlock2(project);
+			SetProjectMarker4(project, num, isRegion, pos, end, value.c_str(), color ? color | 0x1000000 : 0, value.length() == 0 ? 1 : 0);
+			Undo_EndBlock2(project, "Rename region", UNDO_STATE_ALL);
+		}
+		return;
+	}
+}
+
+
 void SceneProcessor::DuplicateScene(ReaProject* project, const int sceneID)
 {
 	double position, endPosition;

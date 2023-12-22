@@ -30,6 +30,7 @@ public:
 
 private:
 	void SetColorOfClip(ReaProject* project, MediaItem* item, const std::string& value) noexcept;
+	void SetNameOfClip(ReaProject* project, MediaItem* item, const std::string& value) noexcept;
 	void TransposeClip(ReaProject* project, MediaItem* clip, int transpose) noexcept;
 	void ClearNotes(ReaProject* project, MediaItem* item, int channel, int pitch) noexcept;
 	bool ClearNote(ReaProject* project, MediaItem* item, int channel, int pitch, double position) noexcept;

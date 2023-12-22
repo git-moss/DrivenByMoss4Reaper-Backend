@@ -26,6 +26,7 @@ REAPER_PLUGIN_HINSTANCE pluginInstanceHandle = nullptr;
 gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open the configuration window." };
 gaccel_register_t openDBMProjectWindowAccel = { {0,0,0}, "DrivenByMoss: Open the project settings window." };
 gaccel_register_t openDBMParameterWindowAccel = { {0,0,0}, "DrivenByMoss: Open the parameter settings window." };
+gaccel_register_t restartControllersAccel = { {0,0,0}, "DrivenByMoss: Restart all controllers." };
 std::unique_ptr <JvmManager> jvmManager;
 
 // Defined in DrivenByMossSurface.cpp
@@ -281,6 +282,11 @@ bool hookCommandProc(int command, int flag)
 	if (openDBMParameterWindowAccel.accel.cmd != 0 && openDBMParameterWindowAccel.accel.cmd == command)
 	{
 		jvmManager->DisplayParameterWindow();
+		return true;
+	}
+	if (restartControllersAccel.accel.cmd != 0 && restartControllersAccel.accel.cmd == command)
+	{
+		jvmManager->RestartControllers();
 		return true;
 	}
 	return false;
@@ -562,6 +568,18 @@ extern "C"
 		if (!rec->Register("gaccel", &openDBMParameterWindowAccel))
 		{
 			ReaDebug() << "Could not register DrivenByMoss open parameter window action.";
+			return 0;
+		}
+
+		restartControllersAccel.accel.cmd = rec->Register("command_id", (void*)"RESTART_CONTROLLERS_ACTION");
+		if (!restartControllersAccel.accel.cmd)
+		{
+			ReaDebug() << "Could not register ID for DrivenByMoss restart controllers action.";
+			return 0;
+		}
+		if (!rec->Register("gaccel", &restartControllersAccel))
+		{
+			ReaDebug() << "Could not register DrivenByMoss restart controllers action.";
 			return 0;
 		}
 

@@ -397,6 +397,25 @@ void JvmManager::DisplayParameterWindow()
 
 
 /**
+ * Call the restartControllers method in the main class of the JVM.
+ */
+void JvmManager::RestartControllers()
+{
+	if (this->env == nullptr)
+		return;
+	jclass clazz = this->GetControllerClass();
+	if (clazz == nullptr)
+		return;
+	// Call restartControllers method
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "restartControllers", "()V");
+	if (methodID == nullptr)
+		return;
+	this->env->CallStaticVoidMethod(clazz, methodID);
+	this->HandleException("ERROR: Could not call restartControllers.");
+}
+
+
+/**
  * Call the updateModel method in the main class of the JVM.
  *
  * @param data The data to send
