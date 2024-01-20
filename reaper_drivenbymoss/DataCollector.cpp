@@ -209,12 +209,19 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
  */
 void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, const bool& dump)
 {
-	const int deviceIndex = this->model.GetDeviceSelection();
 	this->model.deviceCount = Collectors::CollectIntValue(ss, "/device/count", this->model.deviceCount, TrackFX_GetCount(track), dump);
-	this->deviceExists = Collectors::CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex < this->model.deviceCount ? 1 : 0, dump);
+
+	int deviceIndex = this->model.deviceCount == 0 ? -1 : this->model.GetDeviceSelection();
+	if (deviceIndex > 0 && deviceIndex >= this->model.deviceCount && this->model.deviceCount > 0)
+	{
+		deviceIndex = 0;
+		this->model.SetDeviceSelection(deviceIndex);
+	}
+
+	this->deviceExists = Collectors::CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex >= 0 ? 1 : 0, dump);
 	this->devicePosition = Collectors::CollectIntValue(ss, "/device/position", this->devicePosition, deviceIndex, dump);
-	this->deviceWindow = Collectors::CollectIntValue(ss, "/device/window", this->deviceWindow, TrackFX_GetOpen(track, deviceIndex), dump);
-	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpandedType == 1, dump);
+	this->deviceWindow = Collectors::CollectIntValue(ss, "/device/window", this->deviceWindow, this->deviceExists ? TrackFX_GetOpen(track, deviceIndex) : 0, dump);
+	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpandedType == 1 ? 1 : 0, dump);
 
 	constexpr int LENGTH = 50;
 	std::string strBuffer(LENGTH, 0);
@@ -222,9 +229,9 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 	if (this->slowCounter == 0 || dump)
 	{
-		bool result = TrackFX_GetFXName(track, deviceIndex, strBufferPointer, LENGTH);
+		bool result = this->deviceExists ? TrackFX_GetFXName(track, deviceIndex, strBufferPointer, LENGTH) : false;
 		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? strBuffer : "", dump);
-		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
+		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, this->deviceExists && TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
 
 		for (int index = 0; index < this->model.DEVICE_BANK_SIZE; index++)
 		{

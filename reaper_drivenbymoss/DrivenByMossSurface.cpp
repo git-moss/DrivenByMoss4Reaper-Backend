@@ -62,13 +62,16 @@ void DrivenByMossSurface::Run()
 
 	// Infrastructure needs to startup here to ensure that the Reaper audio layer is up 
 	// and running otherwise there might be a deadlock on Macos
-	const std::lock_guard<std::mutex> lock(this->startInfrastructureMutex);
 	if (!this->isInfrastructureUp)
 	{
 		if (Audio_IsRunning() == 0)
 			return;
-		this->jvmManager->StartInfrastructure();
-		this->isInfrastructureUp = true;
+		const std::lock_guard<std::mutex> lock(this->startInfrastructureMutex);
+		if (!this->isInfrastructureUp)
+		{
+			this->jvmManager->StartInfrastructure();
+			this->isInfrastructureUp = true;
+		}
 	}
 
 	try

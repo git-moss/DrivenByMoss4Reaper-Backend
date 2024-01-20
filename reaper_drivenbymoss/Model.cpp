@@ -237,7 +237,7 @@ void Model::SetDeviceSelection(int position) noexcept
 	MediaTrack* track = GetSelectedTrack2(ReaperUtils::GetProject(), 0, true);
 	if (track == nullptr)
 	{
-		this->deviceSelected = 0;
+		this->deviceSelected = -1;
 		this->deviceBankOffset = 0;
 		return;
 	}
@@ -246,8 +246,13 @@ void Model::SetDeviceSelection(int position) noexcept
 
 	const int pos = (std::min)((std::max)(0, position), numDevice - 1);
 	this->deviceSelected = pos % this->DEVICE_BANK_SIZE;
-	this->deviceBankOffset = static_cast<int>(std::floor(pos / this->DEVICE_BANK_SIZE) * this->DEVICE_BANK_SIZE);
+	if (this->deviceSelected < 0)
+	{
+		this->deviceBankOffset = 0;
+		return;
+	}
 
+	this->deviceBankOffset = static_cast<int>(std::floor(pos / this->DEVICE_BANK_SIZE) * this->DEVICE_BANK_SIZE);
 	const bool isWindowVisible = this->deviceExpandedType ? TrackFX_GetChainVisible(track) != -1 : TrackFX_GetOpen(track, this->deviceSelected);
 
 	PreventUIRefresh(1);
