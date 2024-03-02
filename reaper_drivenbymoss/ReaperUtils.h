@@ -14,7 +14,7 @@
 
 static constexpr double VU_BOTTOM{ 60.0 };
 static constexpr double VU_TOP{ 6.0 };
-static constexpr double VU_RANGE{ VU_BOTTOM + VU_TOP };
+static constexpr double VU_CLIP{ 0.9912109375 };
 
 
 /**
@@ -132,8 +132,12 @@ public:
 		if (dbValue < -VU_BOTTOM)
 			return 0.0;
 
-		// Scale [-60..+6] to [0..1]
-		return (dbValue + VU_BOTTOM) / VU_RANGE;
+		// Scale the clip region [0..+6] to [0.9912..1]
+		if (dbValue > 0)
+			return VU_CLIP + (dbValue / VU_TOP);
+
+		// Scale [-60..0] to [0..0.9912]
+		return (dbValue + VU_BOTTOM) / VU_BOTTOM * VU_CLIP;
 	}
 
 
