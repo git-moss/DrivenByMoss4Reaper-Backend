@@ -182,6 +182,7 @@ private:
 	int GetMasterMute(MediaTrack* master, double position, int trackState) const noexcept;
 
 	MediaItem_Take* GetMidiTakeAtPlayPosition(ReaProject* project, MediaTrack* track) const noexcept;
+	void replaceCommaWithDot(std::string& str);
 };
 
 #endif /* _DBM_DATACOLLECTOR_H_ */
