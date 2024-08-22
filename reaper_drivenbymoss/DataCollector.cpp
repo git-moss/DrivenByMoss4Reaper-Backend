@@ -209,6 +209,8 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 
 	// Additional info
 	this->followPlayback = Collectors::CollectIntValue(ss, "/followPlayback", this->followPlayback, GetToggleCommandState(40036), dump);
+
+	this->automationMode = Collectors::CollectIntValue(ss, "/automode", this->automationMode, GetGlobalAutomationOverride(), dump);
 }
 
 

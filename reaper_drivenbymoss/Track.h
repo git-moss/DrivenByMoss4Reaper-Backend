@@ -52,7 +52,6 @@ public:
 	double vu{ 0.0 };
 	double vuLeft{ 0.0 };
 	double vuRight{ 0.0 };
-	int autoMode{ 0 };
 
 
 	Track() noexcept;

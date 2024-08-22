@@ -48,41 +48,6 @@ void MastertrackProcessor::Process(std::deque<std::string>& path, int value) noe
 		return;
 	}
 
-	if (std::strcmp(cmd, "autotrim") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 0);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autoread") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 1);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autotouch") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 2);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autowrite") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 3);
-		return;
-	}
-
-	if (std::strcmp(cmd, "autolatch") == 0)
-	{
-		if (value > 0)
-			SetMediaTrackInfo_Value(track, "I_AUTOMODE", 4);
-		return;
-	}
-
 	Process(path, static_cast<double>(value));
 }
 

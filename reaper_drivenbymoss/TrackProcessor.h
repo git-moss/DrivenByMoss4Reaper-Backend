@@ -31,7 +31,6 @@ private:
 	void SetIsActivated(ReaProject* project, bool enable) noexcept;
 	void DeleteAllAutomationEnvelopes(ReaProject* project, MediaTrack* track) noexcept;
 	int GetTrackIndex(ReaProject* project, int dawTrackIndex) const noexcept;
-	bool ProcessAutomation(MediaTrack* track, const char* cmd, const int& value) const noexcept;
 };
 
 #endif /* _DBM_TRACKPROCESSOR_H_ */

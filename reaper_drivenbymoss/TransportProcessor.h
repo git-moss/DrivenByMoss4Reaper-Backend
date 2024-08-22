@@ -11,6 +11,28 @@
 #include "StringUtils.h"
 
 
+class AutomationProcessor : public OscProcessor
+{
+public:
+	AutomationProcessor(Model& aModel) : OscProcessor(aModel) {};
+	AutomationProcessor(const AutomationProcessor&) = delete;
+	AutomationProcessor& operator=(const AutomationProcessor&) = delete;
+	AutomationProcessor(AutomationProcessor&&) = delete;
+	AutomationProcessor& operator=(AutomationProcessor&&) = delete;
+	~AutomationProcessor() {};
+
+	void Process(std::deque<std::string>& path) noexcept override {};
+	void Process(std::deque<std::string>& path, const std::string& value) noexcept override {};
+	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
+
+	void Process(std::deque<std::string>& path, int value) noexcept override
+	{
+		SetGlobalAutomationOverride(value);
+	};
+
+	void Process(std::deque<std::string>& path, double value) noexcept override {};
+};
+
 class PlayProcessor : public OscProcessor
 {
 public:

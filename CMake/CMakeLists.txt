@@ -16,7 +16,7 @@ if(APPLE)
     set(CMAKE_POSITION_INDEPENDENT_CODE FALSE)
 endif()
 
-project(reaper_drivenbymoss VERSION 23.0.0.0 LANGUAGES CXX)
+project(reaper_drivenbymoss VERSION 24.3.0.0 LANGUAGES CXX)
 
 string(REPLACE "." "," VER_VERSION "${PROJECT_VERSION}")
 string(TIMESTAMP VER_YEAR "%Y" UTC)

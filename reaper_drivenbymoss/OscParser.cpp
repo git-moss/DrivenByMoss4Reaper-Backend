@@ -12,6 +12,7 @@
 * @param model The model to share data
 */
 OscParser::OscParser(Model& model) :
+	automationProcessor(model),
 	playProcessor(model),
 	stopProcessor(model),
 	recordProcessor(model),
@@ -40,6 +41,7 @@ OscParser::OscParser(Model& model) :
 {
 	try
 	{
+		this->processors["automation"] = &automationProcessor;
 		this->processors["play"] = &playProcessor;
 		this->processors["stop"] = &stopProcessor;
 		this->processors["record"] = &recordProcessor;

@@ -55,6 +55,7 @@ public:
 
 
 private:
+	AutomationProcessor 			 automationProcessor;
 	PlayProcessor 					 playProcessor;
 	StopProcessor 					 stopProcessor;
 	RecordProcessor 				 recordProcessor;

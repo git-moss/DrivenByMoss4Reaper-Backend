@@ -100,8 +100,6 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->vu = Collectors::CollectDoubleValue(ss, (trackAddress + "vu").c_str(), this->vu, ReaperUtils::ValueToVURange((peakLeft + peakRight) / 2.0), dump);
 	this->vuLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuleft").c_str(), this->vuLeft, ReaperUtils::ValueToVURange(peakLeft), dump);
 	this->vuRight = Collectors::CollectDoubleValue(ss, (trackAddress + "vuright").c_str(), this->vuRight, ReaperUtils::ValueToVURange(peakRight), dump);
-	const double automode = GetMediaTrackInfo_Value(track, "I_AUTOMODE");
-	this->autoMode = Collectors::CollectIntValue(ss, (trackAddress + "automode").c_str(), this->autoMode, static_cast<int>(automode), dump);
 
 	// Sends
 	const int numSends = GetTrackNumSends(track, 0);

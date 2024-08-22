@@ -288,42 +288,7 @@ void TrackProcessor::Process(std::deque<std::string>& path, int value)
 		return;
 	}
 
-	if (TrackProcessor::ProcessAutomation(track, cmd, value))
-		return;
-
 	Process(path, static_cast<double>(value));
-}
-
-
-bool TrackProcessor::ProcessAutomation(MediaTrack* track, const char* cmd, const int& value) const noexcept
-{
-	if (value <= 0)
-		return false;
-
-	int mode = -1;
-
-	if (std::strcmp(cmd, "autotrim_read") == 0)
-		mode = 0;
-	else if (std::strcmp(cmd, "autoread") == 0)
-		mode = 1;
-	else if (std::strcmp(cmd, "autotouch") == 0)
-		mode = 2;
-	else if (std::strcmp(cmd, "autowrite") == 0)
-		mode = 3;
-	else if (std::strcmp(cmd, "autolatch") == 0)
-		mode = 4;
-	else if (std::strcmp(cmd, "autolatch_preview") == 0)
-		mode = 5;
-
-	if (mode < 0)
-		return false;
-
-	ReaProject* project = ReaperUtils::GetProject();
-	Undo_BeginBlock2(project);
-	SetTrackAutomationMode(track, mode);
-	CSurf_SetAutoMode(-1, nullptr);
-	Undo_EndBlock2(project, "Toggle track automation mode", UNDO_STATE_ALL);
-	return true;
 }
 
 
