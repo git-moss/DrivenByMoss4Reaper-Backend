@@ -19,7 +19,7 @@ jobs:
         include:
           - os: ubuntu-20.04
             artifact_name: reaper_drivenbymoss.so
-          - os: macos-11
+          - os: macos-12
             artifact_name: reaper_drivenbymoss.dylib
           - os: windows-2019
             artifact_name: reaper_drivenbymoss.dll
