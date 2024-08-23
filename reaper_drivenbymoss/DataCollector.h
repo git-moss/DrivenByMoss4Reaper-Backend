@@ -119,7 +119,6 @@ private:
 	double masterVULeft{ 0.0 };
 	double masterVURight{ 0.0 };
 	std::string masterColor;
-	int masterAutoMode{ 0 };
 
 	// Device values
 	int deviceExists{ -1 };

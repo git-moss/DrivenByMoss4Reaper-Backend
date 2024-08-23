@@ -477,10 +477,6 @@ void DataCollector::CollectMasterTrackData(std::ostringstream& ss, ReaProject* p
 		if (nativeColor != 0)
 			ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
 		this->masterColor = Collectors::CollectStringValue(ss, "/master/color", this->masterColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
-
-		// Automation mode
-		const double automode = GetMediaTrackInfo_Value(master, "I_AUTOMODE");
-		this->masterAutoMode = Collectors::CollectIntValue(ss, "/master/automode", this->masterAutoMode, static_cast<int>(automode), dump);
 	}
 
 	// Master FX Parameter
