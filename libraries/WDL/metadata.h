@@ -593,8 +593,8 @@ int PackIXMLChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata, int pa
     int len=ixmllen+1+junklen;
     if (len < padtolen) len=padtolen;
     if (len&1) ++len;
-    unsigned char *p=(unsigned char*)hb->Resize(olen+len);
-    if (p)
+    unsigned char *p=(unsigned char*)hb->ResizeOK(olen+len);
+    if (WDL_NORMALLY(p != NULL))
     {
       memcpy(p+olen, ixml.Get(), ixmllen);
       memset(p+olen+ixmllen, 0, len-ixmllen);
@@ -731,8 +731,8 @@ int PackXMPChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata)
   int xmplen=xmp.GetLength();
   int len=xmplen+1;
   if (len&1) ++len;
-  unsigned char *p=(unsigned char*)hb->Resize(olen+len);
-  if (p)
+  unsigned char *p=(unsigned char*)hb->ResizeOK(olen+len);
+  if (WDL_NORMALLY(p != NULL))
   {
     memcpy(p+olen, xmp.Get(), xmplen);
     memset(p+olen+xmplen, 0, len-xmplen);
@@ -777,9 +777,10 @@ int PackVorbisFrame(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata, bool
     }
   }
 
-  unsigned char *buf=(unsigned char*)hb->Resize(olen+framelen)+olen;
-  if (buf)
+  unsigned char *buf=(unsigned char*)hb->ResizeOK(olen+framelen);
+  if (WDL_NORMALLY(buf != NULL))
   {
+    buf += olen;
     unsigned char *p=buf;
     memcpy(p, &vendorlen, 4);
     p += 4;
@@ -889,7 +890,7 @@ int PackApeChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata)
     const char *val=metadata->Enumerate(i, &key);
     if (strlen(key) < 5 || strncmp(key, "APE:", 4) || !val || !val[0]) continue;
     key += 4;
-    if (!apelen) apelen += 64;
+    if (!apelen) apelen=64; // includes header and footer
     if (!strncmp(key, "User Defined", 12))
     {
       const char *k, *v;
@@ -905,14 +906,15 @@ int PackApeChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata)
   }
   if (!apelen) return false;
 
-  unsigned char *buf=(unsigned char*)hb->Resize(olen+apelen)+olen;
-  if (buf)
+  unsigned char *buf=(unsigned char*)hb->ResizeOK(olen+apelen);
+  if (WDL_NORMALLY(buf != NULL))
   {
+    buf += olen;
     unsigned char *p=buf;
     memcpy(p, "APETAGEX", 8);
     p += 8;
     _AddInt32LE(2000); // version
-    _AddInt32LE(apelen-32);
+    _AddInt32LE(apelen-32); // includes footer but not header
     _AddInt32LE(cnt);
     _AddInt32LE((1<<31)|(1<<30)|(1<<29)); // tag contains header and footer, this is the header
     _AddInt32LE(0);
@@ -951,7 +953,7 @@ int PackApeChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata)
     memcpy(p, "APETAGEX", 8);
     p += 8;
     _AddInt32LE(2000); // version
-    _AddInt32LE(apelen-32);
+    _AddInt32LE(apelen-32); // includes footer but not header
     _AddInt32LE(cnt);
     _AddInt32LE((1<<31)|(1<<30)|(1<<28)); // tag contains header and footer, this is the footer
     _AddInt32LE(0);
@@ -1273,11 +1275,27 @@ void WriteMetadataPrefPos(double prefpos, int srate,  // prefpos <= 0.0 to clear
   }
 }
 
+bool IsImageMetadata(const char *key)
+{
+  return !strncmp(key, "ID3:APIC", 8) || !strncmp(key, "FLACPIC:APIC", 12);
+}
+
+void DeleteAllImageMetadata(WDL_StringKeyedArray<char*> *metadata)
+{
+  for (int i=0; i < metadata->GetSize(); ++i)
+  {
+    const char *key;
+    metadata->Enumerate(i, &key);
+    if (IsImageMetadata(key)) metadata->DeleteByIndex(i--);
+  }
+}
 
 void AddMexMetadata(WDL_StringKeyedArray<char*> *mex_metadata,
   WDL_StringKeyedArray<char*> *metadata, int srate)
 {
   if (!mex_metadata || !metadata) return;
+
+  bool added_img_metadata=false;
 
   for (int idx=0; idx < mex_metadata->GetSize(); ++idx)
   {
@@ -1290,6 +1308,17 @@ void AddMexMetadata(WDL_StringKeyedArray<char*> *mex_metadata,
       WriteMetadataPrefPos((double)ms/1000.0, srate, metadata);
       // caller may still have to do stuff if prefpos is represented
       // in some other way outside the metadata we handle, like wavpack
+      continue;
+    }
+
+    if (IsImageMetadata(mexkey))
+    {
+      if (!added_img_metadata)
+      {
+        added_img_metadata=true;
+        DeleteAllImageMetadata(metadata);
+      }
+      metadata->Insert(mexkey, strdup(val));
       continue;
     }
 
@@ -1536,7 +1565,7 @@ void DeleteID3Raw(WDL_PtrList<ID3RawTag> *rawtags, const char *key)
   key += 4;
   const char *subkey=NULL;
   int suboffs=0, sublen=0;
-  if (key[4])
+  if (key[4] && strncmp(key, "APIC", 4))
   {
     if (!strncmp(key, "TXXX:", 5)) suboffs=3;
     else if (!strncmp(key, "PRIV:", 5)) suboffs=2;
@@ -1653,7 +1682,7 @@ int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
       int desclen=wdl_min(strlen(desc), 63);
 
       int apic_hdrlen=1+strlen(mime)+1+1+desclen+1;
-      char *p=(char*)apic_hdr.Resize(apic_hdrlen);
+      char *p=(char*)apic_hdr.ResizeOK(apic_hdrlen);
       if (p)
       {
         *p++=3; // UTF-8
@@ -1701,9 +1730,10 @@ int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
   if (id3len)
   {
     id3len += 10;
-    unsigned char *buf=(unsigned char*)hb->Resize(olen+id3len)+olen;
-    if (buf)
+    unsigned char *buf=(unsigned char*)hb->ResizeOK(olen+id3len);
+    if (WDL_NORMALLY(buf != NULL))
     {
+      buf += olen;
       chapcnt=0;
       unsigned char *p=buf;
       memcpy(p,"ID3\x04\x00\x00", 6);

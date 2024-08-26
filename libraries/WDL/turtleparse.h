@@ -95,11 +95,11 @@ public:
 
   const char *m_error_ptr, *m_error_msg;
 
-  void parse(const char *str, const char *str_end)
+  void parse(const char *str, const char *str_end, const char *use_base="")
   {
     // note: specifically does not clear objects, so you can parse multiple files and get the union of them.
     m_prefixes.DeleteAll();
-    m_base.Set("");
+    m_base.Set(use_base);
     m_error_ptr = m_error_msg = NULL;
     WDL_FastString fs1,fs2;
     for (;;)
@@ -354,18 +354,16 @@ protected:
         for (l = 0; l < toklen && tok[l] != ':'; l++);
         if (l < toklen)
         {
-          WDL_FastString tmp;
-          tmp.Set(tok,l+1);
-          const char *pf = m_prefixes.Get(tmp.Get());
-          if (!pf)
+          char tmp[1024];
+          lstrcpyn_safe(tmp, tok, wdl_min(sizeof(tmp), l+2));
+          const char *pf = m_prefixes.Get(tmp);
+          if (pf)
           {
-            on_err("prefix not found for token",tok);
-            return 0;
+            fs->Set(pf);
+            toklen -= l+1;
+            tok += l+1;
+            rv = '<';
           }
-          fs->Set(pf);
-          toklen -= l+1;
-          tok += l+1;
-          rv = '<';
         }
       }
     }
@@ -393,7 +391,35 @@ protected:
       else
         fs->Append(tok++,1);
     }
-    if (mode == '<' && !strstr(fs->Get(),"://") && m_base.GetLength()) fs->Insert(m_base.Get(),0);
+    if (mode == '<' && m_base.GetLength())
+    {
+      const char *p = fs->Get();
+      if (*p == '#' || *p == 0)
+      {
+        // <#foo> or <> are relative to base exactly
+        fs->Insert(m_base.Get(),0);
+      }
+      else
+      {
+        while (*p && *p != ':' && *p != '#') p++;
+        if (*p != ':') // relative path if no : found prior to any #
+        {
+          int baselen = m_base.GetLength();
+          // <bar> is resolved relative to base minus base's filepart
+#ifdef _WIN32
+          while (baselen > 0 && !WDL_IS_DIRCHAR(m_base.Get()[baselen-1])) baselen--;
+#else
+          while (baselen > 0 && m_base.Get()[baselen-1] != '/') baselen--;
+#endif
+          if (WDL_NOT_NORMALLY(!baselen))
+          {
+            // base has no /, this is probably malformed
+            fs->Insert("/",0);
+          }
+          fs->Insert(m_base.Get(),0,baselen);
+        }
+      }
+    }
     if (rv == '\'') rv = '"';
     return rv;
   }
