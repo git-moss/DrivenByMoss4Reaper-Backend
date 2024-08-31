@@ -327,8 +327,28 @@ void JvmManager::StartInfrastructure()
 	jclass clazz = this->GetControllerClass();
 	if (clazz == nullptr)
 		return;
+
+	jmethodID methodID = this->env->GetStaticMethodID(clazz, "addDevice", "(Ljava/lang/String;Ljava/lang/String;)V");
+	if (methodID == nullptr)
+	{
+		ReaDebug() << "addDevice method could not be retrieved.";
+		return;
+	}
+
+	const char* name;
+	const char* ident;
+	int count = 0;
+	while (EnumInstalledFX(count, &name, &ident))
+	{
+		jstring jName = this->env->NewStringUTF(name);
+		jstring jIdent = this->env->NewStringUTF(ident);
+		this->env->CallStaticVoidMethod(clazz, methodID, jName, jIdent);
+		this->HandleException("ERROR: Could not call addDevice.");
+		count++;
+	}
+
 	// Call main start method
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "startInfrastructure", "()V");
+	methodID = this->env->GetStaticMethodID(clazz, "startInfrastructure", "()V");
 	if (methodID == nullptr)
 	{
 		ReaDebug() << "startInfrastructure method could not be retrieved.";
@@ -679,7 +699,7 @@ void JvmManager::HandleException(const char* message) const
 		DISABLE_WARNING_NO_STATIC_DOWNCAST
 		const jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
 		jboolean isCopy = false;
-		dbg << this->env->GetStringUTFChars(s, &isCopy);
+		dbg << "\n" <<  this->env->GetStringUTFChars(s, &isCopy);
 		this->env->ExceptionClear();
 	}
 }

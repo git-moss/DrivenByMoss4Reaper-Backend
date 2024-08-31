@@ -50,9 +50,9 @@ ReaDebug::~ReaDebug()
 			return;
 		}
 
-		ReaDebug::model->AddFunction([info]() noexcept
+		ReaDebug::model->AddFunction([infoStr = std::string(info)]() noexcept
 			{
-				ShowConsoleMsg(info);
+				ShowConsoleMsg(infoStr.c_str());
 			});
 	}
 	catch (...)

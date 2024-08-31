@@ -96,10 +96,14 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	// VU and automation mode
 	const double peakLeft = Track_GetPeakInfo(track, 0);
 	const double peakRight = Track_GetPeakInfo(track, 1);
+	const double peakHoldLeft = Track_GetPeakHoldDB(track, 0, false);
+	const double peakHoldRight = Track_GetPeakHoldDB(track, 1, false);
 
 	this->vu = Collectors::CollectDoubleValue(ss, (trackAddress + "vu").c_str(), this->vu, ReaperUtils::ValueToVURange((peakLeft + peakRight) / 2.0), dump);
 	this->vuLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuleft").c_str(), this->vuLeft, ReaperUtils::ValueToVURange(peakLeft), dump);
 	this->vuRight = Collectors::CollectDoubleValue(ss, (trackAddress + "vuright").c_str(), this->vuRight, ReaperUtils::ValueToVURange(peakRight), dump);
+	this->vuHoldLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuholdleft").c_str(), this->vuHoldLeft, peakHoldLeft * 100.0, dump);
+	this->vuHoldRight = Collectors::CollectDoubleValue(ss, (trackAddress + "vuholdright").c_str(), this->vuHoldRight, peakHoldRight * 100.0, dump);
 
 	// Sends
 	const int numSends = GetTrackNumSends(track, 0);

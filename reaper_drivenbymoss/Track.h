@@ -52,6 +52,8 @@ public:
 	double vu{ 0.0 };
 	double vuLeft{ 0.0 };
 	double vuRight{ 0.0 };
+	double vuHoldLeft{ 0.0 };
+	double vuHoldRight{ 0.0 };
 
 
 	Track() noexcept;
