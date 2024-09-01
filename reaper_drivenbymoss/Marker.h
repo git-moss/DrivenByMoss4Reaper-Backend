@@ -21,7 +21,10 @@ public:
 	int number{ 0 };
 	std::string name;
 	std::string color;
-
+	int colorNumber{ 0 };
+	double position{ 0 };
+	double endPosition{ 0 };
+	int markerOrRegionIndex{ 0 };
 
 	Marker() noexcept;
 	Marker(const Marker&) = delete;
@@ -30,10 +33,10 @@ public:
 	Marker& operator=(Marker&&) = delete;
 	virtual ~Marker();
 
-	void CollectData(std::ostringstream &ss, ReaProject *project, const char *tag, int markerIndex, int markerID, const bool &dump);
+	void CollectData(std::ostringstream& ss, ReaProject* project, const char* tag, int markerIndex, int markerID, const bool& dump);
 
-	static std::vector<int> GetMarkers(ReaProject *project) noexcept;
-	static std::vector<int> GetRegions(ReaProject *project) noexcept;
+	static std::vector<int> GetMarkers(ReaProject* project) noexcept;
+	static std::vector<int> GetRegions(ReaProject* project) noexcept;
 };
 
 #endif /* _DBM_MARKER_H_ */

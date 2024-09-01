@@ -225,12 +225,30 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* project, MediaTrack* track, const bool& dump)
 {
 	this->model.deviceCount = Collectors::CollectIntValue(ss, "/device/count", this->model.deviceCount, TrackFX_GetCount(track), dump);
-
 	int deviceIndex = this->model.deviceCount == 0 ? -1 : this->model.GetDeviceSelection();
-	if (deviceIndex > 0 && deviceIndex >= this->model.deviceCount && this->model.deviceCount > 0)
+
+	if (this->model.deviceCount > 0)
 	{
-		deviceIndex = 0;
-		this->model.SetDeviceSelection(deviceIndex);
+		// Ensure that the device index is in the range of available devices
+		if (deviceIndex > 0 && deviceIndex >= this->model.deviceCount && this->model.deviceCount > 0)
+			this->model.SetDeviceSelection(0);
+
+		// Check for auto-follow
+		int trackIndex, itemIndex, takeIndex, fxIndex;
+		if (GetTouchedOrFocusedFX(1, &trackIndex, &itemIndex, &takeIndex, &fxIndex, nullptr))
+		{
+			// Only accept track FX
+			if (trackIndex != -1 && fxIndex != -1 && itemIndex == -1 && takeIndex == -1 && fxIndex < 0x1000000)
+			{
+				MediaTrack* mediaTrack = GetTrack(project, trackIndex);
+				// Ensure that the track is selected. We cannot select it because otherwise the track can never be 
+				// de-selected again since there is currently no way to clear or set the focused device state
+				if (mediaTrack == track && (deviceIndex != fxIndex || mediaTrack != track))
+					this->model.SetDeviceSelection(fxIndex);
+			}
+		}
+
+		deviceIndex = this->model.GetDeviceSelection();
 	}
 
 	this->deviceExists = Collectors::CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex >= 0 ? 1 : 0, dump);
@@ -709,17 +727,17 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 			// Format track index, clip index, name, selected state and color in one string
 			DISABLE_WARNING_ARRAY_POINTER_DECAY
-				if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
-				{
-					std::string s{ buf };
-					std::replace(s.begin(), s.end(), ';', ' ');
-					allClipStr << s;
-				}
-				else
-				{
-					ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
-					allClipStr << "Unknown";
-				}
+			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
+			{
+				std::string s{ buf };
+				std::replace(s.begin(), s.end(), ';', ' ');
+				allClipStr << s;
+			}
+			else
+			{
+				ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
+				allClipStr << "Unknown";
+			}
 
 			const bool isSelected = IsMediaItemSelected(item);
 			allClipStr << ";" << isSelected;

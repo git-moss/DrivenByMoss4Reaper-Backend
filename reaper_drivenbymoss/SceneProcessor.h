@@ -22,7 +22,7 @@ public:
 	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
 	void Process(std::deque<std::string>& path, double value) noexcept override {};
 
-	static void DuplicateScene(ReaProject* project, const int sceneID);
+	static void DuplicateScene(ReaProject* project, const int sceneID, const std::unique_ptr<Marker>& scene);
 };
 
 #endif /* _DBM_SCENEPROCESSOR_H_ */

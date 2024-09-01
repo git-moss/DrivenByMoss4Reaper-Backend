@@ -36,7 +36,10 @@ void ProjectProcessor::Process(std::deque<std::string>& path)
 		int sceneID;
 		GetLastMarkerAndCurRegion(project, position, nullptr, &sceneID);
 		if (sceneID >= 0)
-			SceneProcessor::DuplicateScene(project, sceneID);
+		{
+			const std::unique_ptr<Marker>& scene = this->model.GetRegion(sceneID);
+			SceneProcessor::DuplicateScene(project, sceneID, scene);
+		}
 		return;
 	}
 };

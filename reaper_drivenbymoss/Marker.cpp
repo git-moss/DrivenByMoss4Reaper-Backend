@@ -44,16 +44,22 @@ void Marker::CollectData(std::ostringstream& ss, ReaProject* project, const char
 	this->exists = Collectors::CollectIntValue(ss, (markerAddress + "exists").c_str(), this->exists, true, dump);
 	this->number = Collectors::CollectIntValue(ss, (markerAddress + "number").c_str(), this->number, markerIndex, dump);
 
-	// Marker name
 	const char* name;
-	int markerColor;
-	const int result = EnumProjectMarkers3(project, markerID, nullptr, nullptr, nullptr, &name, nullptr, &markerColor);
+	double pos;
+	double end;
+	const int result = EnumProjectMarkers3(project, markerID, nullptr, &pos, &end, &name, &this->markerOrRegionIndex, &this->colorNumber);
+
+	// Marker name
 	const std::string newName = result ? name : "";
 	this->name = Collectors::CollectStringValue(ss, (markerAddress + "name").c_str(), this->name, newName, dump);
 
+	// Position info
+	this->position = Collectors::CollectDoubleValue(ss, (markerAddress + "position").c_str(), this->position, pos, dump);
+	this->endPosition = Collectors::CollectDoubleValue(ss, (markerAddress + "endPosition").c_str(), this->endPosition, end, dump);
+
 	// Marker color
 	int red, green, blue;
-	ColorFromNative(markerColor & 0xFEFFFFFF, &red, &green, &blue);
+	ColorFromNative(this->colorNumber & 0xFEFFFFFF, &red, &green, &blue);
 	this->color = Collectors::CollectStringValue(ss, (markerAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
 }
 
