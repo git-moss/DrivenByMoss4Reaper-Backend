@@ -209,8 +209,14 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 
 	// Additional info
 	this->followPlayback = Collectors::CollectIntValue(ss, "/followPlayback", this->followPlayback, GetToggleCommandState(40036), dump);
-
 	this->automationMode = Collectors::CollectIntValue(ss, "/automode", this->automationMode, GetGlobalAutomationOverride(), dump);
+
+	// Calculate the currently visible number of seconds in the arranger
+	HWND hwnd = ReaperUtils::GetArrangeWnd();
+	RECT rect;
+	GetWindowRect(hwnd, &rect);
+	const double seconds = (rect.right - rect.left) / GetHZoomLevel();
+	this->visibleSeconds = Collectors::CollectDoubleValue(ss, "/time/hzoom", this->visibleSeconds, seconds, dump);
 }
 
 
@@ -727,17 +733,17 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 			// Format track index, clip index, name, selected state and color in one string
 			DISABLE_WARNING_ARRAY_POINTER_DECAY
-			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
-			{
-				std::string s{ buf };
-				std::replace(s.begin(), s.end(), ';', ' ');
-				allClipStr << s;
-			}
-			else
-			{
-				ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
-				allClipStr << "Unknown";
-			}
+				if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
+				{
+					std::string s{ buf };
+					std::replace(s.begin(), s.end(), ';', ' ');
+					allClipStr << s;
+				}
+				else
+				{
+					ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
+					allClipStr << "Unknown";
+				}
 
 			const bool isSelected = IsMediaItemSelected(item);
 			allClipStr << ";" << isSelected;

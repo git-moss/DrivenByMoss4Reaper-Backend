@@ -16,7 +16,7 @@ if(APPLE)
     set(CMAKE_POSITION_INDEPENDENT_CODE FALSE)
 endif()
 
-project(reaper_drivenbymoss VERSION 24.3.0.0 LANGUAGES CXX)
+project(reaper_drivenbymoss VERSION 24.4.0.0 LANGUAGES CXX)
 
 string(REPLACE "." "," VER_VERSION "${PROJECT_VERSION}")
 string(TIMESTAMP VER_YEAR "%Y" UTC)
@@ -182,6 +182,7 @@ set(Source_Files
     "../reaper_drivenbymoss/Parameter.cpp"
     "../reaper_drivenbymoss/ProjectProcessor.cpp"
     "../reaper_drivenbymoss/ReaDebug.cpp"
+    "../reaper_drivenbymoss/ReaperUtils.cpp"
     "../reaper_drivenbymoss/SceneProcessor.cpp"
     "../reaper_drivenbymoss/Send.cpp"
     "../reaper_drivenbymoss/stdafx.cpp"

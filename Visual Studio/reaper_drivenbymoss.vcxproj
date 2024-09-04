@@ -178,6 +178,7 @@
     <ClCompile Include="..\reaper_drivenbymoss\Parameter.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\ProjectProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\ReaDebug.cpp" />
+    <ClCompile Include="..\reaper_drivenbymoss\ReaperUtils.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\SceneProcessor.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\Send.cpp" />
     <ClCompile Include="..\reaper_drivenbymoss\stdafx.cpp" />
@@ -233,7 +234,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
   <PropertyGroup Condition="'$(Language)'=='C++'">
-    <IncludePath>..\libraries\WDL;..\libraries\GSL;$(IncludePath)</IncludePath>  
+    <IncludePath>..\libraries\WDL;..\libraries\GSL;$(IncludePath)</IncludePath>
     <CAExcludePath>..\libraries\WDL;..\libraries\GSL;$(CAExcludePath)</CAExcludePath>
   </PropertyGroup>
 </Project>

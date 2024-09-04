@@ -93,6 +93,9 @@
     <ClCompile Include="..\reaper_drivenbymoss\EqDeviceProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\reaper_drivenbymoss\ReaperUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h">

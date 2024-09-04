@@ -515,6 +515,7 @@ extern "C"
 		// On startup...
 
 		pluginInstanceHandle = hInstance;
+		ReaperUtils::mainWindowHandle = rec->hwnd_main;
 
 		if (rec->caller_version != REAPER_PLUGIN_VERSION || rec->GetFunc == nullptr)
 			return 0;

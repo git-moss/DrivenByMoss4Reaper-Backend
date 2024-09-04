@@ -133,6 +133,12 @@ public:
 		}
 
 		const char* cmd = SafeGet(path, 0);
+		if (std::strcmp(cmd, "nosnap") == 0)
+		{
+			SetEditCurPos2(project, value, true, true);
+			return;
+		}
+
 		if (std::strcmp(cmd, "loop") == 0)
 		{
 			double startOut;

@@ -23,6 +23,9 @@ static constexpr double VU_CLIP{ 0.9912109375 };
 class ReaperUtils
 {
 public:
+	static HWND mainWindowHandle;
+
+
 	/**
 	 * Get the current project.
 	 *
@@ -180,6 +183,13 @@ public:
 	static double GetCursorPosition(ReaProject* project) noexcept
 	{
 		return (GetPlayStateEx(project) & 1) > 0 ? GetPlayPositionEx(project) : GetCursorPositionEx(project);
+	}
+
+
+	static HWND GetArrangeWnd() noexcept
+	{
+		constexpr int mainArrange = 0x000003E8;
+		return GetDlgItem(mainWindowHandle, mainArrange);
 	}
 };
 
