@@ -733,24 +733,27 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 			// Format track index, clip index, name, selected state and color in one string
 			DISABLE_WARNING_ARRAY_POINTER_DECAY
-				if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
-				{
-					std::string s{ buf };
-					std::replace(s.begin(), s.end(), ';', ' ');
-					allClipStr << s;
-				}
-				else
-				{
-					ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
-					allClipStr << "Unknown";
-				}
+			if (GetSetMediaItemTakeInfo_String(take, "P_NAME", buf, false))
+			{
+				std::string s{ buf };
+				std::replace(s.begin(), s.end(), ';', ' ');
+				allClipStr << s;
+			}
+			else
+			{
+				ReaDebug() << "ERROR: Could not read name from clip " << i << " on track " << (trackIndex + 1);
+				allClipStr << "Unknown";
+			}
 
 			const bool isSelected = IsMediaItemSelected(item);
 			allClipStr << ";" << isSelected;
 
 			const int clipColor = GetDisplayedMediaItemColor(item);
 			ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
-			allClipStr << ";" << Collectors::FormatColor(red, green, blue).c_str() << ";";
+			allClipStr << ";" << Collectors::FormatColor(red, green, blue).c_str();
+
+			const bool isMuted = *static_cast<bool*> (GetSetMediaItemInfo(item, "B_MUTE", nullptr));
+			allClipStr << ";" << (isMuted ? "1" : "0") << ";";
 
 			realCount++;
 		}
