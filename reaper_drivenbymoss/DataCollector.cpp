@@ -246,7 +246,7 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 			// Only accept track FX
 			if (trackIndex != -1 && fxIndex != -1 && itemIndex == -1 && takeIndex == -1 && fxIndex < 0x1000000)
 			{
-				MediaTrack* mediaTrack = GetTrack(project, trackIndex);
+				const MediaTrack* mediaTrack = GetTrack(project, trackIndex);
 				// Ensure that the track is selected. We cannot select it because otherwise the track can never be 
 				// de-selected again since there is currently no way to clear or set the focused device state
 				if (mediaTrack == track && (deviceIndex != fxIndex || mediaTrack != track))
