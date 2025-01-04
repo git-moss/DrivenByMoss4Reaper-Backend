@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2023
+// (c) 2018-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <fstream>
@@ -260,7 +260,9 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	this->deviceExists = Collectors::CollectIntValue(ss, "/device/exists", this->deviceExists, deviceIndex >= 0 ? 1 : 0, dump);
 	this->devicePosition = Collectors::CollectIntValue(ss, "/device/position", this->devicePosition, deviceIndex, dump);
 	this->deviceWindow = Collectors::CollectIntValue(ss, "/device/window", this->deviceWindow, this->deviceExists ? TrackFX_GetOpen(track, deviceIndex) : 0, dump);
-	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpandedType == 1 ? 1 : 0, dump);
+	
+	this->model.deviceExpanded = TrackFX_GetChainVisible(track) == -1;
+	this->deviceExpanded = Collectors::CollectIntValue(ss, "/device/expand", this->deviceExpanded, this->model.deviceExpanded ? 1 : 0, dump);
 
 	constexpr int LENGTH = 50;
 	std::string strBuffer(LENGTH, 0);

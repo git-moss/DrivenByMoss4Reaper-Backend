@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2023
+// (c) 2018-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <cstring>
@@ -437,6 +437,27 @@ void TrackProcessor::Process(std::deque<std::string>& path, const std::string& v
 		catch (...)
 		{
 			// Can't do anything about it...
+			return;
+		}
+
+		return;
+	}
+
+	if (std::strcmp(cmd, "clip") == 0)
+	{
+		if (path.size() < 4)
+			return;
+		const int clipIndex = atoi(SafeGet(path, 2));
+		MediaItem* item = GetTrackMediaItem(track, clipIndex);
+		if (item == nullptr)
+			return;
+
+		const char* subcmd = SafeGet(path, 3);
+
+		if (std::strcmp(subcmd, "insertFile") == 0)
+		{
+			SetMediaItemSelected(item, true);
+			InsertMedia(value.c_str(), 3);
 			return;
 		}
 

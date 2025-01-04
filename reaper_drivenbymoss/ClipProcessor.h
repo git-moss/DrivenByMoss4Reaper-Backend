@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2023
+// (c) 2018-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #ifndef _DBM_CLIPPROCESSOR_H_
@@ -34,6 +34,7 @@ private:
 	void TransposeClip(ReaProject* project, MediaItem* clip, int transpose) noexcept;
 	void ClearNotes(ReaProject* project, MediaItem* item, int channel, int pitch) noexcept;
 	bool ClearNote(ReaProject* project, MediaItem* item, int channel, int pitch, double position) noexcept;
+	bool ClearNotesAtPosition(ReaProject* project, MediaItem* item, int channel, double position) noexcept;
 	bool MoveNoteY(ReaProject* project, MediaItem* item, int channel, int pitch, int newPitch, double position) noexcept;
 	int GetNoteIndex(MediaItem_Take* take, int channel, int pitch, double position) noexcept;
 };

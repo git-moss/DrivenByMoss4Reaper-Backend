@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2023
+// (c) 2018-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "ClipProcessor.h"
@@ -144,26 +144,28 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 		const int pitch = std::atoi(SafeGet(path, 1));
 		const char* noteCmd = SafeGet(path, 2);
 
+		MediaItem_Take* take = GetActiveTake(item);
+		if (take == nullptr)
+			return;
+		const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
+		const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
+		const int channel = atoi(SafeGet(path, 3));
+
 		if (std::strcmp(noteCmd, "clear") == 0)
 		{
-			MediaItem_Take* take = GetActiveTake(item);
-			if (take == nullptr)
-				return;
-			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
-			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
-			const int channel = atoi(SafeGet(path, 3));
 			this->ClearNote(project, item, channel, pitch, ppqPosStart);
+			return;
+		}
+
+		// Clear all notes at a specific position
+		if (std::strcmp(noteCmd, "clearPosition") == 0)
+		{
+			this->ClearNotesAtPosition(project, item, channel, ppqPosStart);
 			return;
 		}
 
 		if (std::strcmp(noteCmd, "moveY") == 0)
 		{
-			MediaItem_Take* take = GetActiveTake(item);
-			if (take == nullptr)
-				return;
-			const double ppqPosClipStart = MIDI_GetPPQPosFromProjQN(take, 0);
-			const double ppqPosStart = MIDI_GetPPQPosFromProjQN(take, value) - ppqPosClipStart;
-			const int channel = atoi(SafeGet(path, 3));
 			const int newPitch = atoi(SafeGet(path, 4));
 			this->MoveNoteY(project, item, channel, pitch, newPitch, ppqPosStart);
 			return;
@@ -204,6 +206,12 @@ void ClipProcessor::Process(std::deque<std::string>& path, const std::string& va
 	if (std::strcmp(cmd, "name") == 0)
 	{
 		SetNameOfClip(project, item, value);
+		return;
+	}
+
+	if (std::strcmp(cmd, "insertFile") == 0)
+	{
+		InsertMedia(value.c_str(), 3);
 		return;
 	}
 
@@ -441,6 +449,39 @@ bool ClipProcessor::ClearNote(ReaProject* project, MediaItem* item, int channel,
 	UpdateItemInProject(item);
 	Undo_OnStateChange_Item(project, "Delete note", item);
 	
+	PreventUIRefresh(-1);
+
+	return true;
+}
+
+
+/**
+ * Delete all notes of a certain position.
+ *
+ * @param project The Reaper project
+ * @param item The media item
+ * @param channel The MIDI channel of the note to delete
+ * @param position The position of the note to delete
+ * @return True if note was found and deleted
+ */
+bool ClipProcessor::ClearNotesAtPosition(ReaProject* project, MediaItem* item, int channel, double position) noexcept
+{
+	MediaItem_Take* take = GetActiveTake(item);
+	if (take == nullptr || !TakeIsMIDI(take))
+		return false;
+
+	PreventUIRefresh(1);
+
+	for (int note = 0; note < 128; note++)
+	{
+		const int id = GetNoteIndex(take, channel, note, position);
+		if (id >= 0)
+			MIDI_DeleteNote(take, id);
+	}
+
+	UpdateItemInProject(item);
+	Undo_OnStateChange_Item(project, "Delete notes at position", item);
+
 	PreventUIRefresh(-1);
 
 	return true;

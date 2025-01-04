@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2023
+// (c) 2018-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #ifndef _DBM_MODEL_H_
@@ -35,7 +35,7 @@ public:
 	int deviceSelected{ 0 };
 	int deviceBankOffset{ 0 };
 	int deviceParamCount{ 0 };
-	int deviceExpandedType{ 3 };
+	bool deviceExpanded{ false };
 	int deviceCount{ 0 };
 	int eqParamCount{ 0 };
 	int trackFxParamCount{ 0 };

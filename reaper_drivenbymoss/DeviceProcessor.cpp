@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2023
+// (c) 2018-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <sstream>
@@ -156,8 +156,6 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 		if (devicePosition < 0)
 			return;
 		const bool open = value > 0;
-		if (open)
-			TrackFX_Show(track, devicePosition, this->model.deviceExpandedType);
 		TrackFX_SetOpen(track, devicePosition, open);
 		return;
 	}
@@ -166,13 +164,10 @@ void DeviceProcessor::Process(std::deque<std::string>& path, int value) noexcept
 	{
 		if (devicePosition < 0)
 			return;
-		const bool isOpen = TrackFX_GetOpen(track, devicePosition);
-		const int expandedType = value > 0 ? 1 : 3;
-		this->model.deviceExpandedType = expandedType;
-		if (!isOpen)
-			return;
-		TrackFX_SetOpen(track, devicePosition, 0);
-		TrackFX_Show(track, devicePosition, expandedType);
+		this->model.deviceExpanded = value > 0;
+		const bool isHidden = TrackFX_GetChainVisible(track) == -1;
+		if (this->model.deviceExpanded != isHidden)
+			TrackFX_Show(track, devicePosition, this->model.deviceExpanded ? 1 : 3);
 		return;
 	}
 

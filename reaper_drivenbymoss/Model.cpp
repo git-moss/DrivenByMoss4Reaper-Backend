@@ -1,5 +1,5 @@
 // Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2023
+// (c) 2018-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include "WrapperGSL.h"
@@ -253,11 +253,7 @@ void Model::SetDeviceSelection(int position) noexcept
 	}
 
 	this->deviceBankOffset = static_cast<int>(std::floor(pos / this->DEVICE_BANK_SIZE) * this->DEVICE_BANK_SIZE);
-	const bool isWindowVisible = this->deviceExpandedType ? TrackFX_GetChainVisible(track) != -1 : TrackFX_GetOpen(track, this->deviceSelected);
-
-	PreventUIRefresh(1);
-	TrackFX_Show(track, this->deviceSelected, this->deviceExpandedType ? 1 : 3);
-	if (!isWindowVisible)
-		TrackFX_Show(track, this->deviceSelected, this->deviceExpandedType ? 0 : 2);
-	PreventUIRefresh(-1);
+	
+	if (this->deviceExpanded ? TrackFX_GetChainVisible(track) != pos : !TrackFX_GetOpen(track, pos))
+		TrackFX_SetOpen(track, pos, true);
 }
