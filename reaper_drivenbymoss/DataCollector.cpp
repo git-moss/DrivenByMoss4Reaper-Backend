@@ -1,5 +1,4 @@
-// Written by Jürgen Moßgraber - mossgrabers.de
-// (c) 2018-2025
+// Copyright (c) 2018-2025 by Jürgen Moßgraber (www.mossgrabers.de)
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
 #include <fstream>
@@ -796,7 +795,8 @@ void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* pr
 	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, inputPosition) ? 1 : 0;
 	this->repeatActive = Collectors::CollectIntValue(ss, "/noterepeat/active", this->repeatActive, repeatActive, dump);
 
-	double minVal{}, maxVal{};
+	double minVal{};
+	double maxVal{};
 	const double repeatRate = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_RATE, &minVal, &maxVal) : 1.0;
 	this->repeatRate = Collectors::CollectDoubleValue(ss, "/noterepeat/period", this->repeatRate, repeatRate, dump);
 
