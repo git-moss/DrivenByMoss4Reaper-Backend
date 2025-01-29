@@ -334,8 +334,8 @@ void JvmManager::StartInfrastructure()
 		return;
 	}
 
-	const char* name;
-	const char* ident;
+	const char* name{ nullptr };
+	const char* ident{ nullptr };
 	int count = 0;
 	while (EnumInstalledFX(count, &name, &ident))
 	{
