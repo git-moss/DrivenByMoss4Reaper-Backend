@@ -69,6 +69,9 @@ private:
 	int sendCount{ 0 };
 	std::vector<std::unique_ptr<Send>> sends;
 	std::mutex sendlock;
+
+
+	bool ShouldAddEnvelope(MediaTrack* track) const noexcept;
 };
 
 #endif /* _DBM_TRACK_H_ */

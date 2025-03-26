@@ -134,7 +134,7 @@ std::unique_ptr<Send>& Track::GetSend(const int index)
 
 double Track::GetVolume(MediaTrack* track, double position) const noexcept
 {
-	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
+	if (this->ShouldAddEnvelope(track))
 	{
 		TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Volume");
 		if (envelope != nullptr)
@@ -146,7 +146,7 @@ double Track::GetVolume(MediaTrack* track, double position) const noexcept
 
 double Track::GetPan(MediaTrack* track, double position) const noexcept
 {
-	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
+	if (this->ShouldAddEnvelope(track))
 	{
 		TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Pan");
 		if (envelope != nullptr)
@@ -161,7 +161,7 @@ double Track::GetPan(MediaTrack* track, double position) const noexcept
 
 int Track::GetMute(MediaTrack* track, double position, int trackState) const noexcept
 {
-	if (GetMediaTrackInfo_Value(track, "I_AUTOMODE") > 0)
+	if (this->ShouldAddEnvelope(track))
 	{
 		TrackEnvelope* envelope = GetTrackEnvelopeByName(track, "Mute");
 		if (envelope != nullptr)
@@ -171,4 +171,13 @@ int Track::GetMute(MediaTrack* track, double position, int trackState) const noe
 		}
 	}
 	return (trackState & 8) > 0 ? 1 : 0;
+}
+
+
+bool Track::ShouldAddEnvelope(MediaTrack *track) const noexcept
+{
+	int mode = GetGlobalAutomationOverride();
+	if (mode == -1)
+		mode = GetMediaTrackInfo_Value(track, "I_AUTOMODE");
+	return (mode > 0 && mode < 5);
 }
