@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             artifact_name: reaper_drivenbymoss.so
           - os: macos-13
             artifact_name: reaper_drivenbymoss.dylib
