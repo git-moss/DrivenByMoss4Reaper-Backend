@@ -2245,7 +2245,7 @@ void GetClientRect(HWND hwnd, RECT *r)
 void SetWindowPos(HWND hwnd, HWND hwndAfter, int x, int y, int cx, int cy, int flags)
 {
   if (WDL_NOT_NORMALLY(!hwnd)) return;
- 
+  WDL_ASSERT((flags & SWP_NOSIZE) || cx>=0);
   SWELL_BEGIN_TRY
   NSWindow *nswnd; // content views = move window
   if (hwnd && [(id)hwnd isKindOfClass:[NSView class]] && (nswnd=[(NSView *)hwnd window]) && [nswnd contentView]==(id)hwnd)
@@ -2627,7 +2627,7 @@ HWND GetForegroundWindow()
 //    if (ret == [window contentView]) return (HWND) window;
     return (HWND) ret;
   }
-  return (HWND)window;
+  return (HWND)[window contentView];
   SWELL_END_TRY(;)
   return NULL;
 }
@@ -2650,6 +2650,7 @@ HWND GetFocus()
 
     return (HWND) ret;
   }
+  return (HWND) [window contentView];
   SWELL_END_TRY(;)
   return 0;
 }
@@ -2802,12 +2803,16 @@ BOOL GetDlgItemText(HWND hwnd, int idx, char *text, int textlen)
   return FALSE;
 }
 
-void CheckDlgButton(HWND hwnd, int idx, int check)
+BOOL CheckDlgButton(HWND hwnd, int idx, int check)
 {
   NSView *pvw=(NSView *)GetDlgItem(hwnd,idx);
-  if (WDL_NOT_NORMALLY(!pvw)) return;
+  if (WDL_NOT_NORMALLY(!pvw)) return FALSE;
   if ([pvw isKindOfClass:[NSButton class]]) 
+  {
     [(NSButton*)pvw setState:(check&BST_INDETERMINATE)?NSMixedState:((check&BST_CHECKED)?NSOnState:NSOffState)];
+    return TRUE;
+  }
+  return FALSE;
 }
 
 
@@ -4656,12 +4661,14 @@ int ListView_InsertItem(HWND h, const LVITEM *item)
   nr->add_col((item->mask & LVIF_TEXT) ? item->pszText : "");
   if (item->mask & LVIF_PARAM) nr->m_param = item->lParam;
   tv->m_items->Insert(a,nr);
-  
 
-  
   if ((item->mask&LVIF_STATE) && (item->stateMask & (0xff<<16)))
   {
     nr->set_img_idx(0,(item->state>>16)&0xff);
+  }
+  if ((item->mask&LVIF_IMAGE) && item->iImage >= 0)
+  {
+    nr->set_img_idx(0, item->iImage+1);
   }
   
   [tv reloadData];
@@ -5593,7 +5600,9 @@ BOOL InvalidateRect(HWND hwnd, const RECT *r, int eraseBk)
       {
         if (![hc isHiddenOrHasHiddenAncestor]) 
         {
-          swell_addMetalDirty(hc,r);
+          NSRect sz = [hc bounds];
+          if (sz.size.width != 0.0 && sz.size.height != 0.0)
+            swell_addMetalDirty(hc,r);
         }
         return TRUE;
       }

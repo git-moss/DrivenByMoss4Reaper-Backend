@@ -918,7 +918,7 @@ static id<MTLDevice> mtl_def_device()
       }
       else
       {
-        NMLISTVIEW nmhdr={{(HWND)sender,(UINT_PTR)[sender tag],LVN_ITEMCHANGED},(int)[sender selectedRow],0};
+        NMLISTVIEW nmhdr={{(HWND)sender,(UINT_PTR)[sender tag],LVN_ITEMCHANGED},(int)[sender selectedRow],0,LVIS_SELECTED,0};
         if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_NOTIFY,(int)[sender tag],(LPARAM)&nmhdr);
       }
       swell_ignore_listview_changes--;
@@ -3607,7 +3607,7 @@ NSArray* SWELL_DoDragDrop(NSURL* droplocation)
         
         int digits=0;
         int i;
-        for (i=0; i < 3 && len > i+1 && isdigit(p[len-i-1]); ++i) ++digits;
+        for (i=0; i < 3 && len > i+1 && isdigit_safe(p[len-i-1]); ++i) ++digits;
         if (len > digits+1 && (p[len-digits-1] == ' ' || p[len-digits-1] == '-' || p[len-digits-1] == '_'))         
         {
           incr=atoi(p+len-digits);

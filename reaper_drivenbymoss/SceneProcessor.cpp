@@ -62,7 +62,7 @@ void SceneProcessor::Process(std::deque<std::string>& path)
 
 	if (std::strcmp(cmd, "duplicate") == 0)
 	{
-		DuplicateScene(project, sceneID, scene);
+		DuplicateScene(project, sceneID, scene.get());
 		return;
 	}
 }
@@ -86,45 +86,53 @@ void SceneProcessor::Process(std::deque<std::string>& path, const std::string& v
 	const std::vector<int> scenes = Marker::GetRegions(project);
 	if (index < 0 || index >= gsl::narrow_cast<int>(scenes.size()))
 		return;
-	const int sceneID = scenes.at(index);
-	const std::unique_ptr<Marker>& scene = this->model.GetRegion(sceneID);
 
-	if (std::strcmp(cmd, "color") == 0)
+	try
 	{
-		int red{ 0 };
-		int green{ 0 };
-		int blue{ 0 };
-		try
+		const int sceneID = scenes.at(index);
+		const std::unique_ptr<Marker>& scene = this->model.GetRegion(sceneID);
+
+		if (std::strcmp(cmd, "color") == 0)
 		{
-			std::cmatch result{};
-			if (!std::regex_search(value.c_str(), result, colorPattern))
+			int red{ 0 };
+			int green{ 0 };
+			int blue{ 0 };
+			try
+			{
+				std::cmatch result{};
+				if (!std::regex_search(value.c_str(), result, colorPattern))
+					return;
+				red = std::atoi(result.str(1).c_str());
+				green = std::atoi(result.str(2).c_str());
+				blue = std::atoi(result.str(3).c_str());
+			}
+			catch (...)
+			{
 				return;
-			red = std::atoi(result.str(1).c_str());
-			green = std::atoi(result.str(2).c_str());
-			blue = std::atoi(result.str(3).c_str());
-		}
-		catch (...)
-		{
+			}
+
+			Undo_BeginBlock2(project);
+			SetProjectMarker4(project, scene->markerOrRegionIndex, true, scene->position, scene->endPosition, "", ColorToNative(red, green, blue) | 0x1000000, 0);
+			Undo_EndBlock2(project, "Change region color", UNDO_STATE_ALL);
 			return;
 		}
 
-		Undo_BeginBlock2(project);
-		SetProjectMarker4(project, scene->markerOrRegionIndex, true, scene->position, scene->endPosition, "", ColorToNative(red, green, blue) | 0x1000000, 0);
-		Undo_EndBlock2(project, "Change region color", UNDO_STATE_ALL);
-		return;
+		if (std::strcmp(cmd, "name") == 0)
+		{
+			Undo_BeginBlock2(project);
+			SetProjectMarker4(project, scene->markerOrRegionIndex, true, scene->position, scene->endPosition, value.c_str(), scene->colorNumber ? scene->colorNumber | 0x1000000 : 0, value.length() == 0 ? 1 : 0);
+			Undo_EndBlock2(project, "Rename region", UNDO_STATE_ALL);
+			return;
+		}
 	}
-
-	if (std::strcmp(cmd, "name") == 0)
+	catch (...)
 	{
-		Undo_BeginBlock2(project);
-		SetProjectMarker4(project, scene->markerOrRegionIndex, true, scene->position, scene->endPosition, value.c_str(), scene->colorNumber ? scene->colorNumber | 0x1000000 : 0, value.length() == 0 ? 1 : 0);
-		Undo_EndBlock2(project, "Rename region", UNDO_STATE_ALL);
-		return;
+		// Scene index access is checked before
 	}
 }
 
 
-void SceneProcessor::DuplicateScene(ReaProject* project, const int sceneID, const std::unique_ptr<Marker>& scene)
+void SceneProcessor::DuplicateScene(ReaProject* project, const int sceneID, Marker* scene)
 {
 	Undo_BeginBlock2(project);
 

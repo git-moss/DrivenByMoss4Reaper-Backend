@@ -938,7 +938,7 @@ static void OnSelectionRequestEvent(GdkEventSelection *b)
                 str.Append("file://");
                 while (*fn)
                 {
-                  if (isalnum(*fn) || *fn == '.' || *fn == '_' || *fn == '-' || *fn == '/' || *fn == '#')
+                  if (isalnum_safe(*fn) || *fn == '.' || *fn == '_' || *fn == '-' || *fn == '/' || *fn == '#')
                     str.Append(fn,1);
                   else
                     str.AppendFormatted(8,"%%%02x",*(unsigned char *)fn);
@@ -1034,7 +1034,8 @@ static void OnConfigureEvent(GdkEventConfigure *cfg)
   hwnd->m_position.bottom = cfg->y + cfg->height;
   if (flag&1) SendMessage(hwnd,WM_MOVE,0,0);
   if (flag&2) SendMessage(hwnd,WM_SIZE,hwnd->m_is_maximized ? SIZE_MAXIMIZED : SIZE_RESTORED,0);
-  if (!hwnd->m_hashaddestroy && hwnd->m_oswindow) swell_recalcMinMaxInfo(hwnd);
+  if (!hwnd->m_hashaddestroy && hwnd->m_oswindow && (hwnd->m_style & WS_THICKFRAME))
+    swell_recalcMinMaxInfo(hwnd);
 }
 
 static void OnWindowStateEvent(GdkEventWindowState *evt)
@@ -1501,14 +1502,14 @@ static HANDLE urilistToDropFiles(const POINT *pt, const guchar *gptr, gint sz)
   const guchar *rd_end = rd + sz;
   for (;;)
   {
-    while (rd < rd_end && *rd && isspace(*rd)) rd++;
+    while (rd < rd_end && *rd && isspace_safe(*rd)) rd++;
     if (rd >= rd_end) break;
 
     if (rd+7 < rd_end && !strnicmp((const char *)rd,"file://",7))
     {
       rd += 7;
       int c=0;
-      while (rd < rd_end && *rd && !isspace(*rd))
+      while (rd < rd_end && *rd && !isspace_safe(*rd))
       {
         int v1,v2;
         if (*rd == '%' && rd+2 < rd_end && (v1=hex_parse(rd[1]))>=0 && (v2=hex_parse(rd[2]))>=0)
@@ -1526,7 +1527,7 @@ static HANDLE urilistToDropFiles(const POINT *pt, const guchar *gptr, gint sz)
     }
     else
     {
-      while (rd < rd_end && *rd && !isspace(*rd)) rd++;
+      while (rd < rd_end && *rd && !isspace_safe(*rd)) rd++;
     }
   }
   *pout++=0;
@@ -2605,6 +2606,34 @@ static LRESULT xbridgeProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     break;
+    case WM_USER+1000: // allow parent to query size of child window
+      if (hwnd && hwnd->m_private_data && wParam && lParam)
+      {
+        bridgeState *bs = (bridgeState*)hwnd->m_private_data;
+        if (bs->native_disp && bs->native_w)
+        {
+          Window root, par, *list=NULL;
+          unsigned int nlist=0;
+          // if a plug-in created a window on a separate X11 connection, it might not be valid yet.
+          if (XQueryTree(bs->native_disp,bs->native_w,&root,&par,&list, &nlist))
+          {
+            if (!list || !nlist)
+            {
+              if (list) XFree(list);
+              return 0;
+            }
+            XWindowAttributes attr;
+            memset(&attr,0,sizeof(attr));
+            if (XGetWindowAttributes(bs->native_disp, list[0], &attr) && attr.width && attr.height)
+            {
+              *((int *)(INT_PTR)wParam) = attr.width;
+              *((int *)(INT_PTR)lParam) = attr.height;
+            }
+            XFree(list);
+          }
+        }
+      }
+    break;
   }
   return DefWindowProc(hwnd,uMsg,wParam,lParam);
 }
@@ -2857,7 +2886,7 @@ static void encode_uri(WDL_FastString *s, const char *rd)
   while (*rd)
   {
     // unsure if UTF-8 chars should be urlencoded or allowed?
-    if (*rd < 0 || (!isalnum(*rd) && *rd != '-' && *rd != '_' && *rd != '.' && *rd != '/'))
+    if (*rd < 0 || (!isalnum_safe(*rd) && *rd != '-' && *rd != '_' && *rd != '.' && *rd != '/'))
     {
       char buf[8];
       snprintf(buf,sizeof(buf),"%%%02x",(int)(unsigned char)*rd);

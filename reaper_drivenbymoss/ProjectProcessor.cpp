@@ -37,7 +37,7 @@ void ProjectProcessor::Process(std::deque<std::string>& path)
 		if (sceneID >= 0)
 		{
 			const std::unique_ptr<Marker>& scene = this->model.GetRegion(sceneID);
-			SceneProcessor::DuplicateScene(project, sceneID, scene);
+			SceneProcessor::DuplicateScene(project, sceneID, scene.get());
 		}
 		return;
 	}

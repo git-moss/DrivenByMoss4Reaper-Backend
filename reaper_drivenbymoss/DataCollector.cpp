@@ -214,7 +214,7 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	HWND hwnd = ReaperUtils::GetArrangeWnd();
 	RECT rect;
 	GetWindowRect(hwnd, &rect);
-	const double seconds = (rect.right - rect.left) / GetHZoomLevel();
+	const double seconds = (static_cast<double> (rect.right) - rect.left) / GetHZoomLevel();
 	this->visibleSeconds = Collectors::CollectDoubleValue(ss, "/time/hzoom", this->visibleSeconds, seconds, dump);
 }
 

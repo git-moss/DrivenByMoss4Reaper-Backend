@@ -331,10 +331,11 @@ void ClipProcessor::SetNameOfClip(ReaProject* project, MediaItem* item, const st
 	MediaItem_Take* take = GetMediaItemTake(item, static_cast<int>(activeTakeIndex));
 	if (take == nullptr)
 		return;
-	std::string val = value;
 
 	PreventUIRefresh(1);
-	GetSetMediaItemTakeInfo(take, "P_NAME", &val[0]);
+	// There is no way to fix this warning
+	DISABLE_WARNING_NO_C_STYLE_CONVERSION
+	GetSetMediaItemTakeInfo(take, "P_NAME", (void*) value.c_str());
 	UpdateItemInProject(item);
 	Undo_OnStateChange_Item(project, "Set name of active take", item);
 	PreventUIRefresh(-1);
