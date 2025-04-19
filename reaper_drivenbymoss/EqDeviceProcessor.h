@@ -12,7 +12,7 @@
 class EqDeviceProcessor : public DeviceProcessor
 {
 public:
-	EqDeviceProcessor(Model& model);
+	EqDeviceProcessor(Model& aModel);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 	void Process(std::deque<std::string>& path, const std::string& value) noexcept override;

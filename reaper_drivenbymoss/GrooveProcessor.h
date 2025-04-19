@@ -13,7 +13,7 @@
 class GrooveProcessor : public OscProcessor
 {
 public:
-	GrooveProcessor(Model &model);
+	GrooveProcessor(Model &aModel);
 
 	void Process(std::deque<std::string>& path, double value) noexcept override;
 

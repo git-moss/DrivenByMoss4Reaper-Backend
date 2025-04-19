@@ -1,3 +1,6 @@
+// Copyright (c) 2018-2025 by Jürgen Moßgraber (www.mossgrabers.de)
+// Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
+
 #ifdef _WIN32
 #define DISABLE_WARNING_PUSH           __pragma(warning( push ))
 #define DISABLE_WARNING_POP            __pragma(warning( pop )) 

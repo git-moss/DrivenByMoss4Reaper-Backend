@@ -43,7 +43,13 @@ public:
 	int pinnedTrackIndex{ -1 };
 
 
-	Model(FunctionExecutor& functionExecutor) noexcept;
+	explicit Model(FunctionExecutor& aFunctionExecutor) noexcept;
+	Model(const Model&) = delete;
+	Model& operator=(const Model&) = delete;
+	Model(Model&&) = delete;
+	Model& operator=(Model&&) = delete;
+	virtual ~Model() = default;
+
 
 	void AddFunction(std::function<void(void)> f);
 

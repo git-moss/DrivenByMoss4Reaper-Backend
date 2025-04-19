@@ -107,7 +107,8 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 	{
 		PreventUIRefresh(1);
 		double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
-		int timesig, denomOut;
+		int timesig;
+		int denomOut;
 		double startBPM;
 		TimeMap_GetTimeSigAtTime(project, itemStart, &timesig, &denomOut, &startBPM);
 		itemStart = value * 60.0 / startBPM;
@@ -121,7 +122,8 @@ void ClipProcessor::Process(std::deque<std::string>& path, double value) noexcep
 		PreventUIRefresh(1);
 		const double itemStart = GetMediaItemInfo_Value(item, "D_POSITION");
 		double itemEnd = itemStart + GetMediaItemInfo_Value(item, "D_LENGTH");
-		int timesig, denomOut;
+		int timesig;
+		int denomOut;
 		double startBPM;
 		TimeMap_GetTimeSigAtTime(project, itemEnd, &timesig, &denomOut, &startBPM);
 		itemEnd = value * 60.0 / startBPM;

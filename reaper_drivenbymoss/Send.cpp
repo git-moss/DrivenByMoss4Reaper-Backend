@@ -56,24 +56,26 @@ void Send::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack* 
 
 	// Get the name
 	constexpr int LENGTH = 20;
-	char name[LENGTH] = {};
+	char nameNew[LENGTH] = {};
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-	const bool result = GetTrackSendName(track, sendIndex, name, LENGTH);
-	const std::string newName = result ? name : "";
-	this->name = Collectors::CollectStringValue(ss, (sendAddress + "name").c_str(), this->name, newName, dump);
+	const bool result = GetTrackSendName(track, sendIndex, nameNew, LENGTH);
+	const std::string newName = result ? nameNew : "";
+	this->name = Collectors::CollectStringValue(ss, sendAddress + "name", this->name, newName, dump);
 
 	// Get the volume
 	const double volDB = GetSendVolume(track, sendIndex, ReaperUtils::GetCursorPosition(project));
-	this->volume = Collectors::CollectDoubleValue(ss, (sendAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);
-	this->volumeStr = Collectors::CollectStringValue(ss, (sendAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
+	this->volume = Collectors::CollectDoubleValue(ss, sendAddress + "volume", this->volume, DB2SLIDER(volDB) / 1000.0, dump);
+	this->volumeStr = Collectors::CollectStringValue(ss, sendAddress + "volume/str", this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
 
 	// Get the color of the destination track
 	MediaTrack* receiveTrack = static_cast<MediaTrack*> (GetSetTrackSendInfo(track, 0, sendIndex, "P_DESTTRACK", nullptr));
-	int red = -1, green = -1, blue = -1;
+	int red {-1};
+	int green {-1};
+	int blue {-1};
 	const int nativeColor = GetTrackColor(receiveTrack);
 	if (nativeColor != 0)
 		ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
-	this->color = Collectors::CollectStringValue(ss, (sendAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
+	this->color = Collectors::CollectStringValue(ss, sendAddress + "color", this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
 }
 
 

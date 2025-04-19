@@ -80,7 +80,7 @@ private:
 	void StartApp();
 
 	bool LoadJvmLibrary();
-	std::string LookupJvmLibrary(const std::string& javaHomePath) const;
+	std::string LookupJvmLibrary(const std::string& theJavaHomePath) const;
 	std::string CreateClasspath(const std::string& libDir) const;
 	std::vector<std::string> GetDirectoryFiles(const std::string& dir) const;
 	std::string GetLibraryPath() const;

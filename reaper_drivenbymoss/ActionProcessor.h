@@ -13,7 +13,7 @@
 class ActionProcessor : public OscProcessor
 {
 public:
-	ActionProcessor(Model& model);
+	ActionProcessor(Model& aModel);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 	void Process(std::deque<std::string>& path, int value) noexcept override;

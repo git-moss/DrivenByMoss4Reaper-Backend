@@ -24,7 +24,7 @@ class DataCollector
 public:
 	static const int TIME_LENGTH{ 20 };
 
-	DataCollector(Model& model);
+	DataCollector(Model& aModel);
 	virtual ~DataCollector();
 	DataCollector(const DataCollector&) = delete;
 	DataCollector& operator=(const DataCollector&) = delete;

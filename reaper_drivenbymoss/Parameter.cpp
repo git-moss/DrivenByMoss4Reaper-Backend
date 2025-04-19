@@ -67,7 +67,7 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 
 	// Note: this seems to already respect the envelope!
 	const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, paramIndex);
-	const bool valueHasChanged = this->value != paramValue;
+	const bool valueHasChanged = !ReaperUtils::areEqual(this->value , paramValue);
 	this->value = Collectors::CollectDoubleValue(ss, this->addressValue, this->value, paramValue, dump);
 
 	if (dump || valueHasChanged)

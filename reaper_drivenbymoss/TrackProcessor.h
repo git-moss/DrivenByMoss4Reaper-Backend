@@ -13,7 +13,7 @@
 class TrackProcessor : public OscProcessor
 {
 public:
-	TrackProcessor(Model& model);
+	TrackProcessor(Model& aModel);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 	void Process(std::deque<std::string>& path, int value) override;

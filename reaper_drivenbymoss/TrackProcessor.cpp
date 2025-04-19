@@ -364,20 +364,20 @@ void TrackProcessor::Process(std::deque<std::string>& path, double value)
 		if (value < 0 || value > 1)
 			return;
 
-		if (value == 0)
+		if (ReaperUtils::areEqual (value, 0))
 		{
 			Main_OnCommandEx(DISABLE_MIDI_INPUT_QUANTIZE, 0, project);
 		}
 		else
 		{
 			Main_OnCommandEx(ENABLE_MIDI_INPUT_QUANTIZE, 0, project);
-			if (value == 1)
+			if (ReaperUtils::areEqual (value, 1))
 				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_4, 0, project);
-			else if (value == 0.5)
+			else if (ReaperUtils::areEqual (value, 0.5))
 				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_8, 0, project);
-			else if (value == 0.25)
+			else if (ReaperUtils::areEqual (value, 0.25))
 				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_16, 0, project);
-			else if (value == 0.125)
+			else if (ReaperUtils::areEqual (value, 0.125))
 				Main_OnCommandEx(SET_MIDI_INPUT_QUANTIZE_1_32, 0, project);
 		}
 		return;
@@ -582,7 +582,8 @@ void TrackProcessor::CreateMidiClip(ReaProject* project, MediaTrack* track, int 
 
 	// Create a new midi clip on the given track
 	double cursorPos = GetCursorPositionEx(project);
-	double bpmOut, bpiOut;
+	double bpmOut;
+	double bpiOut;
 	GetProjectTimeSignature2(project, &bpmOut, &bpiOut);
 	// Calculate length in seconds of n beats
 	const double length = static_cast<double>(beats) * 60.0 / bpmOut;

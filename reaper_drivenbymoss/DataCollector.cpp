@@ -19,10 +19,10 @@
  */
 DataCollector::DataCollector(Model& aModel) :
 	model(aModel),
-	deviceSiblings(aModel.DEVICE_BANK_SIZE, ""),
-	deviceSiblingsSelection(aModel.DEVICE_BANK_SIZE, 0),
-	deviceSiblingsBypass(aModel.DEVICE_BANK_SIZE, 0),
-	deviceSiblingsPosition(aModel.DEVICE_BANK_SIZE, 0)
+	deviceSiblings(Model::DEVICE_BANK_SIZE, ""),
+	deviceSiblingsSelection(Model::DEVICE_BANK_SIZE, 0),
+	deviceSiblingsBypass(Model::DEVICE_BANK_SIZE, 0),
+	deviceSiblingsPosition(Model::DEVICE_BANK_SIZE, 0)
 {
 	this->trackStateChunk = std::make_unique<char[]>(BUFFER_SIZE);
 
@@ -239,7 +239,10 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 			this->model.SetDeviceSelection(0);
 
 		// Check for auto-follow
-		int trackIndex, itemIndex, takeIndex, fxIndex;
+		int trackIndex;
+		int itemIndex;
+		int takeIndex;
+		int fxIndex;
 		if (GetTouchedOrFocusedFX(1, &trackIndex, &itemIndex, &takeIndex, &fxIndex, nullptr))
 		{
 			// Only accept track FX
@@ -269,32 +272,32 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 
 	if (this->slowCounter == 0 || dump)
 	{
-		bool result = this->deviceExists ? TrackFX_GetFXName(track, deviceIndex, strBufferPointer, LENGTH) : false;
-		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, result ? strBuffer : "", dump);
+		bool resultValue = this->deviceExists ? TrackFX_GetFXName(track, deviceIndex, strBufferPointer, LENGTH) : false;
+		this->deviceName = Collectors::CollectStringValue(ss, "/device/name", this->deviceName, resultValue ? strBuffer : "", dump);
 		this->deviceBypass = Collectors::CollectIntValue(ss, "/device/bypass", this->deviceBypass, this->deviceExists && TrackFX_GetEnabled(track, deviceIndex) ? 0 : 1, dump);
 
-		for (int index = 0; index < this->model.DEVICE_BANK_SIZE; index++)
+		for (int index = 0; index < Model::DEVICE_BANK_SIZE; index++)
 		{
 			const int position = this->model.deviceBankOffset + index;
 			const int bankDeviceIndex = index + 1;
 
 			std::ostringstream das;
 			das << "/device/sibling/" << bankDeviceIndex << "/name";
-			result = TrackFX_GetFXName(track, position, strBufferPointer, LENGTH);
-			Collectors::CollectStringArrayValue(ss, das.str().c_str(), index, deviceSiblings, result ? strBufferPointer : "", dump);
+			resultValue = TrackFX_GetFXName(track, position, strBufferPointer, LENGTH);
+			Collectors::CollectStringArrayValue(ss, das.str(), index, deviceSiblings, resultValue ? strBufferPointer : "", dump);
 
 			std::ostringstream bys;
 			bys << "/device/sibling/" << bankDeviceIndex << "/bypass";
 			const int isBypassed = TrackFX_GetEnabled(track, position) ? 0 : 1;
-			Collectors::CollectIntArrayValue(ss, bys.str().c_str(), index, deviceSiblingsBypass, isBypassed, dump);
+			Collectors::CollectIntArrayValue(ss, bys.str(), index, deviceSiblingsBypass, isBypassed, dump);
 
 			std::ostringstream pys;
 			pys << "/device/sibling/" << bankDeviceIndex << "/position";
-			Collectors::CollectIntArrayValue(ss, pys.str().c_str(), index, deviceSiblingsPosition, position, dump);
+			Collectors::CollectIntArrayValue(ss, pys.str(), index, deviceSiblingsPosition, position, dump);
 
 			std::ostringstream sys;
 			sys << "/device/sibling/" << bankDeviceIndex << "/selected";
-			Collectors::CollectIntArrayValue(ss, sys.str().c_str(), index, deviceSiblingsSelection, deviceIndex == position ? 1 : 0, dump);
+			Collectors::CollectIntArrayValue(ss, sys.str(), index, deviceSiblingsSelection, deviceIndex == position ? 1 : 0, dump);
 		}
 	}
 
@@ -309,10 +312,10 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 	// 
 
 	const int instrumentIndex = TrackFX_GetInstrument(track);
-	const bool instrumentExists = instrumentIndex >= 0;
-	this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentExists, dump);
+	const bool instrumentExistsNew = instrumentIndex >= 0;
+	this->instrumentExists = Collectors::CollectIntValue(ss, "/primary/exists", this->instrumentExists, instrumentExistsNew, dump);
 	this->instrumentPosition = Collectors::CollectIntValue(ss, "/primary/position", this->instrumentPosition, instrumentIndex, dump);
-	const bool result = instrumentExists && TrackFX_GetFXName(track, instrumentIndex, strBufferPointer, LENGTH);
+	const bool result = instrumentExistsNew && TrackFX_GetFXName(track, instrumentIndex, strBufferPointer, LENGTH);
 	this->instrumentName = Collectors::CollectStringValue(ss, "/primary/name", this->instrumentName, result ? strBuffer : "", dump);
 
 	const int instParamCount = this->instrumentExists ? TrackFX_GetNumParams(track, instrumentIndex) : 0;
@@ -441,8 +444,13 @@ std::string DataCollector::CollectPlayingNotes(ReaProject* project, MediaTrack* 
 
 	bool isSelected{ false };
 	bool isMuted{ false };
-	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
-	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
+	int channel{ 0 };
+	int pitch{ 0 };
+	int velocity{ 0 };
+	double startppqpos{ -1 };
+	double endppqpos{ -1 };
+	double musicalStart{ -1 };
+	double musicalEnd{ -1 };
 
 	std::ostringstream notes;
 
@@ -496,7 +504,9 @@ void DataCollector::CollectMasterTrackData(std::ostringstream& ss, ReaProject* p
 	if (this->slowCounter == 0 || dump)
 	{
 		// Track color
-		int red = -1, green = -1, blue = -1;
+		int red {-1};
+		int green {-1};
+		int blue {-1};
 		// Note: GetTrackColor is not working for the master track
 		const int nativeColor = gsl::narrow_cast<int> (GetMediaTrackInfo_Value(master, "I_CUSTOMCOLOR"));
 		if (nativeColor != 0)
@@ -535,7 +545,9 @@ void DataCollector::CollectClipData(std::ostringstream& ss, ReaProject* project,
 	double musicalPlayPosition{ -1 };
 	double bpm{};
 	const int count = CountSelectedMediaItems(project);
-	int red = 0, green = 0, blue = 0;
+	int red {0};
+	int green {0};
+	int blue {0};
 	MediaItem* item = nullptr;
 	int loopIsEnabled = 0;
 	this->clipExists = Collectors::CollectIntValue(ss, "/clip/exists", this->clipExists, count > 0 ? 1 : 0, dump);
@@ -555,13 +567,13 @@ void DataCollector::CollectClipData(std::ostringstream& ss, ReaProject* project,
 			musicalPlayPosition = bpm * this->playPosition / 60;
 		}
 
-		const int clipColor = GetDisplayedMediaItemColor(item);
-		ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
+		const int clipColorNew = GetDisplayedMediaItemColor(item);
+		ColorFromNative(clipColorNew & 0xFEFFFFFF, &red, &green, &blue);
 
 		loopIsEnabled = GetMediaItemInfo_Value(item, "B_LOOPSRC") > 0 ? 1 : 0;
 	}
 	std::string newNotes = this->CollectClipNotes(project, item);
-	this->notesStr = Collectors::CollectStringValue(ss, "/clip/notes", this->notesStr, newNotes.c_str(), dump);
+	this->notesStr = Collectors::CollectStringValue(ss, "/clip/notes", this->notesStr, newNotes, dump);
 
 	this->clipMusicalStart = Collectors::CollectDoubleValue(ss, "/clip/start", this->clipMusicalStart, musicalStart, dump);
 	this->clipMusicalEnd = Collectors::CollectDoubleValue(ss, "/clip/end", this->clipMusicalEnd, musicalEnd, dump);
@@ -569,7 +581,7 @@ void DataCollector::CollectClipData(std::ostringstream& ss, ReaProject* project,
 
 	this->clipLoopIsEnabled = Collectors::CollectIntValue(ss, "/clip/loop", this->clipLoopIsEnabled, loopIsEnabled, dump);
 
-	this->clipColor = Collectors::CollectStringValue(ss, "/clip/color", this->clipColor, Collectors::FormatColor(red, green, blue).c_str(), dump);
+	this->clipColor = Collectors::CollectStringValue(ss, "/clip/color", this->clipColor, Collectors::FormatColor(red, green, blue), dump);
 }
 
 
@@ -610,8 +622,13 @@ std::string DataCollector::CollectClipNotes(ReaProject* project, MediaItem* item
 
 	bool isSelected{ false };
 	bool isMuted{ false };
-	int channel{ 0 }, pitch{ 0 }, velocity{ 0 };
-	double startppqpos{ -1 }, endppqpos{ -1 }, musicalStart{ -1 }, musicalEnd{ -1 };
+	int channel{ 0 };
+	int pitch{ 0 };
+	int velocity{ 0 };
+	double startppqpos{ -1 };
+	double endppqpos{ -1 };
+	double musicalStart{ -1 };
+	double musicalEnd{ -1 };
 	double bpm{};
 	std::ostringstream notes;
 	const double pos = GetMediaItemInfo_Value(item, "D_POSITION");
@@ -715,8 +732,10 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 		if ((trackState & 1024) > 0)
 			continue;
 
-		int red = 0, green = 0, blue = 0;
-		char buf[2048] = {};
+		int red { 0 };
+		int green { 0 };
+		int blue { 0 };
+		char buf[2048] = { };
 
 		const int itemCount = CountTrackMediaItems(mediaTrack);
 
@@ -749,8 +768,8 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 			const bool isSelected = IsMediaItemSelected(item);
 			allClipStr << ";" << isSelected;
 
-			const int clipColor = GetDisplayedMediaItemColor(item);
-			ColorFromNative(clipColor & 0xFEFFFFFF, &red, &green, &blue);
+			const int clipColorNew = GetDisplayedMediaItemColor(item);
+			ColorFromNative(clipColorNew & 0xFEFFFFFF, &red, &green, &blue);
 			allClipStr << ";" << Collectors::FormatColor(red, green, blue).c_str();
 
 			const bool isMuted = *static_cast<bool*> (GetSetMediaItemInfo(item, "B_MUTE", nullptr));
@@ -762,7 +781,7 @@ void DataCollector::CollectSessionData(std::ostringstream& ss, ReaProject* proje
 
 		trackIndex++;
 	}
-	this->formattedClips = Collectors::CollectStringValue(ss, "/clip/all", this->formattedClips, clipStr.str().c_str(), dump);
+	this->formattedClips = Collectors::CollectStringValue(ss, "/clip/all", this->formattedClips, clipStr.str(), dump);
 
 	// Collect "scenes", use Region markers
 	const std::vector<int> regions = Marker::GetRegions(project);
@@ -792,22 +811,22 @@ void DataCollector::CollectNoteRepeatData(std::ostringstream& ss, ReaProject* pr
 	const int position = track ? TrackFX_AddByName(track, NoteRepeatProcessor::MIDI_ARP_PLUGIN, true, 0) : -1;
 	const int inputPosition = 0x1000000 + position;
 
-	const int repeatActive = position > -1 && TrackFX_GetEnabled(track, inputPosition) ? 1 : 0;
-	this->repeatActive = Collectors::CollectIntValue(ss, "/noterepeat/active", this->repeatActive, repeatActive, dump);
+	const int repeatActiveNew = position > -1 && TrackFX_GetEnabled(track, inputPosition) ? 1 : 0;
+	this->repeatActive = Collectors::CollectIntValue(ss, "/noterepeat/active", this->repeatActive, repeatActiveNew, dump);
 
 	double minVal{};
 	double maxVal{};
-	const double repeatRate = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_RATE, &minVal, &maxVal) : 1.0;
-	this->repeatRate = Collectors::CollectDoubleValue(ss, "/noterepeat/period", this->repeatRate, repeatRate, dump);
+	const double repeatRateNew = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_RATE, &minVal, &maxVal) : 1.0;
+	this->repeatRate = Collectors::CollectDoubleValue(ss, "/noterepeat/period", this->repeatRate, repeatRateNew, dump);
 
-	const double repeatNoteLength = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_NOTE_LENGTH, &minVal, &maxVal) : 1.0;
-	this->repeatNoteLength = Collectors::CollectDoubleValue(ss, "/noterepeat/notelength", this->repeatNoteLength, repeatNoteLength, dump);
+	const double repeatNoteLengthNew = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_NOTE_LENGTH, &minVal, &maxVal) : 1.0;
+	this->repeatNoteLength = Collectors::CollectDoubleValue(ss, "/noterepeat/notelength", this->repeatNoteLength, repeatNoteLengthNew, dump);
 
-	const double repeatMode = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_MODE, &minVal, &maxVal) : 0;
-	this->repeatMode = Collectors::CollectIntValue(ss, "/noterepeat/mode", this->repeatMode, (int)repeatMode, dump);
+	const double repeatModeNew = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_MODE, &minVal, &maxVal) : 0;
+	this->repeatMode = Collectors::CollectIntValue(ss, "/noterepeat/mode", this->repeatMode, static_cast<int>(repeatModeNew), dump);
 
-	const double repeatVelocity = position > -1 ? TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, &minVal, &maxVal) : 0;
-	this->repeatVelocity = Collectors::CollectIntValue(ss, "/noterepeat/velocity", this->repeatVelocity, repeatVelocity == 0 ? 1 : 0, dump);
+	const int repeatVelocityNew = position > -1 ? static_cast<int> (TrackFX_GetParam(track, inputPosition, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, &minVal, &maxVal)) : 0;
+	this->repeatVelocity = Collectors::CollectIntValue(ss, "/noterepeat/velocity", this->repeatVelocity, repeatVelocityNew == 0 ? 1 : 0, dump);
 }
 
 

@@ -70,27 +70,29 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	this->solo = Collectors::CollectIntValue(ss, (trackAddress + "solo").c_str(), this->solo, (trackState & 16) > 0 ? 1 : 0, dump);
 	this->recArmed = Collectors::CollectIntValue(ss, (trackAddress + "recarm").c_str(), this->recArmed, (trackState & 64) > 0 ? 1 : 0, dump);
 
-	const double monitor = GetMediaTrackInfo_Value(track, "I_RECMON");
-	this->monitor = Collectors::CollectIntValue(ss, (trackAddress + "monitor").c_str(), this->monitor, monitor == 1 ? 1 : 0, dump);
-	this->autoMonitor = Collectors::CollectIntValue(ss, (trackAddress + "autoMonitor").c_str(), this->autoMonitor, monitor == 2 ? 1 : 0, dump);
+	const int monitorNew = static_cast<int> (GetMediaTrackInfo_Value(track, "I_RECMON"));
+	this->monitor = Collectors::CollectIntValue(ss, trackAddress + "monitor", this->monitor, monitorNew == 1 ? 1 : 0, dump);
+	this->autoMonitor = Collectors::CollectIntValue(ss, trackAddress + "autoMonitor", this->autoMonitor, monitorNew == 2 ? 1 : 0, dump);
 
-	const double recMode = GetMediaTrackInfo_Value(track, "I_RECMODE");
-	this->overdub = Collectors::CollectIntValue(ss, (trackAddress + "overdub").c_str(), this->overdub, recMode == 7 ? 1 : 0, dump);
+	const int recModeNew = static_cast<int> (GetMediaTrackInfo_Value(track, "I_RECMODE"));
+	this->overdub = Collectors::CollectIntValue(ss, trackAddress + "overdub", this->overdub, recModeNew == 7 ? 1 : 0, dump);
 
 	// Track color
-	int red = -1, green = -1, blue = -1;
+	int red {-1};
+	int green {-1};
+	int blue {-1};
 	const int nativeColor = GetTrackColor(track);
 	if (nativeColor != 0)
 		ColorFromNative(nativeColor & 0xFEFFFFFF, &red, &green, &blue);
-	this->color = Collectors::CollectStringValue(ss, (trackAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
+	this->color = Collectors::CollectStringValue(ss, trackAddress + "color", this->color, Collectors::FormatColor(red, green, blue), dump);
 
 	// Track volume and pan
 	const double volDB = this->GetVolume(track, cursorPos);
-	this->volume = Collectors::CollectDoubleValue(ss, (trackAddress + "volume").c_str(), this->volume, DB2SLIDER(volDB) / 1000.0, dump);
-	this->volumeStr = Collectors::CollectStringValue(ss, (trackAddress + "volume/str").c_str(), this->volumeStr, Collectors::FormatDB(volDB).c_str(), dump);
+	this->volume = Collectors::CollectDoubleValue(ss, trackAddress + "volume", this->volume, DB2SLIDER(volDB) / 1000.0, dump);
+	this->volumeStr = Collectors::CollectStringValue(ss, trackAddress + "volume/str", this->volumeStr, Collectors::FormatDB(volDB), dump);
 	const double panVal = this->GetPan(track, cursorPos);
-	this->pan = Collectors::CollectDoubleValue(ss, (trackAddress + "pan").c_str(), this->pan, (panVal + 1) / 2, dump);
-	this->panStr = Collectors::CollectStringValue(ss, (trackAddress + "pan/str").c_str(), this->panStr, Collectors::FormatPan(panVal).c_str(), dump);
+	this->pan = Collectors::CollectDoubleValue(ss, trackAddress + "pan", this->pan, (panVal + 1) / 2, dump);
+	this->panStr = Collectors::CollectStringValue(ss, trackAddress + "pan/str", this->panStr, Collectors::FormatPan(panVal), dump);
 
 	// VU and automation mode
 	const double peakLeft = Track_GetPeakInfo(track, 0);
@@ -98,17 +100,17 @@ void Track::CollectData(std::ostringstream& ss, ReaProject* project, MediaTrack*
 	const double peakHoldLeft = Track_GetPeakHoldDB(track, 0, false);
 	const double peakHoldRight = Track_GetPeakHoldDB(track, 1, false);
 
-	this->vu = Collectors::CollectDoubleValue(ss, (trackAddress + "vu").c_str(), this->vu, ReaperUtils::ValueToVURange((peakLeft + peakRight) / 2.0), dump);
-	this->vuLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuleft").c_str(), this->vuLeft, ReaperUtils::ValueToVURange(peakLeft), dump);
-	this->vuRight = Collectors::CollectDoubleValue(ss, (trackAddress + "vuright").c_str(), this->vuRight, ReaperUtils::ValueToVURange(peakRight), dump);
-	this->vuHoldLeft = Collectors::CollectDoubleValue(ss, (trackAddress + "vuholdleft").c_str(), this->vuHoldLeft, peakHoldLeft * 100.0, dump);
-	this->vuHoldRight = Collectors::CollectDoubleValue(ss, (trackAddress + "vuholdright").c_str(), this->vuHoldRight, peakHoldRight * 100.0, dump);
+	this->vu = Collectors::CollectDoubleValue(ss, trackAddress + "vu", this->vu, ReaperUtils::ValueToVURange((peakLeft + peakRight) / 2.0), dump);
+	this->vuLeft = Collectors::CollectDoubleValue(ss, trackAddress + "vuleft", this->vuLeft, ReaperUtils::ValueToVURange(peakLeft), dump);
+	this->vuRight = Collectors::CollectDoubleValue(ss, trackAddress + "vuright", this->vuRight, ReaperUtils::ValueToVURange(peakRight), dump);
+	this->vuHoldLeft = Collectors::CollectDoubleValue(ss, trackAddress + "vuholdleft", this->vuHoldLeft, peakHoldLeft * 100.0, dump);
+	this->vuHoldRight = Collectors::CollectDoubleValue(ss, trackAddress + "vuholdright", this->vuHoldRight, peakHoldRight * 100.0, dump);
 
 	// Sends
 	const int numSends = GetTrackNumSends(track, 0);
 	for (int sendCounter = 0; sendCounter < numSends; sendCounter++)
 		this->GetSend(sendCounter)->CollectData(ss, project, track, sendCounter, trackAddress, dump);
-	this->sendCount = Collectors::CollectIntValue(ss, (trackAddress + "send/count").c_str(), this->sendCount, numSends, dump);
+	this->sendCount = Collectors::CollectIntValue(ss, trackAddress + "send/count", this->sendCount, numSends, dump);
 }
 
 

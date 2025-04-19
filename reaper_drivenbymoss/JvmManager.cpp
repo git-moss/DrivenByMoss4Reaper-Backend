@@ -235,14 +235,14 @@ bool JvmManager::LoadJvmLibrary()
 /**
  * Tests several options to find the JVBM library in the JAVA_HOME folder.
  */
-std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePath) const
+std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePathStr) const
 {
 #ifdef _WIN32
-	std::string libPath = javaHomePath + "\\bin\\server\\jvm.dll";
+	std::string libPath = javaHomePathStr + "\\bin\\server\\jvm.dll";
 #elif LINUX
-	std::string libPath = javaHomePath + "/lib/server/libjvm.so";
+	std::string libPath = javaHomePathStr + "/lib/server/libjvm.so";
 #else
-	std::string libPath = javaHomePath + "/lib/libjli.dylib";
+	std::string libPath = javaHomePathStr + "/lib/libjli.dylib";
 #endif
 	std::ifstream in(libPath);
 	if (in.good())
@@ -585,13 +585,13 @@ std::string JvmManager::CreateClasspath(const std::string& libDir) const
 #endif
 		}
 	}
-	std::string classpath = stream.str();
-	if (classpath.empty())
+	std::string classpathStr = stream.str();
+	if (classpathStr.empty())
 	{
 		ReaDebug() << "No JAR files found in library path: " << path;
-		return classpath;
+		return classpathStr;
 	}
-	std::string result{ "-Djava.class.path=" + classpath.substr(0, classpath.length() - 1) };
+	std::string result{ "-Djava.class.path=" + classpathStr.substr(0, classpathStr.length() - 1) };
 	return result;
 }
 

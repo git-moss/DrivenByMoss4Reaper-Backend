@@ -19,7 +19,12 @@ public:
 	static const int MIDI_ARP_PARAM_MODE{ 2 };
 	static const int MIDI_ARP_PARAM_VELOCITY{ 7 };
 
-	NoteRepeatProcessor(Model& model);
+	explicit NoteRepeatProcessor(Model& aModel);
+	NoteRepeatProcessor(const NoteRepeatProcessor&) = delete;
+	NoteRepeatProcessor& operator=(const NoteRepeatProcessor&) = delete;
+	NoteRepeatProcessor(NoteRepeatProcessor&&) = delete;
+	NoteRepeatProcessor& operator=(NoteRepeatProcessor&&) = delete;
+	virtual ~NoteRepeatProcessor() = default;
 
 	void Process(std::deque<std::string>& path, int value) noexcept override;
 	void Process(std::deque<std::string>& path, double value) noexcept override;

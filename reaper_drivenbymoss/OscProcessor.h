@@ -23,7 +23,7 @@
 class OscProcessor
 {
 public:
-	OscProcessor(Model& aModel) : model(aModel)
+	explicit OscProcessor(Model& aModel) : model(aModel)
 	{
 		// Intentionally empty
 	}
@@ -31,7 +31,7 @@ public:
 	OscProcessor& operator=(const OscProcessor&) = delete;
 	OscProcessor(OscProcessor&&) = delete;
 	OscProcessor& operator=(OscProcessor&&) = delete;
-	virtual ~OscProcessor() {};
+	virtual ~OscProcessor() = default;
 
 	virtual void Process(std::deque<std::string>& path) = 0;
 

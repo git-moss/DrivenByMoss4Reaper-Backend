@@ -13,7 +13,7 @@
 class ProjectProcessor : public OscProcessor
 {
 public:
-	ProjectProcessor(Model &model);
+	ProjectProcessor(Model &aModel);
 
 	void Process(std::deque<std::string> &path) override;
 	void Process(std::deque<std::string>& path, int value) override;

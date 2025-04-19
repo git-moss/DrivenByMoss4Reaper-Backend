@@ -148,7 +148,8 @@ void SceneProcessor::DuplicateScene(ReaProject* project, const int sceneID, Mark
 	Main_OnCommandEx(41319, 0, project);
 
 	// Get the new position of the region
-	double newPosition, newEndPosition;
+	double newPosition;
+	double newEndPosition;
 	EnumProjectMarkers2(project, sceneID, nullptr, &newPosition, &newEndPosition, nullptr, nullptr);
 
 	// Move the region back to its' original position

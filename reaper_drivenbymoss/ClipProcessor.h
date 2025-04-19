@@ -13,7 +13,7 @@
 class ClipProcessor : public OscProcessor
 {
 public:
-	ClipProcessor(Model& model);
+	ClipProcessor(Model& aModel);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 

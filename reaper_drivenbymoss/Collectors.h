@@ -112,7 +112,7 @@ public:
 
 	static std::string FormatDB(double value)
 	{
-		if (value == -150)
+		if (value <= -150)
 			return "-inf dB";
 		std::ostringstream stream;
 		stream << std::fixed << std::setprecision(1);

@@ -11,10 +11,6 @@
 #include "CodeAnalysis.h"
 #include "WrapperReaperFunctions.h"
 
-static constexpr double VU_BOTTOM{ 60.0 };
-static constexpr double VU_TOP{ 6.0 };
-static constexpr double VU_CLIP{ 0.9912109375 };
-
 
 /**
  * Helper functions for Reaper functions.
@@ -23,6 +19,31 @@ class ReaperUtils
 {
 public:
 	static HWND mainWindowHandle;
+
+	static constexpr double VU_BOTTOM{ 60.0 };
+	static constexpr double VU_TOP{ 6.0 };
+	static constexpr double VU_CLIP{ 0.9912109375 };
+
+
+	ReaperUtils(const ReaperUtils&) = delete;
+	ReaperUtils& operator=(const ReaperUtils&) = delete;
+	ReaperUtils(ReaperUtils&&) = delete;
+	ReaperUtils& operator=(ReaperUtils&&) = delete;
+	virtual ~ReaperUtils() = default;
+
+
+	/**
+	 * Compare 2 double values.
+	 *
+	 * @param a The 1st value
+	 * @param b The 2nd value
+	 *
+	 * @return True if equal down to an epsilon
+	 */
+	static bool areEqual(double a, double b)
+	{
+		return fabs(a-b) < 1e-9;
+	}
 
 
 	/**

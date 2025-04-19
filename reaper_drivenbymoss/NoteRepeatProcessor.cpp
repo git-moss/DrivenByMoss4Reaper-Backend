@@ -76,7 +76,7 @@ void NoteRepeatProcessor::Process(std::deque<std::string>& path, double value) n
 
 	if (std::strcmp(cmd, "velocity") == 0)
 	{
-		this->SetParameter(project, track, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, value == 0 ? 127 : 0);
+		this->SetParameter(project, track, NoteRepeatProcessor::MIDI_ARP_PARAM_VELOCITY, static_cast<int> (value) == 0 ? 127 : 0);
 		return;
 	}
 }
@@ -104,7 +104,8 @@ void NoteRepeatProcessor::SetParameter(ReaProject* project, MediaTrack* track, i
 		// Note: 0x1000000 selects plugins on the record input FX chain
 		const int inputPosition = 0x1000000 + position;
 
-		double minVal{}, maxVal{};
+		double minVal{};
+		double maxVal{};
 		TrackFX_GetParam(track, inputPosition, parameterIndex, &minVal, &maxVal);
 
 		const double range = maxVal - minVal;

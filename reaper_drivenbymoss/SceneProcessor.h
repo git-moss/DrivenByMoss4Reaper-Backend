@@ -13,7 +13,7 @@
 class SceneProcessor : public OscProcessor
 {
 public:
-	SceneProcessor(Model &model);
+	SceneProcessor(Model &aModel);
 
 	void Process(std::deque<std::string> &path) override;
 
@@ -21,7 +21,6 @@ public:
 	void Process(std::deque<std::string>& path, const std::vector<std::string>& values) noexcept override {};
 	void Process(std::deque<std::string>& path, double value) noexcept override {};
 
-	//static void DuplicateScene(ReaProject* project, const int sceneID, const std::unique_ptr<Marker>& scene);
 	static void DuplicateScene(ReaProject* project, const int sceneID, Marker* scene);
 };
 

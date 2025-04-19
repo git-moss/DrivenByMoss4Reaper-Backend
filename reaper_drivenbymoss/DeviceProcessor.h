@@ -14,7 +14,7 @@
 class DeviceProcessor : public OscProcessor
 {
 public:
-	DeviceProcessor(Model& model);
+	DeviceProcessor(Model& aModel);
 
 	void Process(std::deque<std::string>& path) noexcept override;
 	void Process(std::deque<std::string>& path, int value) noexcept override;

@@ -14,7 +14,7 @@
 class MastertrackProcessor : public OscProcessor
 {
 public:
-	MastertrackProcessor(Model &model);
+	MastertrackProcessor(Model &aModel);
 
 	void Process(std::deque<std::string> &path, int value) noexcept override;
 	void Process(std::deque<std::string> &path, double value) noexcept override;

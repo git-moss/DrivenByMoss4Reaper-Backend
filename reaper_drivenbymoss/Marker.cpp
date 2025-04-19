@@ -40,26 +40,28 @@ void Marker::CollectData(std::ostringstream& ss, ReaProject* project, const char
 	const std::string markerAddress = das.str();
 
 	// Marker exists flag and number of markers
-	this->exists = Collectors::CollectIntValue(ss, (markerAddress + "exists").c_str(), this->exists, true, dump);
-	this->number = Collectors::CollectIntValue(ss, (markerAddress + "number").c_str(), this->number, markerIndex, dump);
+	this->exists = Collectors::CollectIntValue(ss, markerAddress + "exists", this->exists, true, dump);
+	this->number = Collectors::CollectIntValue(ss, markerAddress + "number", this->number, markerIndex, dump);
 
-	const char* name;
+	const char* markerName;
 	double pos;
 	double end;
-	const int result = EnumProjectMarkers3(project, markerID, nullptr, &pos, &end, &name, &this->markerOrRegionIndex, &this->colorNumber);
+	const int result = EnumProjectMarkers3(project, markerID, nullptr, &pos, &end, &markerName, &this->markerOrRegionIndex, &this->colorNumber);
 
 	// Marker name
-	const std::string newName = result ? name : "";
-	this->name = Collectors::CollectStringValue(ss, (markerAddress + "name").c_str(), this->name, newName, dump);
+	const std::string newName = result ? markerName : "";
+	this->name = Collectors::CollectStringValue(ss, markerAddress + "name", this->name, newName, dump);
 
 	// Position info
-	this->position = Collectors::CollectDoubleValue(ss, (markerAddress + "position").c_str(), this->position, pos, dump);
-	this->endPosition = Collectors::CollectDoubleValue(ss, (markerAddress + "endPosition").c_str(), this->endPosition, end, dump);
+	this->position = Collectors::CollectDoubleValue(ss, markerAddress + "position", this->position, pos, dump);
+	this->endPosition = Collectors::CollectDoubleValue(ss, markerAddress + "endPosition", this->endPosition, end, dump);
 
 	// Marker color
-	int red, green, blue;
+	int red;
+	int green;
+	int blue;
 	ColorFromNative(this->colorNumber & 0xFEFFFFFF, &red, &green, &blue);
-	this->color = Collectors::CollectStringValue(ss, (markerAddress + "color").c_str(), this->color, Collectors::FormatColor(red, green, blue).c_str(), dump);
+	this->color = Collectors::CollectStringValue(ss, markerAddress + "color", this->color, Collectors::FormatColor(red, green, blue), dump);
 }
 
 
