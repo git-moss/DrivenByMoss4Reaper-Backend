@@ -23,6 +23,8 @@ jobs:
             artifact_name: reaper_drivenbymoss.dylib
           - os: windows-2019
             artifact_name: reaper_drivenbymoss.dll
+          - os: windows-11-arm
+            artifact_name: reaper_drivenbymoss.arm.dll
     
     name: ${{ matrix.os }}
 
