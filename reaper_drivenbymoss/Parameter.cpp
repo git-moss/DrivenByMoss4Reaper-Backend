@@ -24,6 +24,7 @@ Parameter::Parameter(const char* prefixPath, const int index) noexcept : paramet
 		this->addressName = paramAddress + "name";
 		this->addressValue = paramAddress + "value";
 		this->addressValueStr = paramAddress + "value/str";
+		this->addressNumberOfSteps = paramAddress + "steps";
 	}
 	catch (const std::exception& ex)
 	{
@@ -65,6 +66,11 @@ void Parameter::CollectData(std::ostringstream& ss, MediaTrack* track, const int
 	const std::string newName{ result ? nameBuf : "" };
 	this->name = Collectors::CollectStringValue(ss, this->addressName, this->name, newName, dump);
 
+	bool isToggle;
+	result = TrackFX_GetParameterStepSizes(track, deviceIndex, paramIndex, nullptr, nullptr, nullptr, &isToggle);
+	const int numSteps = result && isToggle ? 2 : -1;
+	this->numberOfSteps = Collectors::CollectIntValue(ss, this->addressNumberOfSteps, this->numberOfSteps, numSteps, dump);
+
 	// Note: this seems to already respect the envelope!
 	const double paramValue = TrackFX_GetParamNormalized(track, deviceIndex, paramIndex);
 	const bool valueHasChanged = !ReaperUtils::areEqual(this->value , paramValue);
@@ -92,4 +98,5 @@ void Parameter::ClearData(std::ostringstream& ss, const bool& dump)
 	this->name = Collectors::CollectStringValue(ss, this->addressName, this->name, "", dump);
 	this->value = Collectors::CollectDoubleValue(ss, this->addressValue, this->value, 0.0, dump);
 	this->valueStr = Collectors::CollectStringValue(ss, this->addressValueStr, this->valueStr, "", dump);
+	this->addressNumberOfSteps = Collectors::CollectIntValue(ss, this->addressNumberOfSteps, this->numberOfSteps, -1, dump);
 }

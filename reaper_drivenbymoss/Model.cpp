@@ -253,6 +253,15 @@ void Model::SetDeviceSelection(int position) noexcept
 
 	this->deviceBankOffset = static_cast<int>(std::floor(pos / this->DEVICE_BANK_SIZE) * this->DEVICE_BANK_SIZE);
 	
-	if (this->deviceExpanded ? TrackFX_GetChainVisible(track) != pos : !TrackFX_GetOpen(track, pos))
-		TrackFX_SetOpen(track, pos, true);
+	if (this->deviceExpanded)
+	{
+		const int effectVisibleInChain = TrackFX_GetChainVisible(track);
+		if (effectVisibleInChain != -1 && effectVisibleInChain != pos)
+			TrackFX_SetOpen(track, pos, true);
+	}
+	else
+	{
+		if (!TrackFX_GetOpen(track, pos))
+			TrackFX_SetOpen(track, pos, true);
+	}
 }

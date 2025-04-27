@@ -18,6 +18,7 @@ public:
 	std::string name;
 	double value{ 0.0 };
 	std::string valueStr;
+	int numberOfSteps{ -1 };
 
 
 	Parameter(const char* prefixPath, const int index) noexcept;
@@ -32,6 +33,7 @@ private:
 	std::string addressName;
 	std::string addressValue;
 	std::string addressValueStr;
+	std::string addressNumberOfSteps;
 };
 
 #endif /* _DBM_PARAMETER_H_ */
