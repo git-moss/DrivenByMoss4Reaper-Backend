@@ -127,6 +127,7 @@ private:
 	int deviceExpanded{ -1 };
 	std::string deviceName{};
 	int deviceBypass{};
+	int touchedParam{ -1 };
 	std::vector<std::string> deviceSiblings;
 	std::vector<int> deviceSiblingsSelection;
 	std::vector<int> deviceSiblingsBypass;

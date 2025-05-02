@@ -251,8 +251,14 @@ void DataCollector::CollectDeviceData(std::ostringstream& ss, ReaProject* projec
 				const MediaTrack* mediaTrack = GetTrack(project, trackIndex);
 				// Ensure that the track is selected. We cannot select it because otherwise the track can never be 
 				// de-selected again since there is currently no way to clear or set the focused device state
-				if (mediaTrack == track && (deviceIndex != fxIndex || mediaTrack != track))
-					this->model.SetDeviceSelection(fxIndex);
+				if (mediaTrack == track)
+				{
+					if (deviceIndex != fxIndex || mediaTrack != track)
+						this->model.SetDeviceSelection(fxIndex);
+					int paramIndex;
+					if (GetTouchedOrFocusedFX(0, &trackIndex, nullptr, nullptr, nullptr, &paramIndex))
+						this->touchedParam = Collectors::CollectIntValue(ss, "/device/touchedParam", this->touchedParam, paramIndex, dump);
+				}
 			}
 		}
 
