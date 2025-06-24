@@ -181,5 +181,5 @@ bool Track::ShouldAddEnvelope(MediaTrack *track) const noexcept
 	int mode = GetGlobalAutomationOverride();
 	if (mode == -1)
 		mode = static_cast<int> (GetMediaTrackInfo_Value(track, "I_AUTOMODE"));
-	return (mode > 0 && mode < 5);
+	return (mode > 0 && mode < 6);
 }
