@@ -43,6 +43,7 @@ public:
 	DrivenByMossSurface& operator=(DrivenByMossSurface&&) = delete;
 	~DrivenByMossSurface();
 
+#ifdef _WIN32
 	// Prevents warning that the class is not 64 bit aligned
 	void* operator new(size_t i) noexcept
 	{
@@ -53,6 +54,7 @@ public:
 	{
 		_mm_free(p);
 	}
+#endif
 
 	OscParser& GetOscParser() noexcept
 	{

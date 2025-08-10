@@ -1,6 +1,9 @@
 // Copyright (c) 2018-2025 by Jürgen Moßgraber (www.mossgrabers.de)
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
+///////////////////////////////////////////////////////////////////
+// Windows
+
 #ifdef _WIN32
 #define DISABLE_WARNING_PUSH           __pragma(warning( push ))
 #define DISABLE_WARNING_POP            __pragma(warning( pop )) 
@@ -20,7 +23,9 @@
 #define DISABLE_WARNING_REINTERPRET_CAST       DISABLE_WARNING(26490)
 #define DISABLE_WARNING_NO_STATIC_DOWNCAST     DISABLE_WARNING(26491)
 #define DISABLE_WARNING_NO_C_STYLE_CONVERSION  DISABLE_WARNING(26493)
-// other warnings you want to deactivate...
+
+///////////////////////////////////////////////////////////////////
+// Linux
 
 #elif defined(__GNUC__) || defined(__clang__)
 #define DO_PRAGMA(X) _Pragma(#X)
@@ -28,10 +33,13 @@
 #define DISABLE_WARNING_POP            DO_PRAGMA(GCC diagnostic pop) 
 #define DISABLE_WARNING(warningName)   DO_PRAGMA(GCC diagnostic ignored #warningName)
 
+#define DISABLE_WARNING_BUFFER_OVERFLOW
+#define DISABLE_WARNING_MARK_AS_NOT_NULL
 #define DISABLE_WARNING_DONT_USE_NEW
 #define DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
 #define DISABLE_WARNING_USE_GSL_AT
 #define DISABLE_WARNING_CAN_THROW
+#define DISABLE_WARNING_CAN_BE_CONST
 #define DISABLE_WARNING_NO_POINTER_ARITHMETIC
 #define DISABLE_WARNING_ARRAY_POINTER_DECAY
 #define DISABLE_WARNING_DANGLING_POINTER
@@ -40,15 +48,20 @@
 #define DISABLE_WARNING_NO_STATIC_DOWNCAST
 #define DISABLE_WARNING_NO_C_STYLE_CONVERSION
 
-// other warnings you want to deactivate... 
+///////////////////////////////////////////////////////////////////
+// macOS
 
 #else
 #define DISABLE_WARNING_PUSH
 #define DISABLE_WARNING_POP
 
+#define DISABLE_WARNING_BUFFER_OVERFLOW
+#define DISABLE_WARNING_MARK_AS_NOT_NULL
 #define DISABLE_WARNING_DONT_USE_NEW
 #define DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
 #define DISABLE_WARNING_USE_GSL_AT
+#define DISABLE_WARNING_CAN_THROW
+#define DISABLE_WARNING_CAN_BE_CONST
 #define DISABLE_WARNING_NO_POINTER_ARITHMETIC
 #define DISABLE_WARNING_ARRAY_POINTER_DECAY
 #define DISABLE_WARNING_DANGLING_POINTER
@@ -56,6 +69,5 @@
 #define DISABLE_WARNING_REINTERPRET_CAST
 #define DISABLE_WARNING_NO_STATIC_DOWNCAST
 #define DISABLE_WARNING_NO_C_STYLE_CONVERSION
-// other warnings you want to deactivate... 
 
 #endif

@@ -111,7 +111,7 @@ private:
 	void HandleException(JNIEnv& env, const char* message) const;
 	bool HasEnding(std::string const& fullString, std::string const& ending) const;
 
-	JNIEnv* JvmManager::GetEnv();
+	JNIEnv* GetEnv();
 	void RetrieveMethods(JNIEnv& env);
 	jmethodID RetrieveMethod(JNIEnv& env, const char* name, const char* signature);
 };
