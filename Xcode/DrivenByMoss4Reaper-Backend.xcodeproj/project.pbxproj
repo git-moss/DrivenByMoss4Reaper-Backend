@@ -3,13 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		850C4C492120173A0059A6B0 /* MarkerProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 850C4C47212017370059A6B0 /* MarkerProcessor.cpp */; };
 		850C4C4A2120173A0059A6B0 /* MarkerProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 850C4C48212017380059A6B0 /* MarkerProcessor.h */; };
 		8535241B212F470100706C88 /* swell-modstub.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8535241A212F470000706C88 /* swell-modstub.mm */; };
+		853CB5FB2DB428C800C5A6AF /* ReaperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 853CB5FA2DB428C100C5A6AF /* ReaperUtils.cpp */; };
 		854C52C92586A010008D4F61 /* GrooveProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */; };
 		8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */; };
 		8554F21D20F40E4000F5FF39 /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = 8554F1FC20F40E3B00F5FF39 /* stdafx.h */; };
@@ -83,6 +84,7 @@
 		850C4C47212017370059A6B0 /* MarkerProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarkerProcessor.cpp; path = ../reaper_drivenbymoss/MarkerProcessor.cpp; sourceTree = "<group>"; };
 		850C4C48212017380059A6B0 /* MarkerProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarkerProcessor.h; path = ../reaper_drivenbymoss/MarkerProcessor.h; sourceTree = "<group>"; };
 		8535241A212F470000706C88 /* swell-modstub.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "swell-modstub.mm"; path = "../libraries/WDL/swell/swell-modstub.mm"; sourceTree = "<group>"; };
+		853CB5FA2DB428C100C5A6AF /* ReaperUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ReaperUtils.cpp; sourceTree = "<group>"; };
 		854C52C525869DC5008D4F61 /* GrooveProcessor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GrooveProcessor.h; path = ../reaper_drivenbymoss/GrooveProcessor.h; sourceTree = "<group>"; };
 		854C52C625869DC5008D4F61 /* GrooveProcessor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GrooveProcessor.cpp; path = ../reaper_drivenbymoss/GrooveProcessor.cpp; sourceTree = "<group>"; };
 		8554F1FB20F40E3B00F5FF39 /* OscParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OscParser.cpp; path = ../reaper_drivenbymoss/OscParser.cpp; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 		85823BB920F40CCF00E4CC57 = {
 			isa = PBXGroup;
 			children = (
+				853CB5FA2DB428C100C5A6AF /* ReaperUtils.cpp */,
 				85AE263A27D4A6EB00E0711C /* EqDeviceProcessor.cpp */,
 				85AE263B27D4A6EB00E0711C /* EqDeviceProcessor.h */,
 				85AE263C27D4A6EB00E0711C /* ProjectProcessor.h */,
@@ -354,7 +357,8 @@
 		85823BBA20F40CCF00E4CC57 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1640;
 				ORGANIZATIONNAME = "Jürgen Moßgraber";
 				TargetAttributes = {
 					85823BC120F40CD000E4CC57 = {
@@ -393,6 +397,7 @@
 				8554F22620F40E4000F5FF39 /* TrackProcessor.cpp in Sources */,
 				8554F23A20F40E4000F5FF39 /* MastertrackProcessor.cpp in Sources */,
 				8554F21C20F40E4000F5FF39 /* OscParser.cpp in Sources */,
+				853CB5FB2DB428C800C5A6AF /* ReaperUtils.cpp in Sources */,
 				85AE263D27D4A6EB00E0711C /* EqDeviceProcessor.cpp in Sources */,
 				858F79F521558EA800488951 /* SceneProcessor.cpp in Sources */,
 				850C4C492120173A0059A6B0 /* MarkerProcessor.cpp in Sources */,
@@ -422,6 +427,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
@@ -453,9 +459,11 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = NO;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -481,6 +489,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
@@ -512,9 +521,11 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -535,6 +546,7 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "~/Library/Application Support/REAPER/UserPlugins";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -547,13 +559,13 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/temurin-24.jdk/Contents/Home/include/**",
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/GSL",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
 				LIBRARY_SEARCH_PATHS = "";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
 			};
@@ -564,6 +576,7 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "~/Library/Application Support/REAPER/UserPlugins";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -572,13 +585,13 @@
 				GCC_PREPROCESSOR_DEFINITIONS = SWELL_PROVIDED_BY_APP;
 				HEADER_SEARCH_PATHS = (
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/WDL/**",
-					"/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/include/**",
+					"/Library/Java/JavaVirtualMachines/temurin-24.jdk/Contents/Home/include/**",
 					"/Users/mos/Documents/Development/DrivenByMoss/DrivenByMoss4Reaper-Backend/libraries/GSL",
 				);
 				INSTALL_PATH = /;
 				LD_DYLIB_INSTALL_NAME = reaper_drivenbymoss.dylib;
 				LIBRARY_SEARCH_PATHS = "";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
 			};
