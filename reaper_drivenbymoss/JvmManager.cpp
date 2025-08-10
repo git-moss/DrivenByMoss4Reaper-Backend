@@ -22,12 +22,15 @@
 #include "ReaperUtils.h"
 #include "StringUtils.h"
 
+#define CURRENT_JNI_VERSION  JNI_VERSION_21
+
+
 /**
  * Constructor.
  *
  * @param enableDebug True to enable debugging
  */
-JvmManager::JvmManager(bool enableDebug) : jvmCmdOptions("-agentlib:jdwp=transport=dt_socket,address=8989,server=y,suspend=y"), jvm(nullptr), env(nullptr), jvmLibHandle(nullptr)
+JvmManager::JvmManager(bool enableDebug) : jvmCmdOptions("-agentlib:jdwp=transport=dt_socket,address=8989,server=y,suspend=y"), jvm(nullptr), jvmLibHandle(nullptr)
 {
 	this->debug = enableDebug;
 	this->options = std::make_unique<JavaVMOption[]>(this->debug ? 2 : 1);
@@ -47,22 +50,18 @@ JvmManager::~JvmManager()
 		{
             ReaDebug::Log("DrivenByMoss: Shutting down JVM cleanly.\n");
 
-			jclass clazz = this->GetControllerClass();
-			if (clazz != nullptr)
+			try
 			{
-				try
+				JNIEnv* env = this->GetEnv();
+				if (env != nullptr && this->methodIDShutdown != nullptr)
 				{
-					jmethodID mid = env->GetStaticMethodID(clazz, "shutdown", "()V");
-					if (mid != nullptr)
-					{
-						env->CallStaticVoidMethod(clazz, mid);
-						this->HandleException("Could not call shutdown.");
-					}
+					env->CallStaticVoidMethod(this->controllerClass, this->methodIDShutdown);
+					this->HandleException(*env, "Could not call shutdown.");
 				}
-				catch (...)
-				{
-					ReaDebug::Log("Could not call shutdown.\n");
-				}
+			}
+			catch (...)
+			{
+				ReaDebug::Log("Could not call shutdown.\n");
 			}
 		}
 		this->jvm = nullptr;
@@ -71,7 +70,6 @@ JvmManager::~JvmManager()
 	ReaDebug::Log("DrivenByMoss: Release JVM library resources.\n");
 
 	this->options.reset();
-	this->env = nullptr;
 
 	// Unload JVM library
 	if (this->jvmLibHandle && this->isCleanShutdown)
@@ -89,16 +87,10 @@ JvmManager::~JvmManager()
 /**
  * Start and initialise the JVM.
  *
- * @param processNoArgCPP The processing method with no arguments
- * @param processStringArgCPP The processing method with a string argument
- * @param processStringArgsCPP The processing method with a string array argument
- * @param processIntArgCPP The processing method with an integer argument
- * @param processDoubleArgCPP The processing method with a double argument
- * @param enableUpdatesCPP Dis-/Enable processor updates
- * @param delayUpdatesCPP Delay processor updates
- * @param processMidiArgCPP The processing method for MIDI short messages
+ * @param functions The C++ functions to register with JNI
  */
-void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* processStringArgsCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
+DISABLE_WARNING_ARRAY_POINTER_DECAY
+void JvmManager::Init(void* functions[])
 {
 	if (this->isInitialised)
 		return;
@@ -112,14 +104,20 @@ void JvmManager::init(void* processNoArgCPP, void* processStringArgCPP, void* pr
 		ReaDebug::Log("DrivenByMoss: JVM could not be created.\n");
 		return;
     }
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr)
+	{
+		ReaDebug::Log("DrivenByMoss: JVM Environment could not be created.\n");
+		return;
+	}
 
-    ReaDebug::Log("DrivenByMoss: Registering CPP callbacks.\n");
-    this->RegisterMethods(processNoArgCPP, processStringArgCPP, processStringArgsCPP, processIntArgCPP, processDoubleArgCPP, enableUpdatesCPP, delayUpdatesCPP, processMidiArgCPP);
+	ReaDebug::Log("DrivenByMoss: Registering CPP callbacks.\n");
+	this->RegisterMethods(*env, functions);
     
 	if (ENABLE_JAVA_START)
     {
         ReaDebug::Log("DrivenByMoss: Starting application.\n");
-		this->StartApp();
+		this->StartApp(*env);
     }
     
     ReaDebug::Log("DrivenByMoss: JVM startup finished.\n");
@@ -158,7 +156,7 @@ void JvmManager::Create()
 
 	// Minimum required Java version
 	JavaVMInitArgs vm_args{};
-	vm_args.version = JNI_VERSION_10;
+	vm_args.version = CURRENT_JNI_VERSION;
 	vm_args.nOptions = this->debug ? 2 : 1;
 	vm_args.options = this->options.get();
 	// Invalid options make the JVM init fail
@@ -182,15 +180,19 @@ void JvmManager::Create()
 		ReaDebug() << "ERROR: Could not lookup CreateJavaVm function in library with " << classpath;
 		return;
 	}
+	DISABLE_WARNING_MARK_AS_NOT_NULL
+	JNIEnv* env = nullptr;
+	DISABLE_WARNING_REINTERPRET_CAST
 	// Note: If the next line crashes in debugger make sure that jdwp.dll and dt_socket.dll are from the same JDK!
 	// Simply copy the whole JDK
-	DISABLE_WARNING_REINTERPRET_CAST
-	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&this->env), &vm_args);
+	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&env), &vm_args);
 	if (rc != JNI_OK)
 	{
 		ReaDebug() << "ERROR: Could not start Java Virtual Machine with " << classpath;
 		return;
 	}
+
+	RetrieveMethods(*env);
 }
 
 
@@ -255,64 +257,56 @@ std::string JvmManager::LookupJvmLibrary(const std::string& javaHomePathStr) con
 /**
  * Register the native Java methods in the JVM.
  *
- * @param processNoArgCPP The processing method with no arguments
- * @param processStringArgCPP The processing method with a string argument
- * @param processIntArgCPP The processing method with an integer argument
- * @param processDoubleArgCPP The processing method with a double argument
- * @param enableUpdatesCPP Dis-/Enable processor updates
- * @param delayUpdatesCPP Delay processor updates
- * @param processMidiArgCPP The processing method for MIDI short messages
+ * @param env The JNI environment
+ * @param functions The C++ callback functions to register with JNI
  */
-void JvmManager::RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processStringArgsCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP)
+void JvmManager::RegisterMethods(JNIEnv& env, void* functions[])
 {
-	if (this->env == nullptr)
-		return;
-
 	const JNINativeMethod methods[]
 	{
-		{ (char*)"processNoArg", (char*)"(Ljava/lang/String;Ljava/lang/String;)V", processNoArgCPP },
-		{ (char*)"processStringArg", (char*)"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", processStringArgCPP },
-		{ (char*)"processStringArgs", (char*)"(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V", processStringArgsCPP },
-		{ (char*)"processIntArg", (char*)"(Ljava/lang/String;Ljava/lang/String;I)V", processIntArgCPP },
-		{ (char*)"processDoubleArg", (char*)"(Ljava/lang/String;Ljava/lang/String;D)V", processDoubleArgCPP },
-		{ (char*)"enableUpdates", (char*)"(Ljava/lang/String;Z)V", enableUpdatesCPP },
-		{ (char*)"delayUpdates", (char*)"(Ljava/lang/String;)V", delayUpdatesCPP },
-		{ (char*)"processMidiArg", (char*)"(III)V", processMidiArgCPP }
+		{ (char*)"processNoArg", (char*)"(Ljava/lang/String;Ljava/lang/String;)V", functions[0] },
+		{ (char*)"processStringArg", (char*)"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", functions[1] },
+		{ (char*)"processStringArgs", (char*)"(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V", functions[2] },
+		{ (char*)"processIntArg", (char*)"(Ljava/lang/String;Ljava/lang/String;I)V", functions[3] },
+		{ (char*)"processDoubleArg", (char*)"(Ljava/lang/String;Ljava/lang/String;D)V", functions[4] },
+		{ (char*)"enableUpdates", (char*)"(Ljava/lang/String;Z)V", functions[5] },
+		{ (char*)"delayUpdates", (char*)"(Ljava/lang/String;)V", functions[6] },
+		{ (char*)"processMidiArg", (char*)"(IIII)V", functions[7] },
+		{ (char*)"getMidiInputs", (char*)"()Ljava/util/Map;",functions[8] },
+		{ (char*)"getMidiOutputs", (char*)"()Ljava/util/Map;",functions[9] },
+		{ (char*)"openMidiInput", (char*)"(I)Z", functions[10] },
+		{ (char*)"openMidiOutput", (char*)"(I)Z", functions[11] },
+		{ (char*)"closeMidiInput", (char*)"(I)V", functions[12] },
+		{ (char*)"closeMidiOutput", (char*)"(I)V", functions[13] },
+		{ (char*)"sendMidiData", (char*)"(I[B)V", functions[14] },
+		{ (char*)"setNoteInputFilters", (char*)"(II[Ljava/lang/String;)V", functions[15] },
+		{ (char*)"setNoteInputKeyTranslationTable", (char*)"(II[I)V", functions[16] },
+		{ (char*)"setNoteInputVelocityTranslationTable", (char*)"(II[I)V", functions[17] }
 	};
 
-	jclass mainFrameClass = this->env->FindClass("de/mossgrabers/reaper/MainApp");
+	jclass mainFrameClass = env.FindClass("de/mossgrabers/reaper/MainApp");
 	if (mainFrameClass == nullptr)
 	{
 		ReaDebug() << "MainFrame.class could not be retrieved.";
 		return;
 	}
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
-	const int result = this->env->RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
+	const int result = env.RegisterNatives(mainFrameClass, methods, sizeof(methods) / sizeof(*methods));
 	if (result != 0)
-		this->HandleException("ERROR: Could not register native functions");
+		this->HandleException(env, "ERROR: Could not register native functions");
 }
 
 
 /**
  * Call the startup method in the main class of the JVM.
+ * 
+ * @param env The JNI environment
  */
-void JvmManager::StartApp()
+void JvmManager::StartApp(JNIEnv& env)
 {
-	if (this->env == nullptr)
-		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return;
-	// Call main start method
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "startup", "(Ljava/lang/String;)V");
-	if (methodID == nullptr)
-    {
-        ReaDebug() << "startup method could not be retrieved.";
-		return;
-    }
-	jstring iniPath = this->env->NewStringUTF(GetResourcePath());
-	this->env->CallStaticVoidMethod(clazz, methodID, iniPath);
-	this->HandleException("ERROR: Could not call startup.");
+	jstring iniPath = env.NewStringUTF(GetResourcePath());
+	env.CallStaticVoidMethod(this->controllerClass, this->methodIDStartup, iniPath);
+	this->HandleException(env, "ERROR: Could not call startup.");
 }
 
 
@@ -321,40 +315,29 @@ void JvmManager::StartApp()
  */
 void JvmManager::StartInfrastructure()
 {
-	if (this->env == nullptr)
-		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDAddDevice == nullptr || this->methodIDStartInfrastructure ==nullptr)
 		return;
 
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "addDevice", "(Ljava/lang/String;Ljava/lang/String;)V");
-	if (methodID == nullptr)
-	{
-		ReaDebug() << "addDevice method could not be retrieved.";
-		return;
-	}
-
+	// Send all available FX
 	const char* name{ nullptr };
 	const char* ident{ nullptr };
 	int count = 0;
 	while (EnumInstalledFX(count, &name, &ident))
 	{
-		jstring jName = this->env->NewStringUTF(name);
-		jstring jIdent = this->env->NewStringUTF(ident);
-		this->env->CallStaticVoidMethod(clazz, methodID, jName, jIdent);
-		this->HandleException("ERROR: Could not call addDevice.");
+		jstring jName = env->NewStringUTF(name);
+		jstring jIdent = env->NewStringUTF(ident);
+		env->CallStaticVoidMethod(controllerClass, this->methodIDAddDevice, jName, jIdent);
+		this->HandleException(*env, "ERROR: Could not call addDevice.");
+		// Prevent local reference accumulation
+		env->DeleteLocalRef(jName);
+		env->DeleteLocalRef(jIdent);
 		count++;
 	}
 
 	// Call main start method
-	methodID = this->env->GetStaticMethodID(clazz, "startInfrastructure", "()V");
-	if (methodID == nullptr)
-	{
-		ReaDebug() << "startInfrastructure method could not be retrieved.";
-		return;
-	}
-	this->env->CallStaticVoidMethod(clazz, methodID);
-	this->HandleException("ERROR: Could not call startInfrastructure.");
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDStartInfrastructure);
+	this->HandleException(*env, "ERROR: Could not call startInfrastructure.");
 }
 
 
@@ -363,17 +346,11 @@ void JvmManager::StartInfrastructure()
  */
 void JvmManager::DisplayWindow()
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDDisplayWindow == nullptr)
 		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return;
-	// Call displayWindow method
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayWindow", "()V");
-	if (methodID == nullptr)
-		return;
-	this->env->CallStaticVoidMethod(clazz, methodID);
-	this->HandleException("ERROR: Could not call displayWindow.");
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDDisplayWindow);
+	this->HandleException(*env, "ERROR: Could not call displayWindow.");
 }
 
 
@@ -382,17 +359,11 @@ void JvmManager::DisplayWindow()
  */
 void JvmManager::DisplayProjectWindow()
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDDisplayProjectWindow == nullptr)
 		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return;
-	// Call displayProjectWindow method
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayProjectWindow", "()V");
-	if (methodID == nullptr)
-		return;
-	this->env->CallStaticVoidMethod(clazz, methodID);
-	this->HandleException("ERROR: Could not call displayProjectWindow.");
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDDisplayProjectWindow);
+	this->HandleException(*env, "ERROR: Could not call displayProjectWindow.");
 }
 
 
@@ -401,17 +372,11 @@ void JvmManager::DisplayProjectWindow()
  */
 void JvmManager::DisplayParameterWindow()
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDDisplayParameterWindow == nullptr)
 		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return;
-	// Call displayParameterWindow method
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "displayParameterWindow", "()V");
-	if (methodID == nullptr)
-		return;
-	this->env->CallStaticVoidMethod(clazz, methodID);
-	this->HandleException("ERROR: Could not call displayParameterWindow.");
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDDisplayParameterWindow);
+	this->HandleException(*env, "ERROR: Could not call displayParameterWindow.");
 }
 
 
@@ -420,17 +385,11 @@ void JvmManager::DisplayParameterWindow()
  */
 void JvmManager::RestartControllers()
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDResetController == nullptr)
 		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return;
-	// Call restartControllers method
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "restartControllers", "()V");
-	if (methodID == nullptr)
-		return;
-	this->env->CallStaticVoidMethod(clazz, methodID);
-	this->HandleException("ERROR: Could not call restartControllers.");
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDResetController);
+	this->HandleException(*env, "ERROR: Could not call restartControllers.");
 }
 
 
@@ -441,18 +400,12 @@ void JvmManager::RestartControllers()
  */
 void JvmManager::UpdateModel(const std::string& data)
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || methodIDUpdateModel == nullptr)
 		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return;
-	// Call updateModel method
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "updateModel", "(Ljava/lang/String;)V");
-	if (methodID == nullptr)
-		return;
-	jstring dataUTF = this->env->NewStringUTF(data.c_str());
-	this->env->CallStaticVoidMethod(clazz, methodID, dataUTF);
-	this->HandleException("ERROR: Could not call updateModel.");
+	jstring dataUTF = env->NewStringUTF(data.c_str());
+	env->CallStaticVoidMethod(this->controllerClass, methodIDUpdateModel, dataUTF);
+	this->HandleException(*env, "ERROR: Could not call updateModel.");
 }
 
 
@@ -461,16 +414,11 @@ void JvmManager::UpdateModel(const std::string& data)
  */
 void JvmManager::SetDefaultDocumentSettings()
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDSetDefaultDocumentSettings == nullptr)
 		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return;
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "setDefaultDocumentSettings", "()V");
-	if (methodID == nullptr)
-		return;
-	this->env->CallStaticVoidMethod(clazz, methodID);
-	this->HandleException("ERROR: Could not call setDefaultDocumentSettings.");
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDSetDefaultDocumentSettings);
+	this->HandleException(*env, "ERROR: Could not call setDefaultDocumentSettings.");
 }
 
 
@@ -481,21 +429,18 @@ void JvmManager::SetDefaultDocumentSettings()
  */
 std::string JvmManager::GetFormattedDocumentSettings()
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDGetFormattedDocumentSettings == nullptr)
 		return "";
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
-		return "";
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "getFormattedDocumentSettings", "()Ljava/lang/String;");
-	if (methodID == nullptr)
-		return "";
-	jstring jdata = (jstring)this->env->CallStaticObjectMethod(clazz, methodID);
+	jstring jdata = (jstring)env->CallStaticObjectMethod(this->controllerClass, this->methodIDGetFormattedDocumentSettings);
 	if (jdata == nullptr)
 		return "";
-	this->HandleException("ERROR: Could not call getFormattedDocumentSettings.");
+	this->HandleException(*env, "ERROR: Could not call getFormattedDocumentSettings.");
 
-	jboolean isCopy = false;
-	const char* data = this->env->GetStringUTFChars(jdata, &isCopy);
+	jboolean isCopy;
+	const char* data = env->GetStringUTFChars(jdata, &isCopy);
+	if (data == nullptr)
+		return "";
 	std::string result{ data };
 	env->ReleaseStringUTFChars(jdata, data);
 	return result;
@@ -503,23 +448,41 @@ std::string JvmManager::GetFormattedDocumentSettings()
 
 
 /**
- * Call she SetFormattedDocumentSettings method in the main class of the JVM.
+ * Call the setFormattedDocumentSettings method in the main class of the JVM.
  *
  * @param data The data to send
  */
 void JvmManager::SetFormattedDocumentSettings(const std::string& data)
 {
-	if (this->env == nullptr)
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr || this->methodIDSetFormattedDocumentSettings == nullptr)
 		return;
-	jclass clazz = this->GetControllerClass();
-	if (clazz == nullptr)
+	jstring dataUTF = env->NewStringUTF(data.c_str());
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDSetFormattedDocumentSettings, dataUTF);
+	this->HandleException(*env, "ERROR: Could not call setFormattedDocumentSettings.");
+}
+
+
+/**
+ * Call the onMIDIEvent method in the main class of the JVM.
+ *
+ * @param deviceID The ID of the MIDI device/port
+ * @param message The data of the MIDI message
+ * @param size The number of bytes of the MIDI message
+ */
+DISABLE_WARNING_CAN_BE_CONST
+void JvmManager::OnMIDIEvent(int deviceID, unsigned char* message, int size)
+{
+	JNIEnv* env = this->GetEnv();
+	if (env == nullptr)
 		return;
-	jmethodID methodID = this->env->GetStaticMethodID(clazz, "setFormattedDocumentSettings", "(Ljava/lang/String;)V");
-	if (methodID == nullptr)
+	jbyteArray jMessage = env->NewByteArray(size);
+	if (jMessage == nullptr)
 		return;
-	jstring dataUTF = this->env->NewStringUTF(data.c_str());
-	this->env->CallStaticVoidMethod(clazz, methodID, dataUTF);
-	this->HandleException("ERROR: Could not call setFormattedDocumentSettings.");
+	env->SetByteArrayRegion(jMessage, 0, size, reinterpret_cast<jbyte*>(message));
+	env->CallStaticVoidMethod(this->controllerClass, this->methodIDOnMIDIEvent, deviceID, jMessage);
+	env->DeleteLocalRef(jMessage);
+	this->HandleException(*env, "ERROR: Could not call onMIDIEvent.");
 }
 
 
@@ -667,6 +630,26 @@ std::vector<std::string> JvmManager::GetDirectoryFiles(const std::string& dir) c
 }
 
 
+// Create a new java.util.TreeMap instance
+jobject JvmManager::CreateTreeMap(JNIEnv& env)
+{
+	jobject object = env.NewObject(this->treeMapClass, this->treeMapConstructor);
+	this->HandleException(env, "ERROR: Could not create TreeMap.");
+	return object;
+}
+
+
+// Helper function to add entries to the TreeMap
+void JvmManager::AddToTreeMap(JNIEnv& env, jobject treeMap, jint key, const std::string& value)
+{
+	jobject keyObject = env.NewObject(this->integerClass, this->integerConstructor, key);
+	jstring valueObject = env.NewStringUTF(value.c_str());
+	env.CallObjectMethod(treeMap, this->treeMapPutMethod, keyObject, valueObject);
+	this->HandleException(env, "ERROR: Could not add entry to TreeMap.");
+}
+
+
+
 /**
  * Test if the given string ends with the end-string.
  * @param str The string to test
@@ -682,44 +665,149 @@ bool JvmManager::HasEnding(std::string const& str, std::string const& end) const
 /**
  * Check if a Java exception occured and log it.
  *
+ * @param env The JNI environment
  * @param message The error message to display
  */
-void JvmManager::HandleException(const char* message) const
+void JvmManager::HandleException(JNIEnv& env, const char* message) const
 {
-	if (!this->env->ExceptionCheck())
+	if (!env.ExceptionCheck())
 		return;
-	jthrowable ex = this->env->ExceptionOccurred();
+	jthrowable ex = env.ExceptionOccurred();
 	ReaDebug dbg{};
 	dbg << message;
 	if (ex)
 	{
-		const jmethodID toString = this->env->GetMethodID(this->env->FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
+		const jmethodID methodID = env.GetMethodID(env.FindClass("java/lang/Object"), "toString", "()Ljava/lang/String;");
 		// jstring is not a real subclass of jobject
 		DISABLE_WARNING_NO_STATIC_DOWNCAST
-		const jstring s = static_cast<jstring>(this->env->CallObjectMethod(ex, toString));
-		jboolean isCopy = false;
-		dbg << "\n" <<  this->env->GetStringUTFChars(s, &isCopy);
-		this->env->ExceptionClear();
+		const jstring s = static_cast<jstring>(env.CallObjectMethod(ex, methodID));
+		jboolean isCopy;
+		const char* data = env.GetStringUTFChars(s, &isCopy);
+		if (data != nullptr)
+			dbg << "\n" << data;
+		env.ExceptionClear();
 	}
 }
 
 
-jclass JvmManager::GetControllerClass() noexcept
+/**
+ * the IDs returned for a given class don't change for the lifetime of the JVM process.
+ * But the call to get the field or method can require significant work in the JVM, 
+ * because fields and methods might have been inherited from superclasses, making the 
+ * JVM walk up the class hierarchy to find them. Because the IDs are the same for a given 
+ * class, you should look them up once and then reuse them. Similarly, looking up class 
+ * objects can be expensive, so they should be cached as well.
+ */
+void JvmManager::RetrieveMethods(JNIEnv& env)
 {
-	if (this->controllerClass != nullptr)
-		return this->controllerClass;
-	try
-	{
-		this->controllerClass = this->env->FindClass("de/mossgrabers/reaper/Controller");
-	}
-	catch (...)
-	{
-		// Ignore
-	}
+	this->controllerClass = env.FindClass("de/mossgrabers/reaper/Controller");
 	if (this->controllerClass == nullptr)
 	{
 		ReaDebug() << "Controller.class could not be retrieved.";
+		return;
+	}
+
+	this->methodIDShutdown = this->RetrieveMethod(env, "shutdown", "()V");
+	if (this->methodIDShutdown == nullptr)
+		return;
+
+	this->methodIDStartup = this->RetrieveMethod(env, "startup", "(Ljava/lang/String;)V");
+	if (this->methodIDStartup == nullptr)
+		return;
+
+	this->methodIDAddDevice = this->RetrieveMethod(env, "addDevice", "(Ljava/lang/String;Ljava/lang/String;)V");
+	if (this->methodIDAddDevice == nullptr)
+		return;
+
+	this->methodIDStartInfrastructure = this->RetrieveMethod(env, "startInfrastructure", "()V");
+	if (this->methodIDStartInfrastructure == nullptr)
+		return;
+
+	this->methodIDDisplayWindow = this->RetrieveMethod(env, "displayWindow", "()V");
+	if (this->methodIDDisplayWindow == nullptr)
+		return;
+
+	this->methodIDDisplayProjectWindow = this->RetrieveMethod(env, "displayProjectWindow", "()V");
+	if (this->methodIDDisplayProjectWindow == nullptr)
+		return;
+
+	this->methodIDDisplayParameterWindow = this->RetrieveMethod(env, "displayParameterWindow", "()V");
+	if (this->methodIDDisplayParameterWindow == nullptr)
+		return;
+
+	this->methodIDResetController = this->RetrieveMethod(env, "restartControllers", "()V");
+	if (this->methodIDResetController == nullptr)
+		return;
+
+	this->methodIDUpdateModel = this->RetrieveMethod(env, "updateModel", "(Ljava/lang/String;)V");
+	if (this->methodIDUpdateModel == nullptr)
+		return;
+
+	this->methodIDSetDefaultDocumentSettings = this->RetrieveMethod(env, "setDefaultDocumentSettings", "()V");
+	if (this->methodIDSetDefaultDocumentSettings == nullptr)
+		return;
+
+	this->methodIDGetFormattedDocumentSettings = this->RetrieveMethod(env, "getFormattedDocumentSettings", "()Ljava/lang/String;");
+	if (this->methodIDGetFormattedDocumentSettings == nullptr)
+		return;
+
+	this->methodIDSetFormattedDocumentSettings = this->RetrieveMethod(env, "setFormattedDocumentSettings", "(Ljava/lang/String;)V");
+	if (this->methodIDSetFormattedDocumentSettings == nullptr)
+		return;
+
+	this->methodIDOnMIDIEvent = this->RetrieveMethod(env, "onMIDIEvent", "(I[B)V");
+	if (this->methodIDOnMIDIEvent == nullptr)
+		return;
+
+	// Basic Java classes and their methods
+	this->treeMapClass = env.FindClass("java/util/TreeMap");
+	if (this->treeMapClass != nullptr)
+	{
+		this->treeMapConstructor = env.GetMethodID(treeMapClass, "<init>", "()V");
+		this->treeMapPutMethod = env.GetMethodID(treeMapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+	}
+
+	this->integerClass = env.FindClass("java/lang/Integer");
+	if (this->integerClass != nullptr)
+		this->integerConstructor = env.GetMethodID(integerClass, "<init>", "(I)V");
+}
+
+
+jmethodID JvmManager::RetrieveMethod(JNIEnv& env, const char* name, const char* signature)
+{
+	jmethodID methodID = env.GetStaticMethodID(this->controllerClass, name, signature);
+	if (methodID == nullptr)
+	{
+		ReaDebug() << name << " method could not be retrieved.";
 		return nullptr;
 	}
-	return this->controllerClass;
+	return methodID;
+}
+
+
+JNIEnv* JvmManager::GetEnv()
+{
+	if (this->jvm == nullptr)
+		return nullptr;
+
+	// This is correct since it is a pointer to a pointer!
+	JNIEnv* env = nullptr;
+	const jint result = this->jvm->GetEnv(reinterpret_cast<void**>(&env), CURRENT_JNI_VERSION);
+	if (result == JNI_OK)
+		return env;
+
+	if (result == JNI_EDETACHED)
+	{
+		// The JNI specification guarantees that JavaVM::AttachCurrentThread() is thread-safe. 
+		// Each native thread can safely call it, even concurrently with others.
+		if (this->jvm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr) != 0)
+		{
+			ReaDebug::Log("DrivenByMoss: Could not attach current thread to JVM!\n");
+			return nullptr;
+		}
+		return env;
+	}
+
+	// JNI_EVERSION or other fatal error
+	return nullptr;
 }

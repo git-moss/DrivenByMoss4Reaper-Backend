@@ -68,10 +68,90 @@ JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_enableUpdates
 /*
  * Class:     de_mossgrabers_reaper_MainApp
  * Method:    processMidiArg
- * Signature: (III)V
+ * Signature: (IIII)V
  */
 JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_processMidiArg
-  (JNIEnv *, jobject, jint, jint, jint);
+  (JNIEnv *, jobject, jint, jint, jint, jint);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    getMidiInputs
+ * Signature: ()Ljava/util/Map;
+ */
+JNIEXPORT jobject JNICALL Java_de_mossgrabers_reaper_MainApp_getMidiInputs
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    getMidiOutputs
+ * Signature: ()Ljava/util/Map;
+ */
+JNIEXPORT jobject JNICALL Java_de_mossgrabers_reaper_MainApp_getMidiOutputs
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    openMidiInput
+ * Signature: (I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_de_mossgrabers_reaper_MainApp_openMidiInput
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    openMidiOutput
+ * Signature: (I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_de_mossgrabers_reaper_MainApp_openMidiOutput
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    closeMidiInput
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_closeMidiInput
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    closeMidiOutput
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_closeMidiOutput
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    sendMidiData
+ * Signature: (I[B)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_sendMidiData
+  (JNIEnv *, jobject, jint, jbyteArray);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    setNoteInputFilters
+ * Signature: (II[Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_setNoteInputFilters
+  (JNIEnv *, jobject, jint, jint, jobjectArray);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    setNoteInputKeyTranslationTable
+ * Signature: (II[I)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_setNoteInputKeyTranslationTable
+  (JNIEnv *, jobject, jint, jint, jintArray);
+
+/*
+ * Class:     de_mossgrabers_reaper_MainApp
+ * Method:    setNoteInputVelocityTranslationTable
+ * Signature: (II[I)V
+ */
+JNIEXPORT void JNICALL Java_de_mossgrabers_reaper_MainApp_setNoteInputVelocityTranslationTable
+  (JNIEnv *, jobject, jint, jint, jintArray);
 
 #ifdef __cplusplus
 }

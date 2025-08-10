@@ -16,7 +16,7 @@ if(APPLE)
     set(CMAKE_POSITION_INDEPENDENT_CODE FALSE)
 endif()
 
-project(reaper_drivenbymoss VERSION 25.5.0.0 LANGUAGES CXX)
+project(reaper_drivenbymoss VERSION 26.0.0.0 LANGUAGES CXX)
 
 string(REPLACE "." "," VER_VERSION "${PROJECT_VERSION}")
 string(TIMESTAMP VER_YEAR "%Y" UTC)
@@ -126,16 +126,19 @@ set(Header_Files
     "../reaper_drivenbymoss/DataCollector.h"
     "../reaper_drivenbymoss/de_mossgrabers_reaper_MainApp.h"
     "../reaper_drivenbymoss/DeviceProcessor.h"
-    "../reaper_drivenbymoss/EqDeviceProcessor.h"
     "../reaper_drivenbymoss/dllmain.h"
     "../reaper_drivenbymoss/DrivenByMossSurface.h"
+    "../reaper_drivenbymoss/EqDeviceProcessor.h"
     "../reaper_drivenbymoss/FunctionExecutor.h"
     "../reaper_drivenbymoss/GrooveProcessor.h"
     "../reaper_drivenbymoss/IniFileProcessor.h"
+    "../reaper_drivenbymoss/jniwrapper.h"
     "../reaper_drivenbymoss/JvmManager.h"
+    "../reaper_drivenbymoss/LocalMidiEventDispatcher.h"
     "../reaper_drivenbymoss/Marker.h"
     "../reaper_drivenbymoss/MarkerProcessor.h"
     "../reaper_drivenbymoss/MastertrackProcessor.h"
+    "../reaper_drivenbymoss/MidiMessages.h"
     "../reaper_drivenbymoss/Model.h"
     "../reaper_drivenbymoss/NoteRepeatProcessor.h"
     "../reaper_drivenbymoss/OscParser.h"
@@ -143,6 +146,7 @@ set(Header_Files
     "../reaper_drivenbymoss/Parameter.h"
     "../reaper_drivenbymoss/ProjectProcessor.h"
     "../reaper_drivenbymoss/ReaDebug.h"
+    "../reaper_drivenbymoss/ReaderWriterQueue.h"
     "../reaper_drivenbymoss/reaper_plugin.h"
     "../reaper_drivenbymoss/reaper_plugin_functions.h"
     "../reaper_drivenbymoss/ReaperUtils.h"
@@ -166,9 +170,9 @@ set(Source_Files
     "../reaper_drivenbymoss/ClipProcessor.cpp"
     "../reaper_drivenbymoss/DataCollector.cpp"
     "../reaper_drivenbymoss/DeviceProcessor.cpp"
-    "../reaper_drivenbymoss/EqDeviceProcessor.cpp"
     "../reaper_drivenbymoss/dllmain.cpp"
     "../reaper_drivenbymoss/DrivenByMossSurface.cpp"
+    "../reaper_drivenbymoss/EqDeviceProcessor.cpp"
     "../reaper_drivenbymoss/FunctionExecutor.cpp"
     "../reaper_drivenbymoss/GrooveProcessor.cpp"
     "../reaper_drivenbymoss/IniFileProcessor.cpp"

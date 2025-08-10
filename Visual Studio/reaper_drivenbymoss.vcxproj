@@ -93,6 +93,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;reaper_drivenbymoss_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -108,6 +109,7 @@
       <AdditionalIncludeDirectories>C:\Privat\Programming\Reaper\DrivenByMoss4Reaper-Backend\libraries\GSL;C:\Privat\Programming\Reaper\DrivenByMoss4Reaper-Backend\libraries\WDL;C:\Privat\Programming\Reaper\DrivenByMoss4Reaper-Backend\reaper_drivenbymoss;%JAVA_HOME%\include;%JAVA_HOME%\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -127,6 +129,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;reaper_drivenbymoss_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -146,6 +149,7 @@
       <AdditionalIncludeDirectories>C:\Privat\Programming\Reaper\DrivenByMoss4Reaper-Backend\libraries\GSL;C:\Privat\Programming\Reaper\DrivenByMoss4Reaper-Backend\libraries\WDL;C:\Privat\Programming\Reaper\DrivenByMoss4Reaper-Backend\reaper_drivenbymoss;%JAVA_HOME%\include;%JAVA_HOME%\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,6 +193,7 @@
   <ItemGroup>
     <ClInclude Include="..\reaper_drivenbymoss\ActionProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\afxres.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\atomicops.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ClipProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\CodeAnalysis.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Collectors.h" />
@@ -202,9 +207,11 @@
     <ClInclude Include="..\reaper_drivenbymoss\GrooveProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\IniFileProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\JvmManager.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\LocalMidiEventDispatcher.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Marker.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MarkerProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MastertrackProcessor.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\MidiMessages.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Model.h" />
     <ClInclude Include="..\reaper_drivenbymoss\NoteRepeatProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\OscParser.h" />
@@ -212,6 +219,7 @@
     <ClInclude Include="..\reaper_drivenbymoss\Parameter.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ProjectProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ReaDebug.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\ReaderWriterQueue.h" />
     <ClInclude Include="..\reaper_drivenbymoss\ReaperUtils.h" />
     <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin.h" />
     <ClInclude Include="..\reaper_drivenbymoss\reaper_plugin_functions.h" />

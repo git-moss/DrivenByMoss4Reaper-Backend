@@ -13,7 +13,7 @@ DrivenByMossSurface* surfaceInstance = nullptr;
  * Constructor.
  */
 DISABLE_WARNING_NO_REF_TO_UNIQUE_PTR
-DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager) : jvmManager(aJvmManager), model(functionExecutor)
+DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager, midi_Output* (*aGetMidiOutput)(int idx)) : jvmManager(aJvmManager), GetMidiOutput(aGetMidiOutput), model(functionExecutor)
 {
 	ReaDebug::setModel(&model);
 }
@@ -75,6 +75,7 @@ void DrivenByMossSurface::Run()
 
 	try
 	{
+		this->SendMIDIEventsToJava();
 		this->functionExecutor.ExecuteFunctions();
 	}
 	catch (const std::exception& ex)
@@ -177,4 +178,102 @@ void DrivenByMossSurface::ResetCachedVolPanStates() noexcept
 void DrivenByMossSurface::OnTrackSelection(MediaTrack* trackid) noexcept
 {
 	// Not used
+}
+
+
+void DrivenByMossSurface::SendMIDIEventsToJava()
+{
+	if (this->isShutdown)
+		return;
+
+	// Satisfy the C API
+	DISABLE_WARNING_ARRAY_POINTER_DECAY
+
+	// --- 3‑byte messages ----------------------------------------
+	std::unique_ptr<Midi3> m3;
+	while ((m3 = this->incomingMidiQueue3.try_pop()) != nullptr)
+	{
+		uint8_t raw[3] = { m3->status, m3->data1, m3->data2 };
+		const int n = (m3->status >= 0xF8 ? 1 : ((m3->status & 0xF0) == 0xC0 || (m3->status & 0xF0) == 0xD0) ? 2 : 3);
+		jvmManager->OnMIDIEvent(m3->deviceId, raw, n);
+	}
+
+	// --- SysEx ≤ 1 024 ------------------------------------------
+	std::unique_ptr<MidiSyx1k> m1k;
+	while ((m1k = this->incomingMidiQueue1k.try_pop()) != nullptr)
+		jvmManager->OnMIDIEvent(m1k->deviceId, m1k->data, m1k->size);
+
+	// --- SysEx ≤ 65 536 -----------------------------------------
+	std::unique_ptr <MidiSyx64k> m64k;
+	while ((m64k = this->incomingMidiQueue64k.try_pop()) != nullptr)
+		jvmManager->OnMIDIEvent(m64k->deviceId, m64k->data, m64k->size);
+}
+
+
+void DrivenByMossSurface::SendMIDIEventsToOutputs()
+{
+	if (this->isShutdown)
+		return;
+
+	// Satisfy the C API
+	DISABLE_WARNING_ARRAY_POINTER_DECAY
+
+	// ---------- 3‑byte ----------
+	std::unique_ptr<Midi3> m3;
+	while ((m3 = this->outgoingMidiQueue3.try_pop()) != nullptr)
+		HandleShortMidi(m3->deviceId, m3->status, m3->data1, m3->data2);
+
+	// ---------- ≤ 1 024 ----------
+	std::unique_ptr<MidiSyx1k> m1k;
+	while ((m1k = this->outgoingMidiQueue1k.try_pop()) != nullptr)
+		HandleSysex(m1k->deviceId, m1k->data, m1k->size);
+
+	// ---------- ≤ 65 536 ----------
+	std::unique_ptr<MidiSyx64k> m64;
+	while ((m64 = this->outgoingMidiQueue64k.try_pop()) != nullptr)
+		HandleSysex(m64->deviceId, m64->data, m64->size);
+}
+
+
+void DrivenByMossSurface::HandleShortMidi(uint32_t deviceId, uint8_t status, uint8_t data1, uint8_t data2)
+{
+	midi_Output* midiout = GetMidiOutput(deviceId);
+	if (midiout == nullptr)
+		return;
+
+	MIDI_event_t event;
+	event.frame_offset = 0;
+	event.size = 3;
+	event.midi_message[0] = status;
+	event.midi_message[1] = data1;
+	event.midi_message[2] = data2;
+	midiout->SendMsg(&event, -1);
+}
+
+
+void DrivenByMossSurface::HandleSysex(uint32_t deviceId, const uint8_t* data, uint32_t size)
+{
+	midi_Output* midiout = GetMidiOutput(deviceId);
+	if (midiout == nullptr)
+		return;
+
+	// Dynamically allocate memory for the MIDI_event_t and the data
+	// Subtract 4 because MIDI_event_t already includes the first 4 bytes
+	size_t eventSize = sizeof(MIDI_event_t);
+	if (size > 4)
+		eventSize += (size - 4);
+
+	std::vector<std::uint8_t> buffer(eventSize);
+	// Cannot avoid this
+	DISABLE_WARNING_REINTERPRET_CAST
+	auto* evt = reinterpret_cast<MIDI_event_t*>(buffer.data());
+
+	evt->frame_offset = 0;
+	evt->size = size;
+	// Both have to be like this to fulfil the C API
+	DISABLE_WARNING_ARRAY_POINTER_DECAY
+	DISABLE_WARNING_BUFFER_OVERFLOW
+	std::memcpy(evt->midi_message, data, size);
+
+	midiout->SendMsg(evt, -1);
 }

@@ -145,7 +145,7 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	double value = 0.5;
 	if (get_config_var_string("projmetrov1", strBufferPointer, STR_LENGTH))
 	{
-		replaceCommaWithDot(strBuffer);
+		ReplaceCommaWithDot(strBuffer);
 		value = std::atof(strBufferPointer);
 	}
 	const double volDB = ReaperUtils::ValueToDB(value);
@@ -154,11 +154,11 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 
 	bool result = get_config_var_string("preroll", strBufferPointer, STR_LENGTH);
 	if (result)
-		replaceCommaWithDot(strBuffer);
+		ReplaceCommaWithDot(strBuffer);
 	this->preRoll = Collectors::CollectStringValue(ss, "/click/preroll", this->preRoll, result ? strBufferPointer : "", dump);
 	result = get_config_var_string("prerollmeas", strBufferPointer, STR_LENGTH);
 	if (result)
-		replaceCommaWithDot(strBuffer);
+		ReplaceCommaWithDot(strBuffer);
 	this->preRollMeasures = Collectors::CollectStringValue(ss, "/click/prerollMeasures", this->preRollMeasures, result ? strBufferPointer : "", dump);
 
 	// Get the time signature at the current play position, if playback is active or never was read
@@ -182,7 +182,7 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	this->strPlayPosition = Collectors::CollectStringValue(ss, "/time/str", this->strPlayPosition, timeStrPointer, dump);
 	// 2 = measures.beats
 	format_timestr_pos(cursorPos, timeStrPointer, TIME_LENGTH, 2);
-	replaceCommaWithDot(timeStr);
+	ReplaceCommaWithDot(timeStr);
 	this->strBeatPosition = Collectors::CollectStringValue(ss, "/beat", this->strBeatPosition, timeStrPointer, dump);
 
 	// Loop start and length
@@ -194,16 +194,16 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	format_timestr(timeOffset + startOut, timeStrPointer, TIME_LENGTH);
 	this->strLoopStart = Collectors::CollectStringValue(ss, "/time/loop/start/str", this->strLoopStart, timeStr, dump);
 	format_timestr_pos(startOut, timeStrPointer, TIME_LENGTH, 2);
-	replaceCommaWithDot(timeStr);
+	ReplaceCommaWithDot(timeStr);
 	this->strLoopStartBeat = Collectors::CollectStringValue(ss, "/time/loop/start/beat", this->strLoopStartBeat, timeStr, dump);
 
 	this->loopLength = Collectors::CollectDoubleValue(ss, "/time/loop/length", this->loopLength, endOut, dump);
 	const double length = endOut - startOut;
 	format_timestr_len(length, timeStrPointer, TIME_LENGTH, startOut, 0);
-	replaceCommaWithDot(timeStr);
+	ReplaceCommaWithDot(timeStr);
 	this->strLoopLength = Collectors::CollectStringValue(ss, "/time/loop/length/str", this->strLoopLength, timeStr, dump);
 	format_timestr_len(length, timeStrPointer, TIME_LENGTH, startOut, 2);
-	replaceCommaWithDot(timeStr);
+	ReplaceCommaWithDot(timeStr);
 	this->strLoopLengthBeat = Collectors::CollectStringValue(ss, "/time/loop/length/beat", this->strLoopLengthBeat, timeStr, dump);
 
 	// Additional info
@@ -990,7 +990,7 @@ MediaItem_Take* DataCollector::GetMidiTakeAtPlayPosition(ReaProject* project, Me
 }
 
 
-void DataCollector::replaceCommaWithDot(std::string& str)
+void DataCollector::ReplaceCommaWithDot(std::string& str)
 {
 	std::replace(str.begin(), str.end(), ',', '.');
 }

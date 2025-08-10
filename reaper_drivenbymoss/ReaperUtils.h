@@ -40,7 +40,7 @@ public:
 	 *
 	 * @return True if equal down to an epsilon
 	 */
-	static bool areEqual(double a, double b)
+	static bool areEqual(double a, double b) noexcept
 	{
 		return fabs(a-b) < 1e-9;
 	}

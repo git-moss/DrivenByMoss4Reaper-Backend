@@ -5,11 +5,14 @@
 #define _DBM_DRIVENBYMOSSSURFACE_H_
 
 #include <mutex>
+#include <gsl/span>
 
 #include "FunctionExecutor.h"
 #include "OscParser.h"
 #include "JvmManager.h"
 #include "DataCollector.h"
+#include "ReaderWriterQueue.h"
+#include "MidiMessages.h"
 
 
 /**
@@ -20,14 +23,36 @@ class DrivenByMossSurface : public IReaperControlSurface
 public:
 	bool isInfrastructureUp{ false };
 	bool isShutdown{ false };
+	std::unique_ptr<JvmManager>& jvmManager;
+
+	// Queues to transfer incoming MIDI from the audio thread to Java
+	ReaderWriterQueue<Midi3>      incomingMidiQueue3;
+	ReaderWriterQueue<MidiSyx1k>  incomingMidiQueue1k;
+	ReaderWriterQueue<MidiSyx64k> incomingMidiQueue64k;
+
+	// Queues to transfer MIDI from Java to an output port in the audio thread
+	ReaderWriterQueue<Midi3>      outgoingMidiQueue3;
+	ReaderWriterQueue<MidiSyx1k>  outgoingMidiQueue1k;
+	ReaderWriterQueue<MidiSyx64k> outgoingMidiQueue64k;
 
 
-	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager);
+	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager, midi_Output* (*aGetMidiOutput)(int idx));
 	DrivenByMossSurface(const DrivenByMossSurface&) = delete;
 	DrivenByMossSurface& operator=(const DrivenByMossSurface&) = delete;
 	DrivenByMossSurface(DrivenByMossSurface&&) = delete;
 	DrivenByMossSurface& operator=(DrivenByMossSurface&&) = delete;
 	~DrivenByMossSurface();
+
+	// Prevents warning that the class is not 64 bit aligned
+	void* operator new(size_t i) noexcept
+	{
+		return _mm_malloc(i, 64);
+	}
+
+	void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
 
 	OscParser& GetOscParser() noexcept
 	{
@@ -60,19 +85,67 @@ public:
 	void ResetCachedVolPanStates() noexcept override;
 	void OnTrackSelection(MediaTrack* trackid) noexcept override;
 
+	// These helpers touch no locks, no heap, and cost a single memcpy per message.
+	inline void EnqueueMidi3(uint32_t dev, uint8_t status, uint8_t d1 = 0, uint8_t d2 = 0)
+	{
+		std::unique_ptr<Midi3> m = std::make_unique<Midi3>();
+		m->deviceId = dev;
+		m->status = status;
+		m->data1 = d1;
+		m->data2 = d2;
+		this->incomingMidiQueue3.push(std::move(m));
+	}
+
+	inline void EnqueueSysex1k(uint32_t dev, const uint8_t* buf, uint32_t len)
+	{
+		if (len == 0 || len > kSyx1k_Max)
+			return;
+		
+		std::unique_ptr<MidiSyx1k> m = std::make_unique<MidiSyx1k>();
+		m->deviceId = dev;
+		m->size = len;
+
+		const gsl::span<uint8_t> destinationSpan(m->data);
+		const gsl::span<const uint8_t> sourceSpan(buf, len);
+		std::copy(sourceSpan.begin(), sourceSpan.end(), destinationSpan.begin());
+		incomingMidiQueue1k.push(std::move(m));
+	}
+
+	inline void EnqueueSysex64k(uint32_t dev, const uint8_t* buf, uint32_t len)
+	{
+		if (len == 0 || len > kSyx64k_Max)
+			return;
+		
+		std::unique_ptr<MidiSyx64k> m = std::make_unique<MidiSyx64k>();
+		m->deviceId = dev;
+		m->size = len;
+
+		const gsl::span<uint8_t> destinationSpan(m->data);
+		const gsl::span<const uint8_t> sourceSpan(buf, len);
+		std::copy(sourceSpan.begin(), sourceSpan.end(), destinationSpan.begin());
+		incomingMidiQueue64k.push(std::move(m));
+	}
+
+	void SendMIDIEventsToOutputs();
+
 private:
-	std::unique_ptr<JvmManager>& jvmManager;
+	midi_Output* (*GetMidiOutput)(int idx);
 	FunctionExecutor functionExecutor;
 	Model model;
 	OscParser oscParser{ model };
 	DataCollector dataCollector{ model };
-	bool updateModel{false};
+	bool updateModel{ false };
 	std::mutex startInfrastructureMutex;
 
 	std::string CollectData(bool dump)
 	{
 		return this->dataCollector.CollectData(dump, this->oscParser.GetActionProcessor());
 	};
+
+	void SendMIDIEventsToJava();
+
+	void HandleShortMidi(uint32_t deviceId, uint8_t status, uint8_t data1, uint8_t data2);
+	void HandleSysex(uint32_t deviceId, const uint8_t* data, uint32_t size);
 };
 
 

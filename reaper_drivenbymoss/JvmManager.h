@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "CodeAnalysis.h"
 #include "WrapperJNI.h"
 
 
@@ -24,7 +25,7 @@ public:
 	JvmManager& operator=(JvmManager&&) = delete;
 	~JvmManager();
 
-	void init(void* processNoArgCPP, void* processStringArgCPP, void* processStringArgsCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
+	void Init(void* functions[]);
 
 	bool IsRunning() const noexcept
 	{
@@ -49,6 +50,11 @@ public:
 	std::string GetFormattedDocumentSettings();
 	void SetFormattedDocumentSettings(const std::string& data);
 
+	jobject CreateTreeMap(JNIEnv& env);
+	void AddToTreeMap(JNIEnv& env, jobject treeMap, jint key, const std::string& value);
+
+	void OnMIDIEvent(int deviceID, unsigned char* message, int size);
+
 private:
 	std::string javaHomePath;
 	std::string jvmCmdOptions;
@@ -56,9 +62,6 @@ private:
 
 	// Pointer to the JVM (Java Virtual Machine)
 	JavaVM* jvm;
-
-	// Pointer to native interface
-	JNIEnv* env;
 
 	// JVM invocation options
 	std::unique_ptr<JavaVMOption[]> options;
@@ -72,12 +75,32 @@ private:
 	bool debug;
 	bool isInitialised{ false };
 	bool isCleanShutdown{ false };
-	jclass controllerClass{ nullptr };
 
+	jclass treeMapClass{ nullptr };
+	jmethodID treeMapConstructor{ nullptr };
+	jmethodID treeMapPutMethod{ nullptr };
+	jclass integerClass{ nullptr };
+	jmethodID integerConstructor{ nullptr };
+
+	jclass controllerClass{ nullptr };
+	jmethodID methodIDShutdown{ nullptr };
+	jmethodID methodIDStartup{ nullptr };
+	jmethodID methodIDAddDevice{ nullptr };
+	jmethodID methodIDStartInfrastructure{ nullptr };
+	jmethodID methodIDDisplayWindow{ nullptr };
+	jmethodID methodIDDisplayProjectWindow{ nullptr };
+	jmethodID methodIDDisplayParameterWindow{ nullptr };
+	jmethodID methodIDResetController{ nullptr };
+	jmethodID methodIDUpdateModel{ nullptr };
+	jmethodID methodIDSetDefaultDocumentSettings{ nullptr };
+	jmethodID methodIDGetFormattedDocumentSettings{ nullptr };
+	jmethodID methodIDSetFormattedDocumentSettings{ nullptr };
+	jmethodID methodIDOnMIDIEvent{ nullptr };
 
 	void Create();
-	void RegisterMethods(void* processNoArgCPP, void* processStringArgCPP, void* processStringArgsCPP, void* processIntArgCPP, void* processDoubleArgCPP, void* enableUpdatesCPP, void* delayUpdatesCPP, void* processMidiArgCPP);
-	void StartApp();
+	DISABLE_WARNING_ARRAY_POINTER_DECAY
+	void RegisterMethods(JNIEnv& env, void* functions[]);
+	void StartApp(JNIEnv& env);
 
 	bool LoadJvmLibrary();
 	std::string LookupJvmLibrary(const std::string& theJavaHomePath) const;
@@ -85,9 +108,12 @@ private:
 	std::vector<std::string> GetDirectoryFiles(const std::string& dir) const;
 	std::string GetLibraryPath() const;
 
-	jclass GetControllerClass() noexcept;
-	void HandleException(const char* message) const;
+	void HandleException(JNIEnv& env, const char* message) const;
 	bool HasEnding(std::string const& fullString, std::string const& ending) const;
+
+	JNIEnv* JvmManager::GetEnv();
+	void RetrieveMethods(JNIEnv& env);
+	jmethodID RetrieveMethod(JNIEnv& env, const char* name, const char* signature);
 };
 
 #endif /* _DBM_JVMMANAGER_H_ */

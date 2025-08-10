@@ -9,6 +9,8 @@
 #include <cstring>
 #include <cstdlib>
 #include <thread>
+#include <set>
+#include <unordered_map>
 
 #include "wdltypes.h"
 #include "lineparse.h"
@@ -16,8 +18,13 @@
 
 #include "CodeAnalysis.h"
 #include "DrivenByMossSurface.h"
+#include "LocalMidiEventDispatcher.h"
 #include "ReaDebug.h"
 #include "StringUtils.h"
+
+midi_Input* (*GetMidiInput)(int idx);
+midi_Output* (*GetMidiOutput)(int idx);
+
 
 // The global extension variables required to bridge from C to C++,
 // static keyword restricts the visibility of a function to the file
@@ -26,7 +33,33 @@ gaccel_register_t openDBMConfigureWindowAccel = { {0,0,0}, "DrivenByMoss: Open t
 gaccel_register_t openDBMProjectWindowAccel = { {0,0,0}, "DrivenByMoss: Open the project settings window." };
 gaccel_register_t openDBMParameterWindowAccel = { {0,0,0}, "DrivenByMoss: Open the parameter settings window." };
 gaccel_register_t restartControllersAccel = { {0,0,0}, "DrivenByMoss: Restart all controllers." };
+
+// Access to Java side via JNI
 std::unique_ptr <JvmManager> jvmManager;
+
+// MIDI port handling
+std::set<int> activeMidiOutputs;
+std::set<int> activeMidiInputs;
+
+// The audio hook for MIDI communication
+audio_hook_register_t audioHook;
+
+// Immutable per-note-input filter set
+using FilterSet = std::vector<std::vector<unsigned char>>;
+struct NoteInputData
+{
+	FilterSet filters;
+	std::vector<int> keyTable;
+	std::vector<int> velocityTable;
+};
+using NoteInputMap = std::unordered_map<int, NoteInputData>;
+using DeviceMap = std::unordered_map<int, NoteInputMap>;
+// Atomic shared snapshot (lock-free access)
+std::shared_ptr<DeviceMap> deviceDataSnapshot;
+std::mutex deviceDataMutex; // only needed for writes, not reads
+
+// Java to internal Reaper
+LocalMidiEventDispatcher localMidiEventDispatcher{};
 
 // Defined in DrivenByMossSurface.cpp
 extern DrivenByMossSurface* surfaceInstance;
@@ -40,12 +73,10 @@ extern DrivenByMossSurface* surfaceInstance;
  * @param processor The processor to execute the command
  * @param command   The command to execute
  */
-void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command)
+static void ProcessNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command)
 {
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
-	// Nullcheck above is not picked up
-	DISABLE_WARNING_DANGLING_POINTER
 	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
@@ -68,12 +99,10 @@ void processNoArgCPP(JNIEnv* env, jobject object, jstring processor, jstring com
  * @param command   The command to execute
  * @param value     The string value
  */
-void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jstring value)
+static void ProcessStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jstring value)
 {
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
-	// Nullcheck above is not picked up
-	DISABLE_WARNING_DANGLING_POINTER
 	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
@@ -88,10 +117,10 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
 	std::string path(cmd == nullptr ? "" : cmd);
 	std::string valueString(val);
 	surfaceInstance->GetOscParser().Process(procstr, path, valueString);
+	env->ReleaseStringUTFChars(value, val);
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
 		env->ReleaseStringUTFChars(command, cmd);
-	env->ReleaseStringUTFChars(value, val);
 }
 
 
@@ -104,7 +133,7 @@ void processStringArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
  * @param command   The command to execute
  * @param values    The string values
  */
-void processStringArgsCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jobjectArray values)
+static void ProcessStringArgsCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jobjectArray values)
 {
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
@@ -114,19 +143,17 @@ void processStringArgsCPP(JNIEnv* env, jobject object, jstring processor, jstrin
 		return;
 
 	const int stringCount = env->GetArrayLength(values);
-	std::vector<jstring> paramsSource;
-	std::vector<std::string> params;
+	std::vector<std::string> parameters;
 	for (int i = 0; i < stringCount; i++)
 	{
 		jobject objectValue = env->GetObjectArrayElement(values, i);
 		// jobject is not polymorphic
 		DISABLE_WARNING_NO_STATIC_DOWNCAST
-			jstring value = static_cast<jstring>(objectValue);
+		jstring value = static_cast<jstring>(objectValue);
 		const char* val = env->GetStringUTFChars(value, nullptr);
 		if (val == nullptr)
 			continue;
-		paramsSource.push_back(value);
-		params.push_back(val);
+		parameters.push_back(val);
 
 		env->ReleaseStringUTFChars(value, val);
 	}
@@ -136,7 +163,7 @@ void processStringArgsCPP(JNIEnv* env, jobject object, jstring processor, jstrin
 	std::string procstr(proc);
 	std::string path(cmd == nullptr ? "" : cmd);
 
-	surfaceInstance->GetOscParser().Process(procstr, path, params);
+	surfaceInstance->GetOscParser().Process(procstr, path, parameters);
 
 	env->ReleaseStringUTFChars(processor, proc);
 	if (cmd != nullptr)
@@ -153,12 +180,10 @@ void processStringArgsCPP(JNIEnv* env, jobject object, jstring processor, jstrin
  * @param command   The command to execute
  * @param value     The integer value
  */
-void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jint value)
+static void ProcessIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jint value)
 {
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
-	// Nullcheck above is not picked up
-	DISABLE_WARNING_DANGLING_POINTER
 	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
@@ -181,12 +206,10 @@ void processIntArgCPP(JNIEnv* env, jobject object, jstring processor, jstring co
  * @param command   The command to execute
  * @param value     The double value
  */
-void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jdouble value)
+static void ProcessDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring command, jdouble value)
 {
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
-	// Nullcheck above is not picked up
-	DISABLE_WARNING_DANGLING_POINTER
 	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
@@ -208,12 +231,10 @@ void processDoubleArgCPP(JNIEnv* env, jobject object, jstring processor, jstring
  * @param processor The processor to delay
  * @param enable    True to enable updates for the processor
  */
-void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean enable)
+static void EnableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean enable)
 {
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
-	// Nullcheck above is not picked up
-	DISABLE_WARNING_DANGLING_POINTER
 	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
@@ -231,12 +252,10 @@ void enableUpdatesCPP(JNIEnv* env, jobject object, jstring processor, jboolean e
  * @param object    The JNI object
  * @param processor The processor to delay
  */
-void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
+static void DelayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 {
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
-	// Nullcheck above is not picked up
-	DISABLE_WARNING_DANGLING_POINTER
 	const char* proc = env->GetStringUTFChars(processor, nullptr);
 	if (proc == nullptr)
 		return;
@@ -247,23 +266,314 @@ void delayUpdatesCPP(JNIEnv* env, jobject object, jstring processor)
 
 
 /**
- * Java callback for an OSC style command to be executed in Reaper with a double parameter.
+ * Send a MIDI message to Reaper.
+ *
+ * @param env      The JNI environment
+ * @param object   The JNI object
+ * @param deviceID The index of the MIDI input device
+ * @param status   MIDI status byte
+ * @param data1    MIDI data byte 1
+ * @param data2    MIDI data byte 2
+ */
+static void ProcessMidiArgCPP(const JNIEnv* env, jobject object, jint deviceID, jint status, jint data1, jint data2)
+{
+	if (env == nullptr || surfaceInstance == nullptr)
+		return;
+
+	MIDI_event_t event;
+	event.frame_offset = 0;
+	event.size = 3;
+	event.midi_message[0] = status;
+	event.midi_message[1] = data1;
+	event.midi_message[2] = data2;
+	localMidiEventDispatcher.Push(deviceID, event);
+}
+
+
+/**
+ * Java callback to get all available MIDI inputs.
  *
  * @param env     The JNI environment
  * @param object  The JNI object
- * @param status  MIDI status byte
- * @param data1   MIDI data byte 1
- * @param data2   MIDI data byte 2
+ * @return The TreeMap with all available MIDI inputs. The key holds the ID and the value the name.
  */
-void processMidiArgCPP(const JNIEnv* env, jobject object, jint status, jint data1, jint data2) noexcept
+static jobject GetMidiInputsCPP(JNIEnv* env, jobject object)
 {
-	if (env != nullptr && surfaceInstance != nullptr)
-		StuffMIDIMessage(0, status, data1, data2);
+	if (env == nullptr || surfaceInstance == nullptr)
+		return nullptr;
+
+	jobject treeMap = surfaceInstance->jvmManager->CreateTreeMap(*env);
+	const int numMidiInputs = GetNumMIDIInputs();
+	for (int x = 0; x < numMidiInputs; x++)
+	{
+		char buf[512];
+		DISABLE_WARNING_ARRAY_POINTER_DECAY
+		if (GetMIDIInputName(x, buf, sizeof(buf)))
+			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, x, buf);
+	}
+
+	return treeMap;
+}
+
+
+/**
+ * Java callback to get all available MIDI outputs.
+ *
+ * @param env     The JNI environment
+ * @param object  The JNI object
+ * @return The TreeMap with all available MIDI outputs. The key holds the ID and the value the name.
+ */
+static jobject GetMidiOutputsCPP(JNIEnv* env, jobject object)
+{
+	if (env == nullptr || surfaceInstance == nullptr)
+		return nullptr;
+
+	jobject treeMap = surfaceInstance->jvmManager->CreateTreeMap(*env);
+	const int numMidiOutputs = GetNumMIDIOutputs();
+	for (int x = 0; x < numMidiOutputs; x++)
+	{
+		char buf[512];
+		DISABLE_WARNING_ARRAY_POINTER_DECAY
+		if (GetMIDIOutputName(x, buf, sizeof(buf)))
+			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, x, buf);
+	}
+
+	return treeMap;
+}
+
+
+/**
+ * Java callback to open a MIDI input.
+ *
+ * @param env      The JNI environment
+ * @param object   The JNI object
+ * @param deviceID The ID of the MIDI input to open
+ * @return True if the input was opened successfully
+ */
+static jboolean OpenMidiInputCPP(JNIEnv* env, jobject object, jint deviceID)
+{
+	const int id = gsl::narrow_cast<int>(deviceID);
+	if (id >= 0 && id < GetNumMIDIInputs())
+	{
+		activeMidiInputs.insert(deviceID);
+		return JNI_TRUE;
+	}
+	return JNI_FALSE;
+}
+
+
+/**
+ * Java callback to open a MIDI output.
+ *
+ * @param env      The JNI environment
+ * @param object   The JNI object
+ * @param deviceID The ID of the MIDI output to open
+ * @return True if the output was opened successfully
+ */
+static jboolean OpenMidiOutputCPP(JNIEnv* env, jobject object, jint deviceID)
+{
+	const int id = gsl::narrow_cast<int>(deviceID);
+	if (id >= 0 && id < GetNumMIDIOutputs())
+	{
+		activeMidiOutputs.insert(deviceID);
+		return JNI_TRUE;
+	}
+	return JNI_FALSE;
+}
+
+
+/**
+ * Java callback to close a MIDI input.
+ *
+ * @param env      The JNI environment
+ * @param object   The JNI object
+ * @param deviceID The ID of the MIDI input to close
+ */
+static void CloseMidiInputCPP(JNIEnv* env, jobject object, jint deviceID)
+{
+	activeMidiInputs.erase(deviceID);
+}
+
+
+/**
+ * Java callback to close a MIDI output.
+ *
+ * @param env      The JNI environment
+ * @param object   The JNI object
+ * @param deviceID The ID of the MIDI output to close
+ */
+static void CloseMidiOutputCPP(JNIEnv* env, jobject object, jint deviceID)
+{
+	activeMidiOutputs.erase(deviceID);
+}
+
+
+/**
+ * Java callback to send a MIDI message to a MIDI output port.
+ *
+ * @param env      The JNI environment
+ * @param object   The JNI object
+ * @param deviceID The ID of the MIDI output to send the message to
+ * @param data     The data of the message to send
+ */
+static void SendMidiDataCPP(JNIEnv* env, jobject object, jint deviceID, jbyteArray data)
+{
+	if (env == nullptr || surfaceInstance == nullptr)
+		return;
+
+	const jsize length = env->GetArrayLength(data);
+	if (length <= 0)
+		return;
+
+	// Fast path: get bytes into a temp buffer on the JNI thread
+	jboolean isCopy;
+	jbyte* source = env->GetByteArrayElements(data, &isCopy);
+	if (source == nullptr)
+		return;
+
+	if (length <= 3)
+	{
+		// ---------- 1‑3 bytes ----------
+		const gsl::span<jbyte> spanSource(source, length);
+		auto m = std::make_unique<Midi3>();
+		m->deviceId = gsl::narrow_cast<uint32_t>(deviceID);
+		m->status = gsl::narrow_cast<uint8_t>(source[0]);
+		m->data1 = length > 1 ? gsl::narrow_cast<uint8_t>(gsl::at(spanSource, 1)) : 0;
+		m->data2 = length > 2 ? gsl::narrow_cast<uint8_t>(gsl::at(spanSource, 2)) : 0;
+		surfaceInstance->outgoingMidiQueue3.push(std::move(m));
+	}
+	else if (length <= kSyx1k_Max)
+	{
+		// ---------- ≤ 1 024 bytes ----------
+		auto m = std::make_unique<MidiSyx1k>();
+		m->deviceId = gsl::narrow_cast<uint32_t>(deviceID);
+		m->size = gsl::narrow_cast<uint32_t>(length);
+		std::memcpy(m->data, source, length);
+		surfaceInstance->outgoingMidiQueue1k.push(std::move(m));
+	}
+	else if (length <= kSyx64k_Max)
+	{
+		// ---------- ≤ 65 536 bytes ----------
+		auto m = std::make_unique<MidiSyx64k>();
+		m->deviceId = gsl::narrow_cast<uint32_t>(deviceID);
+		m->size = gsl::narrow_cast<uint32_t>(length);
+		std::memcpy(m->data, source, length);
+		surfaceInstance->outgoingMidiQueue64k.push(std::move(m));
+	}
+	else
+	{
+		ReaDebug::Log("DrivenByMoss: Attempt to send MIDI message greater 64k.\n");
+		return;
+	}
+
+	env->ReleaseByteArrayElements(data, source, JNI_ABORT);
+}
+
+
+// Helper function: Convert hex string to vector of unsigned char
+static std::vector<unsigned char> ParseHexFilter(const std::string& hexStr)
+{
+	std::vector<unsigned char> result;
+	for (size_t i = 0; i < hexStr.length(); i += 2)
+	{
+		std::string byteStr = hexStr.substr(i, 2);
+		unsigned int byteVal;
+		std::stringstream ss;
+		ss << std::hex << byteStr;
+		ss >> byteVal;
+		result.push_back(static_cast<unsigned char>(byteVal));
+	}
+	return result;
+}
+
+
+template <typename ModifyFn>
+static void UpdateDeviceDataSnapshot(int deviceID, int noteInputIndex, ModifyFn&& modify)
+{
+	std::shared_ptr<DeviceMap> current = std::atomic_load(&deviceDataSnapshot);
+	std::shared_ptr<DeviceMap> updated = std::make_shared<DeviceMap>(*current);
+
+	NoteInputMap& noteInputs = (*updated)[deviceID];
+	NoteInputData& noteData = noteInputs[noteInputIndex];
+
+	modify(noteData);
+
+	std::atomic_store(&deviceDataSnapshot, updated);
+}
+
+
+static void SetFiltersCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jobjectArray filters)
+{
+	if (env == nullptr)
+		return;
+
+	const jsize count = env->GetArrayLength(filters);
+	FilterSet parsed;
+
+	for (jsize i = 0; i < count; ++i)
+	{
+		jstring jStr = static_cast<jstring>(env->GetObjectArrayElement(filters, i));
+		const char* raw = env->GetStringUTFChars(jStr, nullptr);
+		std::string hex(raw);
+		env->ReleaseStringUTFChars(jStr, raw);
+		env->DeleteLocalRef(jStr);
+
+		hex.erase(std::remove_if(hex.begin(), hex.end(), ::isspace), hex.end());
+		if (hex.length() == 2 || hex.length() == 4)
+			parsed.push_back(ParseHexFilter(hex));
+	}
+
+	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
+	{
+		data.filters = std::move(parsed);
+	});
+}
+
+
+static void SetKeyTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jintArray table)
+{
+	if (env == nullptr || table == nullptr)
+		return;
+
+	const jsize len = env->GetArrayLength(table);
+	if (len != 128)
+		return;
+
+	jint* raw = env->GetIntArrayElements(table, nullptr);
+	const gsl::span<jint> rawSpan(raw, 128);
+	std::vector<int> parsed(rawSpan.begin(), rawSpan.end());
+	env->ReleaseIntArrayElements(table, raw, 0);
+
+	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
+	{
+		data.keyTable = std::move(parsed);
+	});
+}
+
+
+static void SetVelocityTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jintArray table)
+{
+	if (env == nullptr || table == nullptr)
+		return;
+
+	const jsize len = env->GetArrayLength(table);
+	if (len != 128)
+		return;
+
+	jint* raw = env->GetIntArrayElements(table, nullptr);
+	const gsl::span<jint> rawSpan(raw, 128);
+	std::vector<int> parsed(rawSpan.begin(), rawSpan.end());
+	env->ReleaseIntArrayElements(table, raw, 0);
+
+	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
+	{
+		data.velocityTable = std::move(parsed);
+	});
 }
 
 
 // Callback for custom actions
-bool hookCommandProc(int command, int flag)
+static bool HookCommandProc(int command, int flag)
 {
 	if (!jvmManager || !jvmManager->IsRunning())
 		return false;
@@ -351,36 +661,43 @@ IReaperControlSurface* createFunc(const char* type_string, const char* configStr
 
 	// Note: If the setup dialog is closed with OK, the current surfaceInstance will be destructed but
 	// we cannot create a new JVM, since this is only possible once!
-	if (ENABLE_JAVA && !jvmManager)
+	if (ENABLE_JAVA && jvmManager == nullptr)
 	{
 		jvmManager = std::make_unique<JvmManager>(DEBUG_JAVA);
-		if (!jvmManager)
+		if (jvmManager == nullptr)
 			return nullptr;
 
-		DISABLE_WARNING_PUSH
+		// Satisfying C API
 		DISABLE_WARNING_REINTERPRET_CAST
-		void* processNoArgPtr = reinterpret_cast<void*>(&processNoArgCPP);
-		void* processStringArgPtr = reinterpret_cast<void*>(&processStringArgCPP);
-		void* processStringArgsPtr = reinterpret_cast<void*>(&processStringArgsCPP);
-		void* processIntArgPtr = reinterpret_cast<void*>(&processIntArgCPP);
-		void* processDoubleArgPtr = reinterpret_cast<void*>(&processDoubleArgCPP);
-		void* enableUpdatesPtr = reinterpret_cast<void*>(&enableUpdatesCPP);
-		void* delayUpdatesPtr = reinterpret_cast<void*>(&delayUpdatesCPP);
-		void* processMidiArgPtr = reinterpret_cast<void*>(&processMidiArgCPP);
-		DISABLE_WARNING_POP
+		void* functions[18] = {
+			reinterpret_cast<void*>(&ProcessNoArgCPP),
+			reinterpret_cast<void*>(&ProcessStringArgCPP),
+			reinterpret_cast<void*>(&ProcessStringArgsCPP),
+			reinterpret_cast<void*>(&ProcessIntArgCPP),
+			reinterpret_cast<void*>(&ProcessDoubleArgCPP),
+			reinterpret_cast<void*>(&EnableUpdatesCPP),
+			reinterpret_cast<void*>(&DelayUpdatesCPP),
+			reinterpret_cast<void*>(&ProcessMidiArgCPP),
+			reinterpret_cast<void*>(&GetMidiInputsCPP),
+			reinterpret_cast<void*>(&GetMidiOutputsCPP),
+			reinterpret_cast<void*>(&OpenMidiInputCPP),
+			reinterpret_cast<void*>(&OpenMidiOutputCPP),
+			reinterpret_cast<void*>(&CloseMidiInputCPP),
+			reinterpret_cast<void*>(&CloseMidiOutputCPP),
+			reinterpret_cast<void*>(&SendMidiDataCPP),
+			reinterpret_cast<void*>(&SetFiltersCPP),
+			reinterpret_cast<void*>(&SetKeyTranslationTableCPP),
+			reinterpret_cast<void*>(&SetVelocityTranslationTableCPP)
+		};
 
-		// Nullcheck above is not picked up
-		DISABLE_WARNING_PUSH
-		DISABLE_WARNING_DANGLING_POINTER
-		jvmManager->init(processNoArgPtr, processStringArgPtr, processStringArgsPtr, processIntArgPtr, processDoubleArgPtr, enableUpdatesPtr, delayUpdatesPtr, processMidiArgPtr);
-		DISABLE_WARNING_POP
+		jvmManager->Init(functions);
 	}
 
 	ReaDebug::Log("DrivenByMoss: Creating surface.\n");
 
 	// Note: delete is called from Reaper on shutdown, no need to do it ourselves
 	DISABLE_WARNING_DONT_USE_NEW
-	surfaceInstance = new DrivenByMossSurface(jvmManager);
+	surfaceInstance = new DrivenByMossSurface(jvmManager, GetMidiOutput);
 
 	ReaDebug::Log("DrivenByMoss: Surface created.\n");
 
@@ -408,7 +725,7 @@ static reaper_csurf_reg_t drivenbymoss_reg =
 /**
  * Called for all extension sub-tags of the project file.
  */
-bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
+static bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
 	ReaDebug::Log("DrivenByMoss: Processing project parameters.\n");
 
@@ -449,7 +766,7 @@ bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUnd
 	return true;
 }
 
-void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
+static void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
 	ReaDebug::Log("DrivenByMoss: Saving project settings.\n");
 
@@ -468,7 +785,8 @@ void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_c
 	ReaDebug::Log("DrivenByMoss: Project settings saved.\n");
 }
 
-void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg)
+
+static void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg)
 {
 	ReaDebug::Log("DrivenByMoss: Loading project settings.\n");
 
@@ -488,6 +806,133 @@ project_config_extension_t pcreg =
   BeginLoadProjectState,
   nullptr,
 };
+
+
+/**
+ * Matches the incoming MIDI events against the registered note input filters.
+ */
+static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, std::vector<MIDI_event_t>& inputEvents)
+{
+	if (eventList == nullptr)
+		return;
+
+	std::shared_ptr<DeviceMap> snapshot = std::atomic_load(&deviceDataSnapshot);
+	if (!snapshot)
+		return;
+
+	auto deviceIt = snapshot->find(deviceID);
+	if (deviceIt == snapshot->end())
+		return;
+
+	const NoteInputMap& noteInputs = deviceIt->second;
+
+	// Clear the list for reuse
+	eventList->Empty();
+
+	for (const MIDI_event_t& inputEvt : inputEvents)
+	{
+		if (inputEvt.size < 1)
+			continue;
+
+		const unsigned char status = inputEvt.midi_message[0];
+		const unsigned char data1 = inputEvt.size > 1 ? inputEvt.midi_message[1] : 0;
+		const unsigned char data2 = inputEvt.size > 2 ? inputEvt.midi_message[2] : 0;
+
+		for (NoteInputMap::const_iterator niIt = noteInputs.begin(); niIt != noteInputs.end(); ++niIt)
+		{
+			const NoteInputData& noteData = niIt->second;
+			const auto& filters = noteData.filters;
+
+			bool matched = false;
+			for (const auto& filter : filters)
+			{
+				if (filter.size() == 1 && gsl::at(filter, 0) == status)
+				{
+					matched = true;
+					break;
+				}
+				else if (filter.size() == 2 && inputEvt.size >= 2 && gsl::at(filter, 0) == status && gsl::at(filter, 1) == data1)
+				{
+					matched = true;
+					break;
+				}
+			}
+			if (!matched)
+				continue;
+
+			// Prepare output event - copy original
+			MIDI_event_t outEvt = inputEvt;
+			
+			if ((status & 0xF0) == 0x80 || (status & 0xF0) == 0x90)
+			{
+				if (data1 < 128 && data2 < 128)
+				{
+					if (noteData.keyTable.size() == 128)
+						outEvt.midi_message[1] = static_cast<unsigned char>(gsl::at(noteData.keyTable, data1));
+					if (noteData.velocityTable.size() == 128)
+						outEvt.midi_message[2] = static_cast<unsigned char>(gsl::at(noteData.velocityTable, data2));
+				}
+			}
+
+			// Add transformed event back to list
+			eventList->AddItem(&outEvt);
+		}
+	}
+}
+
+
+/**
+ * Audio hook. Reads from registered MIDI inputs and queues the events to be sent to Java as well
+ * as matching them against the registered note input filters and sends the matches to Reaper.
+ * Adds additional MIDI events intended for Reaper. Sends outgoing MIDI events.
+ */
+static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_register_t* reg)
+{
+	if (isPost || jvmManager == nullptr || surfaceInstance == nullptr)
+		return;
+
+	for (const auto& deviceID : activeMidiInputs)
+	{
+		midi_Input* midiin = GetMidiInput(deviceID);
+		if (midiin == nullptr)
+			continue;
+
+		std::vector<MIDI_event_t> inputEvents;
+
+		// Copy the events out of the audio thread to be sent to the Java side
+		MIDI_eventlist* list = midiin->GetReadBuf();
+		if (list == nullptr)
+			continue;
+		int l = 0;
+		MIDI_event_t* event;
+		while ((event = list->EnumItems(&l)))
+		{
+			if (event->size <= 3)
+			{
+				const uint8_t status = event->midi_message[0];
+				// Ignore active sensing
+				if (status == 0 || status == 0xFE)
+					continue;
+
+				surfaceInstance->EnqueueMidi3(deviceID, status, event->midi_message[1], event->midi_message[2]);
+				inputEvents.push_back(*event);
+			}
+			else if (event->size < 1024)
+				surfaceInstance->EnqueueSysex1k(deviceID, event->midi_message, event->size);
+			else
+				surfaceInstance->EnqueueSysex64k(deviceID, event->midi_message, event->size);
+			l++;
+		}
+
+		// Apply note input filters
+		ProcessMidiEvents(deviceID, list, inputEvents);
+		// Add events to be sent to Reaper
+		localMidiEventDispatcher.ProcessDeviceQueue(deviceID, list);
+
+		// Send MIDI from Java to the outputs
+		surfaceInstance->SendMIDIEventsToOutputs();
+	}
+}
 
 
 // Must be extern to be exported from the DLL
@@ -515,6 +960,7 @@ extern "C"
 
 		pluginInstanceHandle = hInstance;
 		ReaperUtils::mainWindowHandle = rec->hwnd_main;
+		deviceDataSnapshot = std::make_shared<DeviceMap>();
 
 		if (rec->caller_version != REAPER_PLUGIN_VERSION || rec->GetFunc == nullptr)
 			return 0;
@@ -583,9 +1029,37 @@ extern "C"
 			return 0;
 		}
 
-		if (!rec->Register("hookcommand", (void*)hookCommandProc))
+		if (!rec->Register("hookcommand", (void*)HookCommandProc))
 		{
 			ReaDebug() << "Could not register DrivenByMoss action callback.";
+			return 0;
+		}
+
+		// Register audio hook
+
+		GetMidiInput = (midi_Input * (*)(int))rec->GetFunc("GetMidiInput");
+		if (!GetMidiInput)
+		{
+			ReaDebug() << "GetMidiInput is not available.";
+			return 0;
+		}
+		GetMidiOutput = (midi_Output * (*)(int))rec->GetFunc("GetMidiOutput");
+		if (!GetMidiOutput)
+		{
+			ReaDebug() << "GetMidiOutput is not available.";
+			return 0;
+		}
+
+		audioHook.userdata1 = nullptr;
+		audioHook.userdata2 = nullptr;
+		audioHook.input_nch = 0;
+		audioHook.output_nch = 0;
+		audioHook.GetBuffer = nullptr;
+		audioHook.OnAudioBuffer = OnAudioBuffer;
+		const int hookResult = Audio_RegHardwareHook(true, &audioHook);
+		if (!hookResult)
+		{
+			ReaDebug() << "AudioHook could not be registered!.";
 			return 0;
 		}
 
