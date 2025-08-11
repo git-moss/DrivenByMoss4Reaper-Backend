@@ -191,21 +191,20 @@ void DrivenByMossSurface::SendMIDIEventsToJava()
 
 	// --- 3‑byte messages ----------------------------------------
 	std::unique_ptr<Midi3> m3;
-	while ((m3 = this->incomingMidiQueue3.try_pop()) != nullptr)
+	while ((m3 = this->incomingMidiQueue3.pop()) != nullptr)
 	{
 		uint8_t raw[3] = { m3->status, m3->data1, m3->data2 };
-		const int n = (m3->status >= 0xF8 ? 1 : ((m3->status & 0xF0) == 0xC0 || (m3->status & 0xF0) == 0xD0) ? 2 : 3);
-		jvmManager->OnMIDIEvent(m3->deviceId, raw, n);
+		jvmManager->OnMIDIEvent(m3->deviceId, raw, 3);
 	}
 
 	// --- SysEx ≤ 1 024 ------------------------------------------
 	std::unique_ptr<MidiSyx1k> m1k;
-	while ((m1k = this->incomingMidiQueue1k.try_pop()) != nullptr)
+	while ((m1k = this->incomingMidiQueue1k.pop()) != nullptr)
 		jvmManager->OnMIDIEvent(m1k->deviceId, m1k->data, m1k->size);
 
 	// --- SysEx ≤ 65 536 -----------------------------------------
 	std::unique_ptr <MidiSyx64k> m64k;
-	while ((m64k = this->incomingMidiQueue64k.try_pop()) != nullptr)
+	while ((m64k = this->incomingMidiQueue64k.pop()) != nullptr)
 		jvmManager->OnMIDIEvent(m64k->deviceId, m64k->data, m64k->size);
 }
 
@@ -220,17 +219,17 @@ void DrivenByMossSurface::SendMIDIEventsToOutputs()
 
 	// ---------- 3‑byte ----------
 	std::unique_ptr<Midi3> m3;
-	while ((m3 = this->outgoingMidiQueue3.try_pop()) != nullptr)
+	while ((m3 = this->outgoingMidiQueue3.pop()) != nullptr)
 		HandleShortMidi(m3->deviceId, m3->status, m3->data1, m3->data2);
 
 	// ---------- ≤ 1 024 ----------
 	std::unique_ptr<MidiSyx1k> m1k;
-	while ((m1k = this->outgoingMidiQueue1k.try_pop()) != nullptr)
+	while ((m1k = this->outgoingMidiQueue1k.pop()) != nullptr)
 		HandleSysex(m1k->deviceId, m1k->data, m1k->size);
 
 	// ---------- ≤ 65 536 ----------
 	std::unique_ptr<MidiSyx64k> m64;
-	while ((m64 = this->outgoingMidiQueue64k.try_pop()) != nullptr)
+	while ((m64 = this->outgoingMidiQueue64k.pop()) != nullptr)
 		HandleSysex(m64->deviceId, m64->data, m64->size);
 }
 

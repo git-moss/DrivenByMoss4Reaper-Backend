@@ -25,7 +25,6 @@
 midi_Input* (*GetMidiInput)(int idx);
 midi_Output* (*GetMidiOutput)(int idx);
 
-
 // The global extension variables required to bridge from C to C++,
 // static keyword restricts the visibility of a function to the file
 REAPER_PLUGIN_HINSTANCE pluginInstanceHandle = nullptr;
@@ -57,6 +56,10 @@ using DeviceMap = std::unordered_map<int, NoteInputMap>;
 // Atomic shared snapshot (lock-free access)
 std::shared_ptr<DeviceMap> deviceDataSnapshot;
 std::mutex deviceDataMutex; // only needed for writes, not reads
+
+// Necessary for filtering the events in the realtime audio callback
+constexpr size_t MAX_MIDI_EVENTS = 1024;
+MIDI_event_t* inputEvents[MAX_MIDI_EVENTS];
 
 // Java to internal Reaper
 LocalMidiEventDispatcher localMidiEventDispatcher{};
@@ -435,7 +438,7 @@ static void SendMidiDataCPP(JNIEnv* env, jobject object, jint deviceID, jbyteArr
 	{
 		// ---------- 1‑3 bytes ----------
 		const gsl::span<jbyte> spanSource(source, length);
-		auto m = std::make_unique<Midi3>();
+		std::unique_ptr<Midi3> m = std::make_unique<Midi3>();
 		m->deviceId = gsl::narrow_cast<uint32_t>(deviceID);
 		m->status = gsl::narrow_cast<uint8_t>(source[0]);
 		m->data1 = length > 1 ? gsl::narrow_cast<uint8_t>(gsl::at(spanSource, 1)) : 0;
@@ -445,7 +448,7 @@ static void SendMidiDataCPP(JNIEnv* env, jobject object, jint deviceID, jbyteArr
 	else if (length <= kSyx1k_Max)
 	{
 		// ---------- ≤ 1 024 bytes ----------
-		auto m = std::make_unique<MidiSyx1k>();
+		std::unique_ptr<MidiSyx1k> m = std::make_unique<MidiSyx1k>();
 		m->deviceId = gsl::narrow_cast<uint32_t>(deviceID);
 		m->size = gsl::narrow_cast<uint32_t>(length);
 		std::memcpy(m->data, source, length);
@@ -454,7 +457,7 @@ static void SendMidiDataCPP(JNIEnv* env, jobject object, jint deviceID, jbyteArr
 	else if (length <= kSyx64k_Max)
 	{
 		// ---------- ≤ 65 536 bytes ----------
-		auto m = std::make_unique<MidiSyx64k>();
+		std::unique_ptr<MidiSyx64k> m = std::make_unique<MidiSyx64k>();
 		m->deviceId = gsl::narrow_cast<uint32_t>(deviceID);
 		m->size = gsl::narrow_cast<uint32_t>(length);
 		std::memcpy(m->data, source, length);
@@ -811,9 +814,9 @@ project_config_extension_t pcreg =
 /**
  * Matches the incoming MIDI events against the registered note input filters.
  */
-static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, std::vector<MIDI_event_t>& inputEvents)
+static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, size_t numInputEvents)
 {
-	if (eventList == nullptr)
+	if (eventList == nullptr || numInputEvents == 0)
 		return;
 
 	std::shared_ptr<DeviceMap> snapshot = std::atomic_load(&deviceDataSnapshot);
@@ -829,14 +832,13 @@ static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, std::vect
 	// Clear the list for reuse
 	eventList->Empty();
 
-	for (const MIDI_event_t& inputEvt : inputEvents)
+	for (size_t i = 0; i < numInputEvents; i++)
 	{
-		if (inputEvt.size < 1)
-			continue;
+		MIDI_event_t* inputEvt = gsl::at(inputEvents, i);
 
-		const unsigned char status = inputEvt.midi_message[0];
-		const unsigned char data1 = inputEvt.size > 1 ? inputEvt.midi_message[1] : 0;
-		const unsigned char data2 = inputEvt.size > 2 ? inputEvt.midi_message[2] : 0;
+		const unsigned char status = inputEvt->midi_message[0];
+		const unsigned char data1 = inputEvt->size > 1 ? inputEvt->midi_message[1] : 0;
+		const unsigned char data2 = inputEvt->size > 2 ? inputEvt->midi_message[2] : 0;
 
 		for (NoteInputMap::const_iterator niIt = noteInputs.begin(); niIt != noteInputs.end(); ++niIt)
 		{
@@ -846,12 +848,13 @@ static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, std::vect
 			bool matched = false;
 			for (const auto& filter : filters)
 			{
-				if (filter.size() == 1 && gsl::at(filter, 0) == status)
+				const size_t filterSize = filter.size();
+				if (filterSize == 1 && gsl::at(filter, 0) == status)
 				{
 					matched = true;
 					break;
 				}
-				else if (filter.size() == 2 && inputEvt.size >= 2 && gsl::at(filter, 0) == status && gsl::at(filter, 1) == data1)
+				else if (filterSize == 2 && inputEvt->size >= 2 && gsl::at(filter, 0) == status && gsl::at(filter, 1) == data1)
 				{
 					matched = true;
 					break;
@@ -860,22 +863,22 @@ static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, std::vect
 			if (!matched)
 				continue;
 
-			// Prepare output event - copy original
-			MIDI_event_t outEvt = inputEvt;
-			
-			if ((status & 0xF0) == 0x80 || (status & 0xF0) == 0x90)
+			// Note: to be 100% correct this would require the creation of a new MIDI event since
+			// theoretically multiple note inputs could be present and events could be modified differently
+			// If this becomes a use-case it would need to be implemented with a pre-allocated pool or ring 
+			// buffer of MIDI_event_t
+
+			const int statusType = status & 0xF0;
+			if (statusType == 0x90 || statusType == 0x80)
 			{
-				if (data1 < 128 && data2 < 128)
-				{
-					if (noteData.keyTable.size() == 128)
-						outEvt.midi_message[1] = static_cast<unsigned char>(gsl::at(noteData.keyTable, data1));
-					if (noteData.velocityTable.size() == 128)
-						outEvt.midi_message[2] = static_cast<unsigned char>(gsl::at(noteData.velocityTable, data2));
-				}
+				if (data1 < 128 && noteData.keyTable.size() == 128)
+					inputEvt->midi_message[1] = static_cast<unsigned char>(gsl::at(noteData.keyTable, data1));
+				if (data2 < 128 && noteData.velocityTable.size() == 128)
+					inputEvt->midi_message[2] = static_cast<unsigned char>(gsl::at(noteData.velocityTable, data2));
 			}
 
 			// Add transformed event back to list
-			eventList->AddItem(&outEvt);
+			eventList->AddItem(inputEvt);
 		}
 	}
 }
@@ -897,35 +900,40 @@ static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_
 		if (midiin == nullptr)
 			continue;
 
-		std::vector<MIDI_event_t> inputEvents;
-
 		// Copy the events out of the audio thread to be sent to the Java side
 		MIDI_eventlist* list = midiin->GetReadBuf();
 		if (list == nullptr)
 			continue;
+		
 		int l = 0;
+		size_t eventCount = 0;
 		MIDI_event_t* event;
-		while ((event = list->EnumItems(&l)))
+		while ((event = list->EnumItems(&l)) != nullptr)
 		{
-			if (event->size <= 3)
+			if (event->size > 0)
 			{
-				const uint8_t status = event->midi_message[0];
-				// Ignore active sensing
-				if (status == 0 || status == 0xFE)
-					continue;
-
-				surfaceInstance->EnqueueMidi3(deviceID, status, event->midi_message[1], event->midi_message[2]);
-				inputEvents.push_back(*event);
+				if (event->size <= 3)
+				{
+					const uint8_t status = event->midi_message[0];
+					// Ignore active sensing
+					if (status != 0 && status != 0xFE)
+					{
+						surfaceInstance->EnqueueMidi3(deviceID, status, event->midi_message[1], event->midi_message[2]);
+						if (eventCount < MAX_MIDI_EVENTS)
+							inputEvents[eventCount++] = event;
+					}
+				}
+				else if (event->size < 1024)
+					surfaceInstance->EnqueueSysex1k(deviceID, event->midi_message, event->size);
+				else
+					surfaceInstance->EnqueueSysex64k(deviceID, event->midi_message, event->size);
 			}
-			else if (event->size < 1024)
-				surfaceInstance->EnqueueSysex1k(deviceID, event->midi_message, event->size);
-			else
-				surfaceInstance->EnqueueSysex64k(deviceID, event->midi_message, event->size);
+
 			l++;
 		}
 
 		// Apply note input filters
-		ProcessMidiEvents(deviceID, list, inputEvents);
+		ProcessMidiEvents(deviceID, list, eventCount);
 		// Add events to be sent to Reaper
 		localMidiEventDispatcher.ProcessDeviceQueue(deviceID, list);
 

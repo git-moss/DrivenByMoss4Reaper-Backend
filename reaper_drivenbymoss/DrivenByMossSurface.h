@@ -26,14 +26,14 @@ public:
 	std::unique_ptr<JvmManager>& jvmManager;
 
 	// Queues to transfer incoming MIDI from the audio thread to Java
-	ReaderWriterQueue<Midi3>      incomingMidiQueue3;
-	ReaderWriterQueue<MidiSyx1k>  incomingMidiQueue1k;
-	ReaderWriterQueue<MidiSyx64k> incomingMidiQueue64k;
+	ReaderWriterQueue<Midi3, 1024>      incomingMidiQueue3;
+	ReaderWriterQueue<MidiSyx1k, 128>  incomingMidiQueue1k;
+	ReaderWriterQueue<MidiSyx64k, 16> incomingMidiQueue64k;
 
 	// Queues to transfer MIDI from Java to an output port in the audio thread
-	ReaderWriterQueue<Midi3>      outgoingMidiQueue3;
-	ReaderWriterQueue<MidiSyx1k>  outgoingMidiQueue1k;
-	ReaderWriterQueue<MidiSyx64k> outgoingMidiQueue64k;
+	ReaderWriterQueue<Midi3, 1024>      outgoingMidiQueue3;
+	ReaderWriterQueue<MidiSyx1k, 128>  outgoingMidiQueue1k;
+	ReaderWriterQueue<MidiSyx64k, 16> outgoingMidiQueue64k;
 
 
 	DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManager, midi_Output* (*aGetMidiOutput)(int idx));
