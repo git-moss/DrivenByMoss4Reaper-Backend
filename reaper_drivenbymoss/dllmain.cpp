@@ -5,11 +5,12 @@
 
 #define REAPERAPI_IMPLEMENT
 
-#include <iostream>
-#include <cstring>
 #include <cstdlib>
-#include <thread>
+#include <cstring>
+#include <iostream>
+#include <numeric>
 #include <set>
+#include <thread>
 #include <unordered_map>
 
 #include "wdltypes.h"
@@ -19,6 +20,7 @@
 #include "CodeAnalysis.h"
 #include "DrivenByMossSurface.h"
 #include "LocalMidiEventDispatcher.h"
+#include "MidiProcessingStructures.h"
 #include "ReaDebug.h"
 #include "StringUtils.h"
 
@@ -43,17 +45,8 @@ std::set<int> activeMidiInputs;
 // The audio hook for MIDI communication
 audio_hook_register_t audioHook;
 
-// Immutable per-note-input filter set
-using FilterSet = std::vector<std::vector<unsigned char>>;
-struct NoteInputData
-{
-	FilterSet filters;
-	std::vector<int> keyTable;
-	std::vector<int> velocityTable;
-};
-using NoteInputMap = std::unordered_map<int, NoteInputData>;
-using DeviceMap = std::unordered_map<int, NoteInputMap>;
 // Atomic shared snapshot (lock-free access)
+using DeviceMap = std::unordered_map<int, DeviceNoteData>;
 std::shared_ptr<DeviceMap> deviceDataSnapshot;
 std::mutex deviceDataMutex; // only needed for writes, not reads
 
@@ -493,13 +486,18 @@ static std::vector<unsigned char> ParseHexFilter(const std::string& hexStr)
 template <typename ModifyFn>
 static void UpdateDeviceDataSnapshot(int deviceID, int noteInputIndex, ModifyFn&& modify)
 {
+	if (noteInputIndex < 0 || noteInputIndex >= static_cast<int>(MAX_NOTE_INPUTS))
+		return;
+
 	std::shared_ptr<DeviceMap> current = std::atomic_load(&deviceDataSnapshot);
+	if (!current)
+		current = std::make_shared<DeviceMap>();
 	std::shared_ptr<DeviceMap> updated = std::make_shared<DeviceMap>(*current);
 
-	NoteInputMap& noteInputs = (*updated)[deviceID];
-	NoteInputData& noteData = noteInputs[noteInputIndex];
-
+	DeviceNoteData& deviceData = (*updated)[deviceID];
+	NoteInputData& noteData = deviceData.noteInputs[noteInputIndex];
 	modify(noteData);
+	deviceData.BuildLookup();
 
 	std::atomic_store(&deviceDataSnapshot, updated);
 }
@@ -508,6 +506,9 @@ static void UpdateDeviceDataSnapshot(int deviceID, int noteInputIndex, ModifyFn&
 static void SetFiltersCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jobjectArray filters)
 {
 	if (env == nullptr)
+		return;
+
+	if (noteInputIndex < 0 || noteInputIndex >= static_cast<int>(MAX_NOTE_INPUTS))
 		return;
 
 	const jsize count = env->GetArrayLength(filters);
@@ -526,10 +527,30 @@ static void SetFiltersCPP(JNIEnv* env, jobject object, jint deviceID, jint noteI
 			parsed.push_back(ParseHexFilter(hex));
 	}
 
-	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
-	{
-		data.filters = std::move(parsed);
-	});
+	std::shared_ptr<DeviceMap> current = std::atomic_load(&deviceDataSnapshot);
+	if (!current)
+		current = std::make_shared<DeviceMap>();
+	std::shared_ptr<DeviceMap> updated = std::make_shared<DeviceMap>(*current);
+
+	DeviceNoteData& deviceData = (*updated)[deviceID];
+	deviceData.noteInputs[noteInputIndex].filters = std::move(parsed);
+	deviceData.BuildLookup();
+
+	std::atomic_store(&deviceDataSnapshot, updated);
+}
+
+
+// Safe copier from jintArray → std::array<int,128>
+inline static bool CopyJIntArray128(JNIEnv* env, jintArray arr, std::array<int, 128>& out)
+{
+	if (!env || !arr)
+		return false;
+	const jsize len = env->GetArrayLength(arr);
+	if (len != 128)
+		return false;
+
+	env->GetIntArrayRegion(arr, 0, 128, out.data());
+	return true;
 }
 
 
@@ -542,14 +563,13 @@ static void SetKeyTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID
 	if (len != 128)
 		return;
 
-	jint* raw = env->GetIntArrayElements(table, nullptr);
-	const gsl::span<jint> rawSpan(raw, 128);
-	std::vector<int> parsed(rawSpan.begin(), rawSpan.end());
-	env->ReleaseIntArrayElements(table, raw, 0);
+	std::array<int, 128> parsed;
+	if (!CopyJIntArray128(env, table, parsed))
+		return;
 
 	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
 	{
-		data.keyTable = std::move(parsed);
+		data.keyTable = parsed;
 	});
 }
 
@@ -563,14 +583,13 @@ static void SetVelocityTranslationTableCPP(JNIEnv* env, jobject object, jint dev
 	if (len != 128)
 		return;
 
-	jint* raw = env->GetIntArrayElements(table, nullptr);
-	const gsl::span<jint> rawSpan(raw, 128);
-	std::vector<int> parsed(rawSpan.begin(), rawSpan.end());
-	env->ReleaseIntArrayElements(table, raw, 0);
+	std::array<int, 128> parsed;
+	if (!CopyJIntArray128(env, table, parsed))
+		return;
 
 	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
 	{
-		data.velocityTable = std::move(parsed);
+		data.velocityTable = parsed;
 	});
 }
 
@@ -812,75 +831,64 @@ project_config_extension_t pcreg =
 
 
 /**
- * Matches the incoming MIDI events against the registered note input filters.
+ * Matches the incoming MIDI event against the registered note input filters.
  */
-static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, size_t numInputEvents)
+inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
 {
-	if (eventList == nullptr || numInputEvents == 0)
-		return;
+	const unsigned char data1 = event->size > 1 ? event->midi_message[1] : 0;
+	if (data1 >= 128)
+		return false;
 
-	std::shared_ptr<DeviceMap> snapshot = std::atomic_load(&deviceDataSnapshot);
+	auto snapshot = std::atomic_load(&deviceDataSnapshot);
 	if (!snapshot)
-		return;
+		return false;
 
 	auto deviceIt = snapshot->find(deviceID);
 	if (deviceIt == snapshot->end())
-		return;
+		return false;
 
-	const NoteInputMap& noteInputs = deviceIt->second;
+	const auto& deviceData = deviceIt->second;
 
-	// Clear the list for reuse
-	eventList->Empty();
+	// Do not use gsl:at for performance reasons!
+	DISABLE_WARNING_USE_GSL_AT
+	DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
 
-	for (size_t i = 0; i < numInputEvents; i++)
+	const unsigned char status = event->midi_message[0];
+	const int statusType = status & 0xF0;
+	const bool isNote = statusType == 0x90 || statusType == 0x80;
+
+	for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
 	{
-		MIDI_event_t* inputEvt = gsl::at(inputEvents, i);
+		// Note: to be 100% correct this would require the creation of a new MIDI event since
+		// theoretically multiple note inputs could be present and events could be modified differently
+		// If this becomes a use-case it would need to be implemented with a pre-allocated pool or ring 
+		// buffer of MIDI_event_t
 
-		const unsigned char status = inputEvt->midi_message[0];
-		const unsigned char data1 = inputEvt->size > 1 ? inputEvt->midi_message[1] : 0;
-		const unsigned char data2 = inputEvt->size > 2 ? inputEvt->midi_message[2] : 0;
-
-		for (NoteInputMap::const_iterator niIt = noteInputs.begin(); niIt != noteInputs.end(); ++niIt)
+		if (deviceData.lookup.filterMatch[noteIdx][status][data1])
 		{
-			const NoteInputData& noteData = niIt->second;
-			const auto& filters = noteData.filters;
-
-			bool matched = false;
-			for (const auto& filter : filters)
+			if (isNote && deviceData.lookup.filterMatch[noteIdx][status][data1])
 			{
-				const size_t filterSize = filter.size();
-				if (filterSize == 1 && gsl::at(filter, 0) == status)
-				{
-					matched = true;
-					break;
-				}
-				else if (filterSize == 2 && inputEvt->size >= 2 && gsl::at(filter, 0) == status && gsl::at(filter, 1) == data1)
-				{
-					matched = true;
-					break;
-				}
-			}
-			if (!matched)
-				continue;
+				if (deviceData.lookup.keyLookup[noteIdx][data1] < 0)
+					continue;
+					
+				event->midi_message[1] = deviceData.lookup.keyLookup[noteIdx][data1];
 
-			// Note: to be 100% correct this would require the creation of a new MIDI event since
-			// theoretically multiple note inputs could be present and events could be modified differently
-			// If this becomes a use-case it would need to be implemented with a pre-allocated pool or ring 
-			// buffer of MIDI_event_t
+				const unsigned char data2 = event->size > 2 ? event->midi_message[2] : 0;
+					
+				if (deviceData.lookup.velocityLookup[noteIdx][data2] < 0)
+					continue;
 
-			const int statusType = status & 0xF0;
-			if (statusType == 0x90 || statusType == 0x80)
-			{
-				if (data1 < 128 && noteData.keyTable.size() == 128)
-					inputEvt->midi_message[1] = static_cast<unsigned char>(gsl::at(noteData.keyTable, data1));
-				if (data2 < 128 && noteData.velocityTable.size() == 128)
-					inputEvt->midi_message[2] = static_cast<unsigned char>(gsl::at(noteData.velocityTable, data2));
+				if (data2 >= 128)
+					return false;
+
+				event->midi_message[2] = deviceData.lookup.velocityLookup[noteIdx][data2];
 			}
 
-			// Add transformed event back to list
-			eventList->AddItem(inputEvt);
+			return true;
 		}
 	}
+
+	return false;
 }
 
 
@@ -891,54 +899,62 @@ static void ProcessMidiEvents(int deviceID, MIDI_eventlist* eventList, size_t nu
  */
 static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_register_t* reg)
 {
-	if (isPost || jvmManager == nullptr || surfaceInstance == nullptr)
+	if (jvmManager == nullptr || surfaceInstance == nullptr || isPost)
 		return;
 
 	for (const auto& deviceID : activeMidiInputs)
 	{
 		midi_Input* midiin = GetMidiInput(deviceID);
-		if (midiin == nullptr)
+		if (!midiin)
 			continue;
 
-		// Copy the events out of the audio thread to be sent to the Java side
 		MIDI_eventlist* list = midiin->GetReadBuf();
-		if (list == nullptr)
+		if (!list)
 			continue;
-		
-		int l = 0;
+
+		int iterator = 0;
 		size_t eventCount = 0;
 		MIDI_event_t* event;
-		while ((event = list->EnumItems(&l)) != nullptr)
+		// Copy the events out of the audio thread to be sent to the Java side
+		while ((event = list->EnumItems(&iterator)) != nullptr)
 		{
-			if (event->size > 0)
+			++iterator;
+
+			const int size = event->size;
+			if (size == 0)
+				continue;
+
+			if (size > 3)
 			{
-				if (event->size <= 3)
-				{
-					const uint8_t status = event->midi_message[0];
-					// Ignore active sensing
-					if (status != 0 && status != 0xFE)
-					{
-						surfaceInstance->EnqueueMidi3(deviceID, status, event->midi_message[1], event->midi_message[2]);
-						if (eventCount < MAX_MIDI_EVENTS)
-							inputEvents[eventCount++] = event;
-					}
-				}
-				else if (event->size < 1024)
+				if (size < 1024)
 					surfaceInstance->EnqueueSysex1k(deviceID, event->midi_message, event->size);
 				else
 					surfaceInstance->EnqueueSysex64k(deviceID, event->midi_message, event->size);
+				continue;
 			}
 
-			l++;
+			const uint8_t status = event->midi_message[0];
+			// Ignore active sensing
+			if (status == 0 || status == 0xFE)
+				continue;
+
+			const uint8_t data1 = (size > 1) ? event->midi_message[1] : 0;
+			const uint8_t data2 = (size > 2) ? event->midi_message[2] : 0;
+			surfaceInstance->EnqueueMidi3(deviceID, status, data1, data2);
+			// Apply note input filters
+			if (ProcessMidiEvents(deviceID, event))
+			{
+				if (eventCount < MAX_MIDI_EVENTS)
+					inputEvents[eventCount++] = event;
+			}
 		}
 
-		// Apply note input filters
-		ProcessMidiEvents(deviceID, list, eventCount);
+		list->Empty();
+		for (size_t i = 0; i < eventCount; ++i)
+			list->AddItem(inputEvents[i]);
+
 		// Add events to be sent to Reaper
 		localMidiEventDispatcher.ProcessDeviceQueue(deviceID, list);
-
-		// Send MIDI from Java to the outputs
-		surfaceInstance->SendMIDIEventsToOutputs();
 	}
 }
 

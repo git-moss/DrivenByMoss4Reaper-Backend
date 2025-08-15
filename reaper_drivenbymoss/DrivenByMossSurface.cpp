@@ -76,6 +76,7 @@ void DrivenByMossSurface::Run()
 	try
 	{
 		this->SendMIDIEventsToJava();
+		surfaceInstance->SendMIDIEventsToOutputs();
 		this->functionExecutor.ExecuteFunctions();
 	}
 	catch (const std::exception& ex)

@@ -212,6 +212,7 @@
     <ClInclude Include="..\reaper_drivenbymoss\MarkerProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MastertrackProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\MidiMessages.h" />
+    <ClInclude Include="..\reaper_drivenbymoss\MidiProcessingStructures.h" />
     <ClInclude Include="..\reaper_drivenbymoss\Model.h" />
     <ClInclude Include="..\reaper_drivenbymoss\NoteRepeatProcessor.h" />
     <ClInclude Include="..\reaper_drivenbymoss\OscParser.h" />

@@ -230,6 +230,9 @@
     <ClInclude Include="..\reaper_drivenbymoss\LocalMidiEventDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\reaper_drivenbymoss\MidiProcessingStructures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\reaper_drivenbymoss\res.rc">

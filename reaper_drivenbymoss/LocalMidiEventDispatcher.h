@@ -11,17 +11,25 @@
 
 #include "reaper_plugin.h"
 
+constexpr size_t MAX_EVENTS_PER_DEVICE = 1024; // adjust as needed
 
 /**
  * Helper class to insert MIDI events into the Reaper device queues from Java.
  */
 class LocalMidiEventDispatcher
 {
-    std::unordered_map<int, std::queue<MIDI_event_t>> producerQueues;
     std::mutex producerMutex;
+    std::unordered_map<int, std::queue<MIDI_event_t>> producerQueues;
     std::unordered_map<int, std::vector<MIDI_event_t>> rtLocalBuffers;
 
 public:
+
+    LocalMidiEventDispatcher()
+    {
+        for (auto& bufferPair : rtLocalBuffers)
+            bufferPair.second.reserve(MAX_EVENTS_PER_DEVICE);
+    }
+
     // Called by producers from any thread
     void Push(int deviceID, const MIDI_event_t& evt)
     {
@@ -35,20 +43,23 @@ public:
         if (eventList == nullptr)
             return;
 
+        auto& localBuffer = rtLocalBuffers[deviceID];
+        localBuffer.clear(); // reuse preallocated space
+
         // Move events from producer queues to RT local buffers
         {
             std::lock_guard<std::mutex> lock(producerMutex);
-            while (!producerQueues[deviceID].empty())
+            auto& queue = producerQueues[deviceID];
+            while (!queue.empty())
             {
-                rtLocalBuffers[deviceID].push_back(producerQueues[deviceID].front());
-                producerQueues[deviceID].pop();
+                localBuffer.push_back(queue.front());
+                queue.pop();
             }
         }
 
         // Step 2: Now RT thread has exclusive access to rtLocalBuffers, no locks needed
         for (auto& event : rtLocalBuffers[deviceID])
             eventList->AddItem(&event);
-        rtLocalBuffers[deviceID].clear();
     }
 };
 
