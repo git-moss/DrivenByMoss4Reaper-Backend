@@ -279,9 +279,9 @@ static void ProcessMidiArgCPP(const JNIEnv* env, jobject object, jint deviceID, 
 	MIDI_event_t event;
 	event.frame_offset = 0;
 	event.size = 3;
-	event.midi_message[0] = status;
-	event.midi_message[1] = data1;
-	event.midi_message[2] = data2;
+	event.midi_message[0] = gsl::narrow_cast<unsigned char>(status);
+	event.midi_message[1] = gsl::narrow_cast<unsigned char>(data1);
+	event.midi_message[2] = gsl::narrow_cast<unsigned char>(data2);
 	localMidiEventDispatcher.Push(deviceID, event);
 }
 
@@ -549,7 +549,7 @@ inline static bool CopyJIntArray128(JNIEnv* env, jintArray arr, std::array<int, 
 	if (len != 128)
 		return false;
 
-	env->GetIntArrayRegion(arr, 0, 128, static_cast<jint*>(out.data()));
+	env->GetIntArrayRegion(arr, 0, 128, reinterpret_cast<jint*>(out.data()));
 	return true;
 }
 
