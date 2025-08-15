@@ -549,7 +549,7 @@ inline static bool CopyJIntArray128(JNIEnv* env, jintArray arr, std::array<int, 
 	if (len != 128)
 		return false;
 
-	env->GetIntArrayRegion(arr, 0, 128, out.data());
+	env->GetIntArrayRegion(arr, 0, 128, static_cast<jint*>(out.data()));
 	return true;
 }
 

@@ -139,6 +139,7 @@ set(Header_Files
     "../reaper_drivenbymoss/MarkerProcessor.h"
     "../reaper_drivenbymoss/MastertrackProcessor.h"
     "../reaper_drivenbymoss/MidiMessages.h"
+    "../reaper_drivenbymoss/MidiProcessingStructures.h"
     "../reaper_drivenbymoss/Model.h"
     "../reaper_drivenbymoss/NoteRepeatProcessor.h"
     "../reaper_drivenbymoss/OscParser.h"
