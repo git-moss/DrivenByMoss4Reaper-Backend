@@ -50,10 +50,6 @@ using DeviceMap = std::unordered_map<int, DeviceNoteData>;
 std::shared_ptr<DeviceMap> deviceDataSnapshot;
 std::mutex deviceDataMutex; // only needed for writes, not reads
 
-// Necessary for filtering the events in the realtime audio callback
-constexpr size_t MAX_MIDI_EVENTS = 1024;
-MIDI_event_t* inputEvents[MAX_MIDI_EVENTS];
-
 // Java to internal Reaper
 LocalMidiEventDispatcher localMidiEventDispatcher{};
 
@@ -874,7 +870,7 @@ inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
 				event->midi_message[1] = deviceData.lookup.keyLookup[noteIdx][data1];
 
 				const unsigned char data2 = event->size > 2 ? event->midi_message[2] : 0;
-					
+
 				if (deviceData.lookup.velocityLookup[noteIdx][data2] < 0)
 					continue;
 
@@ -912,14 +908,12 @@ static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_
 		if (!list)
 			continue;
 
-		int iterator = 0;
-		size_t eventCount = 0;
+		int position = 0;
+		int nextPosition = 0;
 		MIDI_event_t* event;
 		// Copy the events out of the audio thread to be sent to the Java side
-		while ((event = list->EnumItems(&iterator)) != nullptr)
+		while ((event = list->EnumItems(&nextPosition)) != nullptr)
 		{
-			++iterator;
-
 			const int size = event->size;
 			if (size == 0)
 				continue;
@@ -942,16 +936,14 @@ static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_
 			const uint8_t data2 = (size > 2) ? event->midi_message[2] : 0;
 			surfaceInstance->EnqueueMidi3(deviceID, status, data1, data2);
 			// Apply note input filters
-			if (ProcessMidiEvents(deviceID, event))
+			if (!ProcessMidiEvents(deviceID, event))
 			{
-				if (eventCount < MAX_MIDI_EVENTS)
-					inputEvents[eventCount++] = event;
+				list->DeleteItem(position);
+				nextPosition = position;
 			}
+			else
+				position = nextPosition;
 		}
-
-		list->Empty();
-		for (size_t i = 0; i < eventCount; ++i)
-			list->AddItem(inputEvents[i]);
 
 		// Add events to be sent to Reaper
 		localMidiEventDispatcher.ProcessDeviceQueue(deviceID, list);

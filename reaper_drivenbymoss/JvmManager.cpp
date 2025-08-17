@@ -305,7 +305,8 @@ void JvmManager::RegisterMethods(JNIEnv& env, void* functions[])
 void JvmManager::StartApp(JNIEnv& env)
 {
 	jstring iniPath = env.NewStringUTF(GetResourcePath());
-	env.CallStaticVoidMethod(this->controllerClass, this->methodIDStartup, iniPath);
+	jstring appVersion = env.NewStringUTF(GetAppVersion());
+	env.CallStaticVoidMethod(this->controllerClass, this->methodIDStartup, iniPath, appVersion);
 	this->HandleException(env, "ERROR: Could not call startup.");
 }
 
@@ -711,7 +712,7 @@ void JvmManager::RetrieveMethods(JNIEnv& env)
 	if (this->methodIDShutdown == nullptr)
 		return;
 
-	this->methodIDStartup = this->RetrieveMethod(env, "startup", "(Ljava/lang/String;)V");
+	this->methodIDStartup = this->RetrieveMethod(env, "startup", "(Ljava/lang/String;Ljava/lang/String;)V");
 	if (this->methodIDStartup == nullptr)
 		return;
 
