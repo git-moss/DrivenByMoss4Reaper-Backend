@@ -11,7 +11,7 @@
 
 #include "reaper_plugin.h"
 
-constexpr size_t MAX_EVENTS_PER_DEVICE = 1024; // adjust as needed
+constexpr size_t MAX_EVENTS_PER_DEVICE = 1024;
 
 /**
  * Helper class to insert MIDI events into the Reaper device queues from Java.
@@ -24,10 +24,17 @@ class LocalMidiEventDispatcher
 
 public:
 
-    LocalMidiEventDispatcher()
+    LocalMidiEventDispatcher() noexcept
     {
-        for (auto& bufferPair : rtLocalBuffers)
+        try
+        {
+            for (auto& bufferPair : rtLocalBuffers)
             bufferPair.second.reserve(MAX_EVENTS_PER_DEVICE);
+        }
+        catch (const std::bad_alloc&)
+        {
+            // Leave buffers without pre-reservation; object remains valid.
+        }
     }
 
     // Called by producers from any thread

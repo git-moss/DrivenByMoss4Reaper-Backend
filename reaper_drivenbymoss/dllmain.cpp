@@ -12,9 +12,9 @@
 #include <set>
 #include <thread>
 #include <unordered_map>
+#include <wdltypes.h>
+#include <lineparse.h>
 
-#include "wdltypes.h"
-#include "lineparse.h"
 #include "resource.h"
 
 #include "CodeAnalysis.h"
@@ -296,12 +296,17 @@ static jobject GetMidiInputsCPP(JNIEnv* env, jobject object)
 
 	jobject treeMap = surfaceInstance->jvmManager->CreateTreeMap(*env);
 	const int numMidiInputs = GetNumMIDIInputs();
-	for (int x = 0; x < numMidiInputs; x++)
+	for (int deviceID = 0; deviceID < numMidiInputs; deviceID++)
 	{
+		// Only add MIDI inputs which are open
+		const midi_Input* midiin = GetMidiInput(deviceID);
+		if (!midiin)
+			continue;
+
 		char buf[512];
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-		if (GetMIDIInputName(x, buf, sizeof(buf)))
-			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, x, buf);
+		if (GetMIDIInputName(deviceID, buf, sizeof(buf)))
+			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, deviceID, buf);
 	}
 
 	return treeMap;
@@ -322,12 +327,17 @@ static jobject GetMidiOutputsCPP(JNIEnv* env, jobject object)
 
 	jobject treeMap = surfaceInstance->jvmManager->CreateTreeMap(*env);
 	const int numMidiOutputs = GetNumMIDIOutputs();
-	for (int x = 0; x < numMidiOutputs; x++)
+	for (int deviceID = 0; deviceID < numMidiOutputs; deviceID++)
 	{
+		// Only add MIDI inputs which are open
+		const midi_Output* midiout = GetMidiOutput(deviceID);
+		if (!midiout)
+			continue;
+
 		char buf[512];
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-		if (GetMIDIOutputName(x, buf, sizeof(buf)))
-			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, x, buf);
+		if (GetMIDIOutputName(deviceID, buf, sizeof(buf)))
+			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, deviceID, buf);
 	}
 
 	return treeMap;
@@ -381,7 +391,7 @@ static jboolean OpenMidiOutputCPP(JNIEnv* env, jobject object, jint deviceID)
  * @param object   The JNI object
  * @param deviceID The ID of the MIDI input to close
  */
-static void CloseMidiInputCPP(JNIEnv* env, jobject object, jint deviceID)
+static void CloseMidiInputCPP(JNIEnv* env, jobject object, jint deviceID) noexcept
 {
 	activeMidiInputs.erase(deviceID);
 }
@@ -394,7 +404,7 @@ static void CloseMidiInputCPP(JNIEnv* env, jobject object, jint deviceID)
  * @param object   The JNI object
  * @param deviceID The ID of the MIDI output to close
  */
-static void CloseMidiOutputCPP(JNIEnv* env, jobject object, jint deviceID)
+static void CloseMidiOutputCPP(JNIEnv* env, jobject object, jint deviceID) noexcept
 {
 	activeMidiOutputs.erase(deviceID);
 }
@@ -462,7 +472,12 @@ static void SendMidiDataCPP(JNIEnv* env, jobject object, jint deviceID, jbyteArr
 }
 
 
-// Helper function: Convert hex string to vector of unsigned char
+/**
+ * Convert hex string to vector of unsigned char.
+ * 
+ * @param hexStr The hex codes to parse, needs to be an equal number of characters
+ * @return The parsed pair-characters as byte numbers
+ */
 static std::vector<unsigned char> ParseHexFilter(const std::string& hexStr)
 {
 	std::vector<unsigned char> result;
@@ -479,32 +494,17 @@ static std::vector<unsigned char> ParseHexFilter(const std::string& hexStr)
 }
 
 
-template <typename ModifyFn>
-static void UpdateDeviceDataSnapshot(int deviceID, int noteInputIndex, ModifyFn&& modify)
-{
-	if (noteInputIndex < 0 || noteInputIndex >= static_cast<int>(MAX_NOTE_INPUTS))
-		return;
-
-	std::shared_ptr<DeviceMap> current = std::atomic_load(&deviceDataSnapshot);
-	if (!current)
-		current = std::make_shared<DeviceMap>();
-	std::shared_ptr<DeviceMap> updated = std::make_shared<DeviceMap>(*current);
-
-	DeviceNoteData& deviceData = (*updated)[deviceID];
-	NoteInputData& noteData = deviceData.noteInputs[noteInputIndex];
-	modify(noteData);
-	deviceData.BuildLookup();
-
-	std::atomic_store(&deviceDataSnapshot, updated);
-}
-
-
+/**
+ * Set the MIDI filters for a note input.
+ *
+ * @param env            The JNI environment
+ * @param object         The JNI object
+ * @param deviceID       The ID of the MIDI input to which the note input belongs
+ * @param noteInputIndex The index of the note input to which the filters belong
+ */
 static void SetFiltersCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jobjectArray filters)
 {
-	if (env == nullptr)
-		return;
-
-	if (noteInputIndex < 0 || noteInputIndex >= static_cast<int>(MAX_NOTE_INPUTS))
+	if (env == nullptr || noteInputIndex < 0 || noteInputIndex >= MAX_NOTE_INPUTS)
 		return;
 
 	const jsize count = env->GetArrayLength(filters);
@@ -518,11 +518,14 @@ static void SetFiltersCPP(JNIEnv* env, jobject object, jint deviceID, jint noteI
 		env->ReleaseStringUTFChars(jStr, raw);
 		env->DeleteLocalRef(jStr);
 
+		// This parser expects 2 or 4 charcters!
 		hex.erase(std::remove_if(hex.begin(), hex.end(), ::isspace), hex.end());
 		if (hex.length() == 2 || hex.length() == 4)
 			parsed.push_back(ParseHexFilter(hex));
 	}
 
+	const std::lock_guard<std::mutex> lock(deviceDataMutex);
+	DISABLE_WARNING_PREFER_LOCAL_OBJECTS
 	std::shared_ptr<DeviceMap> current = std::atomic_load(&deviceDataSnapshot);
 	if (!current)
 		current = std::make_shared<DeviceMap>();
@@ -530,13 +533,15 @@ static void SetFiltersCPP(JNIEnv* env, jobject object, jint deviceID, jint noteI
 
 	DeviceNoteData& deviceData = (*updated)[deviceID];
 	deviceData.noteInputs[noteInputIndex].filters = std::move(parsed);
-	deviceData.BuildLookup();
+	deviceData.BuildFilterLookup();
 
 	std::atomic_store(&deviceDataSnapshot, updated);
 }
 
 
-// Safe copier from jintArray → std::array<int,128>
+/**
+ * Safe copier from jintArray to std::array<int, 128>.
+ */
 inline static bool CopyJIntArray128(JNIEnv* env, jintArray arr, std::array<int, 128>& out)
 {
 	if (!env || !arr)
@@ -545,14 +550,26 @@ inline static bool CopyJIntArray128(JNIEnv* env, jintArray arr, std::array<int, 
 	if (len != 128)
 		return false;
 
+	DISABLE_WARNING_REINTERPRET_CAST
+	// False positive
+	DISABLE_WARNING_IDENTICAL_SOURCE_DEST
 	env->GetIntArrayRegion(arr, 0, 128, reinterpret_cast<jint*>(out.data()));
 	return true;
 }
 
 
+/**
+ * Set the MIDI key translation table for a note input.
+ *
+ * @param env            The JNI environment
+ * @param object         The JNI object
+ * @param deviceID       The ID of the MIDI input to which the note input belongs
+ * @param noteInputIndex The index of the note input to which the filters belong
+ * @param table          The translation table which must contain 128 elements
+ */
 static void SetKeyTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jintArray table)
 {
-	if (env == nullptr || table == nullptr)
+	if (env == nullptr || table == nullptr || noteInputIndex < 0 || noteInputIndex >= MAX_NOTE_INPUTS)
 		return;
 
 	const jsize len = env->GetArrayLength(table);
@@ -563,16 +580,33 @@ static void SetKeyTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID
 	if (!CopyJIntArray128(env, table, parsed))
 		return;
 
-	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
-	{
-		data.keyTable = parsed;
-	});
+	const std::lock_guard<std::mutex> lock(deviceDataMutex);
+	std::shared_ptr<DeviceMap> current = std::atomic_load(&deviceDataSnapshot);
+	if (!current)
+		current = std::make_shared<DeviceMap>();
+	std::shared_ptr<DeviceMap> updated = std::make_shared<DeviceMap>(*current);
+
+	DeviceNoteData& deviceData = (*updated)[deviceID];
+	NoteInputData& noteData = deviceData.noteInputs[noteInputIndex];
+	noteData.keyTable = parsed;
+	deviceData.BuildKeyLookup();
+
+	std::atomic_store(&deviceDataSnapshot, updated);
 }
 
 
+/**
+ * Set the MIDI velocity translation table for a note input.
+ *
+ * @param env            The JNI environment
+ * @param object         The JNI object
+ * @param deviceID       The ID of the MIDI input to which the note input belongs
+ * @param noteInputIndex The index of the note input to which the filters belong
+ * @param table          The translation table which must contain 128 elements
+ */
 static void SetVelocityTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jintArray table)
 {
-	if (env == nullptr || table == nullptr)
+	if (env == nullptr || table == nullptr || noteInputIndex < 0 || noteInputIndex >= MAX_NOTE_INPUTS)
 		return;
 
 	const jsize len = env->GetArrayLength(table);
@@ -583,14 +617,26 @@ static void SetVelocityTranslationTableCPP(JNIEnv* env, jobject object, jint dev
 	if (!CopyJIntArray128(env, table, parsed))
 		return;
 
-	UpdateDeviceDataSnapshot(deviceID, noteInputIndex, [&](NoteInputData& data) noexcept
-	{
-		data.velocityTable = parsed;
-	});
+	std::shared_ptr<DeviceMap> current = std::atomic_load(&deviceDataSnapshot);
+	if (!current)
+		current = std::make_shared<DeviceMap>();
+	std::shared_ptr<DeviceMap> updated = std::make_shared<DeviceMap>(*current);
+
+	DeviceNoteData& deviceData = (*updated)[deviceID];
+	NoteInputData& noteData = deviceData.noteInputs[noteInputIndex];
+	noteData.velocityTable = parsed;
+	deviceData.BuildKeyLookup();
+
+	std::atomic_store(&deviceDataSnapshot, updated);
 }
 
 
-// Callback for custom actions
+/**
+ * Callback for custom (keyboard) actions.
+ * 
+ * @param command The ID of the command to execute
+ * @param flag    Execution flag, not used
+ */
 static bool HookCommandProc(int command, int flag)
 {
 	if (!jvmManager || !jvmManager->IsRunning())
@@ -620,7 +666,14 @@ static bool HookCommandProc(int command, int flag)
 }
 
 
-// Processing function for the configuration dialog
+/**
+ * (Windows) message callback of the configuration dialog.
+ * 
+ * @param hwndDlg The handle of the dialog window
+ * @param uMsg    The message to handle
+ * @param wParam  The int parameter
+ * @param lParam  The long parameter
+ */
 static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -646,10 +699,11 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	break;
 
+	// Display the configuration window
 	case WM_COMMAND:
 	{
 		DISABLE_WARNING_NO_C_STYLE_CONVERSION
-			const WORD value = LOWORD(wParam);
+		const WORD value = LOWORD(wParam);
 		switch (value)
 		{
 		case IDC_BUTTON_CONFIGURE:
@@ -671,7 +725,13 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
-// Callback function for Reaper to create an instance of the extension
+/**
+ * Callback function for Reaper to create an instance of the extension.
+ * 
+ * @param type_string  Unused
+ * @param configString Unused
+ * @param errStats     Unused
+ */
 IReaperControlSurface* createFunc(const char* type_string, const char* configString, int* errStats)
 {
 	if (!ENABLE_EXTENSION)
@@ -741,7 +801,12 @@ static reaper_csurf_reg_t drivenbymoss_reg =
 
 
 /**
- * Called for all extension sub-tags of the project file.
+ * Called for all extension sub-tags of the project file to parse additional parameters which are specific to an extension.
+ * 
+ * @param line   The line to parse
+ * @param ctx    The project context (not used)
+ * @param isUndo Is this called due to an undo operation? (not used)
+ * @param reg    Pointer to the registered extension (not used)
  */
 static bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
@@ -784,6 +849,14 @@ static bool ProcessExtensionLine(const char* line, ProjectStateContext* ctx, boo
 	return true;
 }
 
+
+/**
+ * Callback for storing additional parameters for the registered extension.
+ *
+ * @param ctx    The project context (not used)
+ * @param isUndo Is this called due to an undo operation? (not used)
+ * @param reg    Pointer to the registered extension (not used)
+ */
 static void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct project_config_extension_t* reg)
 {
 	ReaDebug::Log("DrivenByMoss: Saving project settings.\n");
@@ -804,6 +877,13 @@ static void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct pr
 }
 
 
+/**
+ * Callback for loading additional parameters for the registered extension.
+ *
+ * @param ctx    The project context (not used)
+ * @param isUndo Is this called due to an undo operation? (not used)
+ * @param reg    Pointer to the registered extension (not used)
+ */
 static void BeginLoadProjectState(bool isUndo, struct project_config_extension_t* reg)
 {
 	ReaDebug::Log("DrivenByMoss: Loading project settings.\n");
@@ -817,6 +897,7 @@ static void BeginLoadProjectState(bool isUndo, struct project_config_extension_t
 	ReaDebug::Log("DrivenByMoss: Project settings loaded.\n");
 }
 
+// Structure for registering the project notification extension
 project_config_extension_t pcreg =
 {
   ProcessExtensionLine,
@@ -828,6 +909,9 @@ project_config_extension_t pcreg =
 
 /**
  * Matches the incoming MIDI event against the registered note input filters.
+ * 
+ * @param deviceID The ID of the device to which to match the event
+ * @param deviceID The event to match/filter
  */
 inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
 {
@@ -860,24 +944,24 @@ inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
 		// If this becomes a use-case it would need to be implemented with a pre-allocated pool or ring 
 		// buffer of MIDI_event_t
 
-		if (deviceData.lookup.filterMatch[noteIdx][status][data1])
+		if (deviceData.filterMatch[noteIdx][status][data1])
 		{
-			if (isNote && deviceData.lookup.filterMatch[noteIdx][status][data1])
+			if (isNote && deviceData.filterMatch[noteIdx][status][data1])
 			{
-				if (deviceData.lookup.keyLookup[noteIdx][data1] < 0)
+				if (deviceData.keyLookup[noteIdx][data1] < 0)
 					continue;
 					
-				event->midi_message[1] = deviceData.lookup.keyLookup[noteIdx][data1];
+				event->midi_message[1] = deviceData.keyLookup[noteIdx][data1];
 
 				const unsigned char data2 = event->size > 2 ? event->midi_message[2] : 0;
 
-				if (deviceData.lookup.velocityLookup[noteIdx][data2] < 0)
+				if (deviceData.velocityLookup[noteIdx][data2] < 0)
 					continue;
 
 				if (data2 >= 128)
 					return false;
 
-				event->midi_message[2] = deviceData.lookup.velocityLookup[noteIdx][data2];
+				event->midi_message[2] = deviceData.velocityLookup[noteIdx][data2];
 			}
 
 			return true;
@@ -891,7 +975,13 @@ inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
 /**
  * Audio hook. Reads from registered MIDI inputs and queues the events to be sent to Java as well
  * as matching them against the registered note input filters and sends the matches to Reaper.
- * Adds additional MIDI events intended for Reaper. Sends outgoing MIDI events.
+ * Adds additional MIDI events intended for Reaper.
+ * The method is called before and after the update of the audio buffer
+ * 
+ * @param isPost True if the call is after the update of the audio buffer
+ * @param len    The length of the buffer (not used)
+ * @param srate  The sample rate (not used)
+ * @param reg    Pointer to the registered audio hook structure (not used)
  */
 static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_register_t* reg)
 {
@@ -1051,8 +1141,7 @@ extern "C"
 			return 0;
 		}
 
-		// Register audio hook
-
+		// Make undocumented GetMidiInput and GetMidiOutput functions available
 		GetMidiInput = (midi_Input * (*)(int))rec->GetFunc("GetMidiInput");
 		if (!GetMidiInput)
 		{
@@ -1066,6 +1155,7 @@ extern "C"
 			return 0;
 		}
 
+		// Register audio hook
 		audioHook.userdata1 = nullptr;
 		audioHook.userdata2 = nullptr;
 		audioHook.input_nch = 0;

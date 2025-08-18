@@ -10,9 +10,11 @@
 #include <cassert>
 #include <type_traits>
 
+
 // SPSC bounded queue: capacity must be a power of two
 template<typename T, size_t Capacity>
-class ReaderWriterQueue {
+class ReaderWriterQueue
+{
     static_assert((Capacity& (Capacity - 1)) == 0, "Capacity must be a power of two");
 public:
     ReaderWriterQueue() noexcept
@@ -31,13 +33,16 @@ public:
         T* raw = item.release(); // transfer ownership into the queue
         const size_t t = tail_.load(std::memory_order_relaxed);
         const size_t next = (t + 1) & mask();
-        if (next == head_.load(std::memory_order_acquire)) {
+        if (next == head_.load(std::memory_order_acquire))
+        {
             // queue full
             // restore ownership for caller (avoid leaking)
             item.reset(raw);
             return false;
         }
 
+        DISABLE_WARNING_USE_GSL_AT
+        DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
         buffer_[t] = raw;
 
         // publish the new tail (make the write visible to consumer)
@@ -49,13 +54,12 @@ public:
     std::unique_ptr<T> pop() noexcept
     {
         const size_t h = head_.load(std::memory_order_relaxed);
-        if (h == tail_.load(std::memory_order_acquire)) {
-            // empty
+        if (h == tail_.load(std::memory_order_acquire))
             return nullptr;
-        }
 
         T* raw = buffer_[h];
-        buffer_[h] = nullptr; // not strictly required but helps debugging
+        // Not strictly required but helps debugging
+        buffer_[h] = nullptr;
 
         const size_t next = (h + 1) & mask();
         head_.store(next, std::memory_order_release);
@@ -76,7 +80,10 @@ public:
     bool full()  const noexcept { return ((tail_.load(std::memory_order_acquire) + 1) & mask()) == head_.load(std::memory_order_acquire); }
 
 private:
-    static constexpr size_t mask() noexcept { return Capacity - 1; }
+    static constexpr size_t mask() noexcept
+    {
+        return Capacity - 1;
+    }
 
     // buffer stores raw pointers, ownership semantics are handled by push/pop
     T* buffer_[Capacity];

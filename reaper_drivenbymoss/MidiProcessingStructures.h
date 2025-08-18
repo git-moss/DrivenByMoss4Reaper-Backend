@@ -11,25 +11,11 @@
 #include "CodeAnalysis.h"
 
 
-// Immutable per-note-input filter set
-using FilterSet = std::vector<std::vector<unsigned char>>;
-
 constexpr size_t MAX_NOTE_INPUTS = 6;
 
 
-/**
- * Copy of key-/velocity tables for fast lookup.
- */
-struct FastNoteLookup
-{
-    // Lookup table: [noteInputIndex][noteNumber]
-    std::array<std::array<int, 128>, MAX_NOTE_INPUTS> keyLookup;
-    std::array<std::array<int, 128>, MAX_NOTE_INPUTS> velocityLookup;
-
-    // Filter matching table: [noteInputIndex][status][data1]
-    // true = match
-    std::array<std::array<std::array<bool, 128>, 256>, MAX_NOTE_INPUTS> filterMatch{};
-};
+// Immutable per-note-input filter set
+using FilterSet = std::vector<std::vector<unsigned char>>;
 
 
 /**
@@ -37,16 +23,16 @@ struct FastNoteLookup
  */
 struct NoteInputData
 {
-    // still needed for rebuilding
+    // Needs to be stored for rebuilding the fast lookup table! in DeviceNoteData
     FilterSet filters;
     std::array<int, 128> keyTable{};
     std::array<int, 128> velocityTable{};
 
     NoteInputData() noexcept
     {
-        // Block all by default
         DISABLE_WARNING_USE_GSL_AT
         DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
+        // Block all by default
         for (int i = 0; i < 128; ++i)
         {
             keyTable[i] = -1;
@@ -63,11 +49,24 @@ struct DeviceNoteData
 {
     std::array<NoteInputData, MAX_NOTE_INPUTS> noteInputs;
 
-    // Lookup table for RT thread
-    FastNoteLookup lookup;
+    // Lookup tables for RT thread: [noteInputIndex][noteNumber]
+    std::array<std::array<int, 128>, MAX_NOTE_INPUTS> keyLookup;
+    std::array<std::array<int, 128>, MAX_NOTE_INPUTS> velocityLookup;
+
+    // Filter matching table for RT thread: [noteInputIndex][status][data1], true = match
+    std::array<std::array<std::array<bool, 128>, 256>, MAX_NOTE_INPUTS> filterMatch{};
 
 
-    void BuildLookup()
+    DeviceNoteData() noexcept
+    {
+        this->BuildKeyLookup();
+        this->BuildVelocityLookup();
+        this->BuildFilterLookup();
+    }
+
+
+    // Copy keyTable for fast runtime access
+    void BuildKeyLookup() noexcept
     {
         // Do not use gsl:at for performance reasons!
         DISABLE_WARNING_USE_GSL_AT
@@ -76,21 +75,48 @@ struct DeviceNoteData
         for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
         {
             const auto& noteData = noteInputs[noteIdx];
-
-            // Copy keyTable & velocityTable for fast runtime access
             for (int i = 0; i < 128; ++i)
-            {
-                lookup.keyLookup[noteIdx][i] = noteData.keyTable[i];
-                lookup.velocityLookup[noteIdx][i] = noteData.velocityTable[i];
-            }
+                this->keyLookup[noteIdx][i] = noteData.keyTable[i];
+        }
+    }
 
-            // Build filter match table
+
+    // Copy velocityTable for fast runtime access
+    void BuildVelocityLookup() noexcept
+    {
+        // Do not use gsl:at for performance reasons!
+        DISABLE_WARNING_USE_GSL_AT
+        DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
+
+        for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
+        {
+            const auto& noteData = noteInputs[noteIdx];
+            for (int i = 0; i < 128; ++i)
+                this->velocityLookup[noteIdx][i] = noteData.velocityTable[i];
+        }
+    }
+
+
+    // Build filter match table
+    void BuildFilterLookup() noexcept
+    {
+        // Do not use gsl:at for performance reasons!
+        DISABLE_WARNING_USE_GSL_AT
+        DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
+
+        for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
+        {
+            const auto& noteData = noteInputs[noteIdx];
             for (const auto& filter : noteData.filters)
             {
                 if (filter.size() == 1)
-                    lookup.filterMatch[noteIdx][filter[0]].fill(true);
+                {
+                    auto& array = this->filterMatch[noteIdx][filter[0]];
+                    for ( int i = 0; i < array.size(); i++)
+                        array[i] = true;
+                }
                 else if (filter.size() == 2)
-                    lookup.filterMatch[noteIdx][filter[0]][filter[1]] = true;
+                    this->filterMatch[noteIdx][filter[0]][filter[1]] = true;
             }
         }
     }
