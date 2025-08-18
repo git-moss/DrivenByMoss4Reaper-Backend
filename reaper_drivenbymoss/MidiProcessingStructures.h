@@ -11,7 +11,7 @@
 #include "CodeAnalysis.h"
 
 
-constexpr size_t MAX_NOTE_INPUTS = 6;
+constexpr size_t MAX_NOTE_INPUTS = 16;
 
 
 // Immutable per-note-input filter set
@@ -32,11 +32,11 @@ struct NoteInputData
     {
         DISABLE_WARNING_USE_GSL_AT
         DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
-        // Block all by default
+        // Default is identity
         for (int i = 0; i < 128; ++i)
         {
-            keyTable[i] = -1;
-            velocityTable[i] = -1;
+            keyTable[i] = i;
+            velocityTable[i] = i;
         }
     }
 };

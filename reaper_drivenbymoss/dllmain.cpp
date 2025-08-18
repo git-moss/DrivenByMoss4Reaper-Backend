@@ -625,7 +625,7 @@ static void SetVelocityTranslationTableCPP(JNIEnv* env, jobject object, jint dev
 	DeviceNoteData& deviceData = (*updated)[deviceID];
 	NoteInputData& noteData = deviceData.noteInputs[noteInputIndex];
 	noteData.velocityTable = parsed;
-	deviceData.BuildKeyLookup();
+	deviceData.BuildVelocityLookup();
 
 	std::atomic_store(&deviceDataSnapshot, updated);
 }
@@ -913,21 +913,11 @@ project_config_extension_t pcreg =
  * @param deviceID The ID of the device to which to match the event
  * @param deviceID The event to match/filter
  */
-inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
+inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_event_t* event)
 {
 	const unsigned char data1 = event->size > 1 ? event->midi_message[1] : 0;
 	if (data1 >= 128)
 		return false;
-
-	auto snapshot = std::atomic_load(&deviceDataSnapshot);
-	if (!snapshot)
-		return false;
-
-	auto deviceIt = snapshot->find(deviceID);
-	if (deviceIt == snapshot->end())
-		return false;
-
-	const auto& deviceData = deviceIt->second;
 
 	// Do not use gsl:at for performance reasons!
 	DISABLE_WARNING_USE_GSL_AT
@@ -935,7 +925,7 @@ inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
 
 	const unsigned char status = event->midi_message[0];
 	const int statusType = status & 0xF0;
-	const bool isNote = statusType == 0x90 || statusType == 0x80;
+	const bool isNote = statusType == 0x90 || statusType == 0x80 || statusType == 0xA0;
 
 	for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
 	{
@@ -946,7 +936,7 @@ inline static bool ProcessMidiEvents(int deviceID, MIDI_event_t* event)
 
 		if (deviceData.filterMatch[noteIdx][status][data1])
 		{
-			if (isNote && deviceData.filterMatch[noteIdx][status][data1])
+			if (isNote)
 			{
 				if (deviceData.keyLookup[noteIdx][data1] < 0)
 					continue;
@@ -994,9 +984,19 @@ static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_
 		if (!midiin)
 			continue;
 
+		auto snapshot = std::atomic_load(&deviceDataSnapshot);
+		if (!snapshot)
+			continue;
+
+		auto deviceIt = snapshot->find(deviceID);
+		if (deviceIt == snapshot->end())
+			continue;
+
 		MIDI_eventlist* list = midiin->GetReadBuf();
 		if (!list)
 			continue;
+
+		const auto& deviceData = deviceIt->second;
 
 		int position = 0;
 		int nextPosition = 0;
@@ -1026,7 +1026,7 @@ static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_
 			const uint8_t data2 = (size > 2) ? event->midi_message[2] : 0;
 			surfaceInstance->EnqueueMidi3(deviceID, status, data1, data2);
 			// Apply note input filters
-			if (!ProcessMidiEvents(deviceID, event))
+			if (!ProcessMidiEvents(deviceData, event))
 			{
 				list->DeleteItem(position);
 				nextPosition = position;
