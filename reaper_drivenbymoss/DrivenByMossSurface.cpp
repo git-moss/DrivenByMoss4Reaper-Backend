@@ -20,11 +20,30 @@ DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManage
 
 
 /**
- * Destructor.
+ * Destructor. Note: delete is called from Reaper on shutdown, no need to do it ourselves!
  */
 DrivenByMossSurface::~DrivenByMossSurface()
 {
 	this->isShutdown = true;
+
+	if (jvmManager)
+	{
+		jvmManager->SetCleanShutdown();
+		jvmManager.reset();
+		// Send final cleanup
+		try
+		{
+			this->SendMIDIEventsToOutputs();
+		}
+		catch (const std::exception& ex)
+		{
+			ReaDebug() << "Could not update device: " << ex.what();
+		}
+		catch (...)
+		{
+			ReaDebug() << "Could not update device.";
+		}
+	}
 
 	// Null global variables
 	ReaDebug::setModel(nullptr);
@@ -212,9 +231,6 @@ void DrivenByMossSurface::SendMIDIEventsToJava()
 
 void DrivenByMossSurface::SendMIDIEventsToOutputs()
 {
-	if (this->isShutdown)
-		return;
-
 	// Satisfy the C API
 	DISABLE_WARNING_ARRAY_POINTER_DECAY
 

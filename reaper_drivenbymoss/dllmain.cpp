@@ -975,7 +975,7 @@ inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_even
  */
 static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_register_t* reg)
 {
-	if (jvmManager == nullptr || surfaceInstance == nullptr || isPost)
+	if (surfaceInstance == nullptr || isPost)
 		return;
 
 	for (const auto& deviceID : activeMidiInputs)
@@ -1054,11 +1054,6 @@ extern "C"
 		// On shutdown
 		if (rec == nullptr)
 		{
-			if (jvmManager)
-			{
-				jvmManager->SetCleanShutdown();
-				jvmManager.reset();
-			}
 			return 0;
 		}
 
