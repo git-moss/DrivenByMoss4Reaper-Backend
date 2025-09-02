@@ -64,6 +64,7 @@ JvmManager::~JvmManager()
 				ReaDebug::Log("Could not call shutdown.\n");
 			}
 		}
+
 		this->jvm = nullptr;
 	}
 
@@ -188,7 +189,7 @@ void JvmManager::Create()
 	const jint rc = JNI_CreateJavaVM(&this->jvm, reinterpret_cast<void**> (&env), &vm_args);
 	if (rc != JNI_OK)
 	{
-		ReaDebug() << "ERROR: Could not start Java Virtual Machine with " << classpath;
+		ReaDebug() << "ERROR: Could not start Java Virtual Machine. Error code: " << rc << " Classpath: " << classpath;
 		return;
 	}
 

@@ -26,23 +26,18 @@ DrivenByMossSurface::~DrivenByMossSurface()
 {
 	this->isShutdown = true;
 
-	if (jvmManager)
+	// Send final cleanup
+	try
 	{
-		jvmManager->SetCleanShutdown();
-		jvmManager.reset();
-		// Send final cleanup
-		try
-		{
-			this->SendMIDIEventsToOutputs();
-		}
-		catch (const std::exception& ex)
-		{
-			ReaDebug() << "Could not update device: " << ex.what();
-		}
-		catch (...)
-		{
-			ReaDebug() << "Could not update device.";
-		}
+		this->SendMIDIEventsToOutputs();
+	}
+	catch (const std::exception& ex)
+	{
+		ReaDebug() << "Could not update device: " << ex.what();
+	}
+	catch (...)
+	{
+		ReaDebug() << "Could not update device.";
 	}
 
 	// Null global variables
