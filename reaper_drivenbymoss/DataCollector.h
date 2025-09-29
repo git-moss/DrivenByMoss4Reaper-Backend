@@ -101,7 +101,7 @@ private:
 	std::string strLoopStartBeat{};
 	std::string strLoopLengthBeat{};
 	int automationMode{};
-	double visibleSeconds{};
+	double visiblePixelsPerSecond{};
 
 	// Click / metronome values
 	int metronome{};

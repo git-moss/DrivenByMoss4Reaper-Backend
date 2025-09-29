@@ -210,12 +210,8 @@ void DataCollector::CollectTransportData(std::ostringstream& ss, ReaProject* pro
 	this->followPlayback = Collectors::CollectIntValue(ss, "/followPlayback", this->followPlayback, GetToggleCommandState(40036), dump);
 	this->automationMode = Collectors::CollectIntValue(ss, "/automode", this->automationMode, GetGlobalAutomationOverride(), dump);
 
-	// Calculate the currently visible number of seconds in the arranger
-	HWND hwnd = ReaperUtils::GetArrangeWnd();
-	RECT rect;
-	GetWindowRect(hwnd, &rect);
-	const double seconds = (static_cast<double> (rect.right) - rect.left) / GetHZoomLevel();
-	this->visibleSeconds = Collectors::CollectDoubleValue(ss, "/time/hzoom", this->visibleSeconds, seconds, dump);
+	// The currently visible number of pixels per seconds in the arranger
+	this->visiblePixelsPerSecond = Collectors::CollectDoubleValue(ss, "/time/hzoom", this->visiblePixelsPerSecond, GetHZoomLevel(), dump);
 }
 
 
