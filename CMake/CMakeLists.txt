@@ -345,20 +345,44 @@ if(MSVC)
         ${DEFAULT_CXX_EXCEPTION_HANDLING};
         /Y-
     )
-    target_link_options(${PROJECT_NAME} PRIVATE
-        $<$<CONFIG:Debug>:
-            /INCREMENTAL
-        >
-        $<$<CONFIG:Release>:
-            /OPT:REF;
-            /OPT:ICF;
-            /INCREMENTAL:NO
-        >
-        /DEBUG:FULL;
-        /SUBSYSTEM:WINDOWS;
-        /NXCOMPAT:NO;
-        /DYNAMICBASE:NO
-    )
+
+    # Determine if building for ARM64 since DYNAMICBASE is always enforced
+    # DYNAMICBASE: Enables Address Space Layout Randomization (ASLR) — a Windows security feature.
+    string(TOUPPER "${CMAKE_VS_PLATFORM_NAME}" PLATFORM_UPPER)
+    if(PLATFORM_UPPER STREQUAL "ARM64")
+        message(STATUS "Applying ARM64-safe linker flags (no /DYNAMICBASE:NO)")
+        target_link_options(${PROJECT_NAME} PRIVATE
+            $<$<CONFIG:Debug>:
+                /INCREMENTAL
+            >
+            $<$<CONFIG:Release>:
+                /OPT:REF;
+                /OPT:ICF;
+                /INCREMENTAL:NO
+            >
+            /DEBUG:FULL;
+            /SUBSYSTEM:WINDOWS;
+            /NXCOMPAT:NO;
+            /MACHINE:ARM64
+        )
+    else()
+        message(STATUS "Applying standard x64 linker flags")
+        target_link_options(${PROJECT_NAME} PRIVATE
+            $<$<CONFIG:Debug>:
+                /INCREMENTAL
+            >
+            $<$<CONFIG:Release>:
+                /OPT:REF;
+                /OPT:ICF;
+                /INCREMENTAL:NO
+            >
+            /DEBUG:FULL;
+            /SUBSYSTEM:WINDOWS;
+            /NXCOMPAT:NO;
+            /DYNAMICBASE:NO;
+            /MACHINE:X64
+        )
+    endif()
 endif()
 
 ################################################################################
