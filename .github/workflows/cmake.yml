@@ -19,12 +19,16 @@ jobs:
         include:
           - os: ubuntu-22.04
             artifact_name: reaper_drivenbymoss.so
+            arch: ""   # Linux output path doesn’t need subfolder
           - os: macos-13
             artifact_name: reaper_drivenbymoss.dylib
+            arch: ""   # macOS output path doesn’t need subfolder
           - os: windows-2022
             artifact_name: reaper_drivenbymoss.dll
+            arch: x64
           - os: windows-11-arm
             artifact_name: reaper_drivenbymoss.arm.dll
+            arch: ARM64
     
     name: ${{ matrix.os }}
 
@@ -45,7 +49,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: DrivenByMoss4Reaper-Libraries-${{ matrix.os }}
-        path: ${{github.workspace}}/build/x64/Release/${{ matrix.artifact_name }}
+        path: ${{ github.workspace }}/build/${{ matrix.arch }}/Release/${{ matrix.artifact_name }}
 
   merge:
     runs-on: ubuntu-latest
