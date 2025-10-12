@@ -16,7 +16,7 @@ if(APPLE)
     set(CMAKE_POSITION_INDEPENDENT_CODE FALSE)
 endif()
 
-project(reaper_drivenbymoss VERSION 26.3.0.0 LANGUAGES CXX)
+project(reaper_drivenbymoss VERSION 26.3.1.0 LANGUAGES CXX)
 
 string(REPLACE "." "," VER_VERSION "${PROJECT_VERSION}")
 string(TIMESTAMP VER_YEAR "%Y" UTC)
@@ -50,12 +50,26 @@ endif()
 ################################################################################
 
 if(NOT CMAKE_VS_PLATFORM_NAME)
-    set(CMAKE_VS_PLATFORM_NAME "x64")
+    set(CMAKE_VS_PLATFORM_NAME "x64") # Default
 endif()
-message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
+message(STATUS "Architecture in use: ${CMAKE_VS_PLATFORM_NAME}")
 
-if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"))
-    message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")
+# Normalize platform names (CMake may pass 'ARM64' or 'arm64')
+string(TOUPPER "${CMAKE_VS_PLATFORM_NAME}" CMAKE_VS_PLATFORM_NAME_UPPER)
+
+if(CMAKE_VS_PLATFORM_NAME_UPPER STREQUAL "X64")
+    message(STATUS "Configuring for Windows 10/11 x64 build...")
+elseif(CMAKE_VS_PLATFORM_NAME_UPPER STREQUAL "ARM64")
+    message(STATUS "Configuring for Windows 11 ARM64 build...")
+    add_definitions(-DWIN_ARM64)
+    set(CMAKE_SYSTEM_PROCESSOR "ARM64")
+
+    # Optional: Adjust compiler/linker options for ARM64
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /arch:armv8.1")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MACHINE:ARM64")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MACHINE:ARM64")
+else()
+    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_VS_PLATFORM_NAME}")
 endif()
 
 ################################################################################
