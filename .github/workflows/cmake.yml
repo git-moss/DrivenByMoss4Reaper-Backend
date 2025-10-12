@@ -19,10 +19,11 @@ jobs:
         include:
           - os: ubuntu-22.04
             artifact_name: reaper_drivenbymoss.so
-            arch: ""   # Linux output path doesn’t need subfolder
+            arch: x64
+          # This is a dual build for x64 and ARM
           - os: macos-13
             artifact_name: reaper_drivenbymoss.dylib
-            arch: ""   # macOS output path doesn’t need subfolder
+            arch: x64
           - os: windows-2022
             artifact_name: reaper_drivenbymoss.dll
             arch: x64
