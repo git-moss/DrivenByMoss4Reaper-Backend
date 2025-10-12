@@ -23,9 +23,8 @@ jobs:
             artifact_name: reaper_drivenbymoss.dylib
           - os: windows-2022
             artifact_name: reaper_drivenbymoss.dll
-          # ubuntu-22.04-arm, ubuntu-24.04-arm and windows-11-arm are not supported yet for private repositories
-          # - os: windows-11-arm
-          #  artifact_name: reaper_drivenbymoss.arm.dll
+          - os: windows-11-arm
+            artifact_name: reaper_drivenbymoss.arm.dll
     
     name: ${{ matrix.os }}
 
@@ -34,7 +33,7 @@ jobs:
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: 21
+        java-version: 23
 
     - name: Configure CMake
       run: cmake -S "CMake" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
