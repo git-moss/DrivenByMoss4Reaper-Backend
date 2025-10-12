@@ -1055,10 +1055,7 @@ extern "C"
 		if (rec == nullptr)
 		{
 			if (jvmManager)
-			{
-				jvmManager->SetCleanShutdown();
 				jvmManager.reset();
-			}
 			return 0;
 		}
 

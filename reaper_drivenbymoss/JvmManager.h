@@ -26,6 +26,7 @@ public:
 	~JvmManager();
 
 	void Init(void* functions[]);
+	void ShutdownControllers();
 
 	bool IsRunning() const noexcept
 	{
@@ -44,7 +45,6 @@ public:
 	void UpdateModel(const std::string& data);
 
 	void StartInfrastructure();
-	void SetCleanShutdown() noexcept { this->isCleanShutdown = true; };
 
 	void SetDefaultDocumentSettings();
 	std::string GetFormattedDocumentSettings();

@@ -45,26 +45,6 @@ JvmManager::~JvmManager()
 	if (this->jvm != nullptr)
 	{
         ReaDebug::Log("DrivenByMoss: Shutting down JVM.\n");
-
-		if (this->isCleanShutdown)
-		{
-            ReaDebug::Log("DrivenByMoss: Shutting down JVM cleanly.\n");
-
-			try
-			{
-				JNIEnv* env = this->GetEnv();
-				if (env != nullptr && this->methodIDShutdown != nullptr)
-				{
-					env->CallStaticVoidMethod(this->controllerClass, this->methodIDShutdown);
-					this->HandleException(*env, "Could not call shutdown.");
-				}
-			}
-			catch (...)
-			{
-				ReaDebug::Log("Could not call shutdown.\n");
-			}
-		}
-
 		this->jvm = nullptr;
 	}
 
@@ -82,6 +62,28 @@ JvmManager::~JvmManager()
 #endif
 	}
 	this->jvmLibHandle = nullptr;
+}
+
+
+void JvmManager::ShutdownControllers()
+{
+	ReaDebug::Log("DrivenByMoss: Shutting down controllers.\n");
+
+	this->isCleanShutdown = true;
+
+	try
+	{
+		JNIEnv* env = this->GetEnv();
+		if (env != nullptr && this->methodIDShutdown != nullptr)
+		{
+			env->CallStaticVoidMethod(this->controllerClass, this->methodIDShutdown);
+			this->HandleException(*env, "Could not call shutdown.");
+		}
+	}
+	catch (...)
+	{
+		ReaDebug::Log("Could not call shutdown.\n");
+	}
 }
 
 

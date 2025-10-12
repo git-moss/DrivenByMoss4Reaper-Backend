@@ -61,3 +61,4 @@ jobs:
       with:
         name: DrivenByMoss4Reaper-Libraries
         pattern: DrivenByMoss4Reaper-Libraries-*
+        flatten: false   # preserves sub-folder structure

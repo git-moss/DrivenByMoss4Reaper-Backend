@@ -26,9 +26,12 @@ DrivenByMossSurface::~DrivenByMossSurface()
 {
 	this->isShutdown = true;
 
-	// Send final cleanup
 	try
 	{
+		// Send final cleanup
+		if (jvmManager)
+			jvmManager->ShutdownControllers();
+
 		this->SendMIDIEventsToOutputs();
 	}
 	catch (const std::exception& ex)
