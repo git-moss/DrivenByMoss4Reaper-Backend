@@ -27,7 +27,7 @@ jobs:
             artifact_name: reaper_drivenbymoss.dll
             arch: x64
           - os: windows-11-arm
-            artifact_name: reaper_drivenbymoss.arm.dll
+            artifact_name: reaper_drivenbymoss.dll
             arch: ARM64
     
     name: ${{ matrix.os }}
