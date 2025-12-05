@@ -880,7 +880,6 @@ static void SaveExtensionConfig(ProjectStateContext* ctx, bool isUndo, struct pr
 /**
  * Callback for loading additional parameters for the registered extension.
  *
- * @param ctx    The project context (not used)
  * @param isUndo Is this called due to an undo operation? (not used)
  * @param reg    Pointer to the registered extension (not used)
  */
@@ -910,8 +909,8 @@ project_config_extension_t pcreg =
 /**
  * Matches the incoming MIDI event against the registered note input filters.
  * 
- * @param deviceID The ID of the device to which to match the event
- * @param deviceID The event to match/filter
+ * @param deviceData The ID of the device to which to match the event
+ * @param event The event to match/filter
  */
 inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_event_t* event)
 {
