@@ -21,7 +21,7 @@ jobs:
             artifact_name: reaper_drivenbymoss.so
             arch: x64
           # This is a dual build for x64 and ARM
-          - os: macos-13
+          - os: macos-15-intel
             artifact_name: reaper_drivenbymoss.dylib
             arch: x64
           - os: windows-2022
