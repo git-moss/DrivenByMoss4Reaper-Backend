@@ -272,7 +272,7 @@ static void ProcessMidiArgCPP(const JNIEnv* env, jobject object, jint deviceID, 
 	if (env == nullptr || surfaceInstance == nullptr)
 		return;
 
-	MIDI_event_t event;
+	MIDI_event_t event{};
 	event.frame_offset = 0;
 	event.size = 3;
 	event.midi_message[0] = gsl::narrow_cast<unsigned char>(status);
@@ -305,7 +305,7 @@ static jobject GetMidiInputsCPP(JNIEnv* env, jobject object)
 
 		char buf[512];
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-		if (GetMIDIInputName(deviceID, buf, sizeof(buf)))
+		if (GetMIDIInputNameNoAlias(deviceID, buf, sizeof(buf)))
 			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, deviceID, buf);
 	}
 
@@ -336,7 +336,7 @@ static jobject GetMidiOutputsCPP(JNIEnv* env, jobject object)
 
 		char buf[512];
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
-		if (GetMIDIOutputName(deviceID, buf, sizeof(buf)))
+		if (GetMIDIOutputNameNoAlias(deviceID, buf, sizeof(buf)))
 			surfaceInstance->jvmManager->AddToTreeMap(*env, treeMap, deviceID, buf);
 	}
 
@@ -474,7 +474,7 @@ static void SendMidiDataCPP(JNIEnv* env, jobject object, jint deviceID, jbyteArr
 
 /**
  * Convert hex string to vector of unsigned char.
- * 
+ *
  * @param hexStr The hex codes to parse, needs to be an equal number of characters
  * @return The parsed pair-characters as byte numbers
  */
@@ -633,7 +633,7 @@ static void SetVelocityTranslationTableCPP(JNIEnv* env, jobject object, jint dev
 
 /**
  * Callback for custom (keyboard) actions.
- * 
+ *
  * @param command The ID of the command to execute
  * @param flag    Execution flag, not used
  */
@@ -668,7 +668,7 @@ static bool HookCommandProc(int command, int flag)
 
 /**
  * (Windows) message callback of the configuration dialog.
- * 
+ *
  * @param hwndDlg The handle of the dialog window
  * @param uMsg    The message to handle
  * @param wParam  The int parameter
@@ -727,12 +727,12 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 /**
  * Callback function for Reaper to create an instance of the extension.
- * 
+ *
  * @param type_string  Unused
  * @param configString Unused
  * @param errStats     Unused
  */
-IReaperControlSurface* createFunc(const char* type_string, const char* configString, int* errStats)
+static IReaperControlSurface* createFunc(const char* type_string, const char* configString, int* errStats)
 {
 	if (!ENABLE_EXTENSION)
 		return nullptr;
@@ -802,7 +802,7 @@ static reaper_csurf_reg_t drivenbymoss_reg =
 
 /**
  * Called for all extension sub-tags of the project file to parse additional parameters which are specific to an extension.
- * 
+ *
  * @param line   The line to parse
  * @param ctx    The project context (not used)
  * @param isUndo Is this called due to an undo operation? (not used)
@@ -908,11 +908,11 @@ project_config_extension_t pcreg =
 
 /**
  * Matches the incoming MIDI event against the registered note input filters.
- * 
+ *
  * @param deviceData The ID of the device to which to match the event
  * @param event The event to match/filter
  */
-inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_event_t* event)
+inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_event_t* event) noexcept
 {
 	const unsigned char data1 = event->size > 1 ? event->midi_message[1] : 0;
 	if (data1 >= 128)
@@ -939,7 +939,7 @@ inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_even
 			{
 				if (deviceData.keyLookup[noteIdx][data1] < 0)
 					continue;
-					
+
 				event->midi_message[1] = deviceData.keyLookup[noteIdx][data1];
 
 				const unsigned char data2 = event->size > 2 ? event->midi_message[2] : 0;
@@ -961,12 +961,19 @@ inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_even
 }
 
 
+static void OnExit() noexcept
+{
+	if (surfaceInstance != nullptr)
+		surfaceInstance->Shutdown();
+}
+
+
 /**
  * Audio hook. Reads from registered MIDI inputs and queues the events to be sent to Java as well
  * as matching them against the registered note input filters and sends the matches to Reaper.
  * Adds additional MIDI events intended for Reaper.
  * The method is called before and after the update of the audio buffer
- * 
+ *
  * @param isPost True if the call is after the update of the audio buffer
  * @param len    The length of the buffer (not used)
  * @param srate  The sample rate (not used)
@@ -987,7 +994,7 @@ static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_
 		if (!snapshot)
 			continue;
 
-		auto deviceIt = snapshot->find(deviceID);
+		const auto deviceIt = snapshot->find(deviceID);
 		if (deviceIt == snapshot->end())
 			continue;
 
@@ -1040,6 +1047,25 @@ static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_
 }
 
 
+static bool RegisterAccelerator(gaccel_register_t& accelerator, const reaper_plugin_info_t* rec, const char* id, const char* errorMsg) noexcept
+{
+	if (rec == nullptr)
+		return false;
+	accelerator.accel.cmd = rec->Register("command_id", (void*)id);
+	if (!accelerator.accel.cmd)
+	{
+		ReaDebug() << "Could not register ID for DrivenByMoss " << errorMsg <<  " action.";
+		return false;
+	}
+	if (!rec->Register("gaccel", &accelerator))
+	{
+		ReaDebug() << "Could not register DrivenByMoss " << errorMsg << ".";
+		return false;
+	}
+	return true;
+}
+
+
 // Must be extern to be exported from the DLL
 extern "C"
 {
@@ -1052,11 +1078,7 @@ extern "C"
 
 		// On shutdown
 		if (rec == nullptr)
-		{
-			if (jvmManager)
-				jvmManager.reset();
 			return 0;
-		}
 
 		// On startup...
 
@@ -1079,57 +1101,17 @@ extern "C"
 			return 0;
 		}
 
+		// Register the shutdown callback
+		plugin_register("atexit", (void*)OnExit);
+
 		// Register project notifications
 		rec->Register("projectconfig", &pcreg);
 
 		// Register actions
-		openDBMConfigureWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_WINDOW_ACTION");
-		if (!openDBMConfigureWindowAccel.accel.cmd)
-		{
-			ReaDebug() << "Could not register ID for DrivenByMoss open configuration window action.";
-			return 0;
-		}
-		if (!rec->Register("gaccel", &openDBMConfigureWindowAccel))
-		{
-			ReaDebug() << "Could not register DrivenByMoss open window action.";
-			return 0;
-		}
-
-		openDBMProjectWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_PROJECT_WINDOW_ACTION");
-		if (!openDBMProjectWindowAccel.accel.cmd)
-		{
-			ReaDebug() << "Could not register ID for DrivenByMoss open project window action.";
-			return 0;
-		}
-		if (!rec->Register("gaccel", &openDBMProjectWindowAccel))
-		{
-			ReaDebug() << "Could not register DrivenByMoss open project window action.";
-			return 0;
-		}
-
-		openDBMParameterWindowAccel.accel.cmd = rec->Register("command_id", (void*)"DBM_OPEN_PARAMETER_WINDOW_ACTION");
-		if (!openDBMParameterWindowAccel.accel.cmd)
-		{
-			ReaDebug() << "Could not register ID for DrivenByMoss open parameter mapping window action.";
-			return 0;
-		}
-		if (!rec->Register("gaccel", &openDBMParameterWindowAccel))
-		{
-			ReaDebug() << "Could not register DrivenByMoss open parameter window action.";
-			return 0;
-		}
-
-		restartControllersAccel.accel.cmd = rec->Register("command_id", (void*)"RESTART_CONTROLLERS_ACTION");
-		if (!restartControllersAccel.accel.cmd)
-		{
-			ReaDebug() << "Could not register ID for DrivenByMoss restart controllers action.";
-			return 0;
-		}
-		if (!rec->Register("gaccel", &restartControllersAccel))
-		{
-			ReaDebug() << "Could not register DrivenByMoss restart controllers action.";
-			return 0;
-		}
+		RegisterAccelerator(openDBMConfigureWindowAccel, rec, "DBM_OPEN_WINDOW_ACTION", "open configuration window");
+		RegisterAccelerator(openDBMProjectWindowAccel, rec, "DBM_OPEN_PROJECT_WINDOW_ACTION", "open project window");
+		RegisterAccelerator(openDBMParameterWindowAccel, rec, "DBM_OPEN_PARAMETER_WINDOW_ACTION", "parameter mapping window");
+		RegisterAccelerator(restartControllersAccel, rec, "RESTART_CONTROLLERS_ACTION", "restart controllers");
 
 		if (!rec->Register("hookcommand", (void*)HookCommandProc))
 		{

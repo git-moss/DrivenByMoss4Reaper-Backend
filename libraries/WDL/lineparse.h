@@ -165,14 +165,14 @@ class LineParserInt // version which does not have any temporary space for buffe
     int WDL_LINEPARSE_PREFIX gettoken_int(int token) const
     { 
       const char *tok = gettoken_str(token);
-      return tok[0] == '-' ? (int)strtol(tok,NULL,10) : (int)strtoul(tok, NULL, strnicmp(tok,"0x",2) ? 10 : 16);
+      return tok[0] == '-' ? (int)strtol(tok,NULL,10) : (int)strtoul(tok, NULL, _strnicmp(tok,"0x",2) ? 10 : 16);
     }
 
     unsigned int WDL_LINEPARSE_PREFIX gettoken_uint(int token) const // deprecated
     { 
       const char *tok = gettoken_str(token);
       if (WDL_NOT_NORMALLY(tok[0] == '-')) tok++; // legacy behavior, yuck
-      return (unsigned int) (int) strtoul(tok, NULL, strnicmp(tok,"0x",2) ? 10 : 16);
+      return (unsigned int) (int) strtoul(tok, NULL, _strnicmp(tok,"0x",2) ? 10 : 16);
     }
 
     const char * WDL_LINEPARSE_PREFIX gettoken_str(int token) const
@@ -203,7 +203,7 @@ class LineParserInt // version which does not have any temporary space for buffe
       const char *tt=gettoken_str(token);
       if (*tt) while (*strlist)
       {
-        if (!stricmp(tt,strlist)) return x;
+        if (!_stricmp(tt,strlist)) return x;
         while (*strlist) strlist++;
         strlist++;
         x++;

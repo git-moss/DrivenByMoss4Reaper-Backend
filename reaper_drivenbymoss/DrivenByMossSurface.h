@@ -43,6 +43,8 @@ public:
 	DrivenByMossSurface& operator=(DrivenByMossSurface&&) = delete;
 	~DrivenByMossSurface();
 
+	void Shutdown();
+
 #ifdef _WIN32
 	// Prevents warning that the class is not 64 bit aligned
 	void* operator new(size_t i) noexcept

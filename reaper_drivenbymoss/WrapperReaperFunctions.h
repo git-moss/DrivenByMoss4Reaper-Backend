@@ -10,6 +10,7 @@
 #pragma warning ( disable : ALL_CODE_ANALYSIS_WARNINGS )
 #endif
 
+#include <wdltypes.h>
 #include "reaper_plugin_functions.h"
 #undef max
 #undef min

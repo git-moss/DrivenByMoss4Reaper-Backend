@@ -24,6 +24,17 @@ DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManage
  */
 DrivenByMossSurface::~DrivenByMossSurface()
 {
+	if (jvmManager)
+		jvmManager.reset();
+
+	// Null global variables
+	ReaDebug::setModel(nullptr);
+	surfaceInstance = nullptr;
+}
+
+
+void DrivenByMossSurface::Shutdown()
+{
 	this->isShutdown = true;
 
 	try
@@ -34,18 +45,10 @@ DrivenByMossSurface::~DrivenByMossSurface()
 
 		this->SendMIDIEventsToOutputs();
 	}
-	catch (const std::exception& ex)
-	{
-		ReaDebug() << "Could not update device: " << ex.what();
-	}
 	catch (...)
 	{
 		ReaDebug() << "Could not update device.";
 	}
-
-	// Null global variables
-	ReaDebug::setModel(nullptr);
-	surfaceInstance = nullptr;
 }
 
 
@@ -255,7 +258,7 @@ void DrivenByMossSurface::HandleShortMidi(uint32_t deviceId, uint8_t status, uin
 	if (midiout == nullptr)
 		return;
 
-	MIDI_event_t event;
+	MIDI_event_t event{};
 	event.frame_offset = 0;
 	event.size = 3;
 	event.midi_message[0] = status;
@@ -275,7 +278,10 @@ void DrivenByMossSurface::HandleSysex(uint32_t deviceId, const uint8_t* data, ui
 	// Subtract 4 because MIDI_event_t already includes the first 4 bytes
 	size_t eventSize = sizeof(MIDI_event_t);
 	if (size > 4)
-		eventSize += (size - 4);
+	{
+		eventSize += size;
+		eventSize -= 4;
+	}
 
 	std::vector<std::uint8_t> buffer(eventSize);
 	// Cannot avoid this
