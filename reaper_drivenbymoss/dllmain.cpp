@@ -504,7 +504,7 @@ static std::vector<unsigned char> ParseHexFilter(const std::string& hexStr)
  */
 static void SetFiltersCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jobjectArray filters)
 {
-	if (env == nullptr || noteInputIndex < 0 || noteInputIndex >= MAX_NOTE_INPUTS)
+	if (env == nullptr || noteInputIndex < 0 || noteInputIndex >= static_cast<int>(MAX_NOTE_INPUTS))
 		return;
 
 	const jsize count = env->GetArrayLength(filters);
@@ -569,7 +569,7 @@ inline static bool CopyJIntArray128(JNIEnv* env, jintArray arr, std::array<int, 
  */
 static void SetKeyTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jintArray table)
 {
-	if (env == nullptr || table == nullptr || noteInputIndex < 0 || noteInputIndex >= MAX_NOTE_INPUTS)
+	if (env == nullptr || table == nullptr || noteInputIndex < 0 || noteInputIndex >= static_cast<int>(MAX_NOTE_INPUTS))
 		return;
 
 	const jsize len = env->GetArrayLength(table);
@@ -606,7 +606,7 @@ static void SetKeyTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID
  */
 static void SetVelocityTranslationTableCPP(JNIEnv* env, jobject object, jint deviceID, jint noteInputIndex, jintArray table)
 {
-	if (env == nullptr || table == nullptr || noteInputIndex < 0 || noteInputIndex >= MAX_NOTE_INPUTS)
+	if (env == nullptr || table == nullptr || noteInputIndex < 0 || noteInputIndex >= static_cast<int>(MAX_NOTE_INPUTS))
 		return;
 
 	const jsize len = env->GetArrayLength(table);
@@ -926,7 +926,7 @@ inline static bool ProcessMidiEvents(const DeviceNoteData& deviceData, MIDI_even
 	const int statusType = status & 0xF0;
 	const bool isNote = statusType == 0x90 || statusType == 0x80 || statusType == 0xA0;
 
-	for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
+	for (size_t noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
 	{
 		// Note: to be 100% correct this would require the creation of a new MIDI event since
 		// theoretically multiple note inputs could be present and events could be modified differently

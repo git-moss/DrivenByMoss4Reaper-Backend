@@ -72,7 +72,7 @@ struct DeviceNoteData
         DISABLE_WARNING_USE_GSL_AT
         DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
 
-        for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
+        for (size_t noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
         {
             const auto& noteData = noteInputs[noteIdx];
             for (int i = 0; i < 128; ++i)
@@ -88,7 +88,7 @@ struct DeviceNoteData
         DISABLE_WARNING_USE_GSL_AT
         DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
 
-        for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
+        for (size_t noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
         {
             const auto& noteData = noteInputs[noteIdx];
             for (int i = 0; i < 128; ++i)
@@ -104,7 +104,7 @@ struct DeviceNoteData
         DISABLE_WARNING_USE_GSL_AT
         DISABLE_WARNING_ACCESS_ARRAYS_WITH_CONST
 
-        for (int noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
+        for (size_t noteIdx = 0; noteIdx < MAX_NOTE_INPUTS; ++noteIdx)
         {
             const auto& noteData = noteInputs[noteIdx];
             for (const auto& filter : noteData.filters)
@@ -112,7 +112,7 @@ struct DeviceNoteData
                 if (filter.size() == 1)
                 {
                     auto& array = this->filterMatch[noteIdx][filter[0]];
-                    for ( int i = 0; i < array.size(); i++)
+                    for (size_t i = 0; i < array.size(); i++)
                         array[i] = true;
                 }
                 else if (filter.size() == 2)

@@ -42,6 +42,13 @@
 #define WDL_LINEPARSER_HAS_LINEPARSERINT
 #endif
 
+#ifndef _stricmp
+#define _stricmp stricmp
+#endif
+#ifndef _strnicmp
+#define _strnicmp strnicmp
+#endif
+
 #ifndef WDL_LINEPARSE_IMPL_ONLY
 class LineParserInt // version which does not have any temporary space for buffers (requires use of parseDestroyBuffer)
 {
