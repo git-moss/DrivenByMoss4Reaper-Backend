@@ -24,8 +24,12 @@ DrivenByMossSurface::DrivenByMossSurface(std::unique_ptr<JvmManager>& aJvmManage
  */
 DrivenByMossSurface::~DrivenByMossSurface()
 {
-	if (jvmManager)
-		jvmManager.reset();
+	// Do not destroy the JVM if this is not a real shutdown (= when triggered from closing the configuration dialog)
+	if (this->isShutdown)
+	{
+		if (jvmManager)
+			jvmManager.reset();
+	}
 
 	// Null global variables
 	ReaDebug::setModel(nullptr);

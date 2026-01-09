@@ -104,7 +104,7 @@ public:
 	{
 		if (len == 0 || len > kSyx1k_Max)
 			return;
-		
+
 		std::unique_ptr<MidiSyx1k> m = std::make_unique<MidiSyx1k>();
 		m->deviceId = dev;
 		m->size = len;
@@ -119,7 +119,7 @@ public:
 	{
 		if (len == 0 || len > kSyx64k_Max)
 			return;
-		
+
 		std::unique_ptr<MidiSyx64k> m = std::make_unique<MidiSyx64k>();
 		m->deviceId = dev;
 		m->size = len;
