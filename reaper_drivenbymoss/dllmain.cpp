@@ -298,11 +298,6 @@ static jobject GetMidiInputsCPP(JNIEnv* env, jobject object)
 	const int numMidiInputs = GetNumMIDIInputs();
 	for (int deviceID = 0; deviceID < numMidiInputs; deviceID++)
 	{
-		// Only add MIDI inputs which are open
-		const midi_Input* midiin = GetMidiInput(deviceID);
-		if (!midiin)
-			continue;
-
 		char buf[512];
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
 		if (GetMIDIInputNameNoAlias(deviceID, buf, sizeof(buf)))
@@ -329,11 +324,6 @@ static jobject GetMidiOutputsCPP(JNIEnv* env, jobject object)
 	const int numMidiOutputs = GetNumMIDIOutputs();
 	for (int deviceID = 0; deviceID < numMidiOutputs; deviceID++)
 	{
-		// Only add MIDI inputs which are open
-		const midi_Output* midiout = GetMidiOutput(deviceID);
-		if (!midiout)
-			continue;
-
 		char buf[512];
 		DISABLE_WARNING_ARRAY_POINTER_DECAY
 		if (GetMIDIOutputNameNoAlias(deviceID, buf, sizeof(buf)))
