@@ -156,6 +156,19 @@ public:
 			{
 				GetSet_LoopTimeRange(true, true, &startOut, &adjusted, false);
 			}
+			return;
+		}
+
+		if (std::strcmp(cmd, "signature") == 0)
+		{
+			const int sig = static_cast<int> (value);
+			const int numerator = sig % 100;
+			const int denumerator = sig / 100;
+
+			const double cursorPos = ReaperUtils::GetCursorPosition(project);
+			SetTempoTimeSigMarker(project, -1, cursorPos, -1, -1.0, -1, numerator, denumerator, false);
+
+			return;
 		}
 	};
 
